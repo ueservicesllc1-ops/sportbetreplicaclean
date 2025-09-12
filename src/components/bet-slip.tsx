@@ -6,14 +6,72 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Separator } from './ui/separator';
-import { Trash2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export function BetSlip() {
   const { bets, removeBet, clearBets } = useBetSlip();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [stake, setStake] = useState<number | ''>('');
+  const [loading, setLoading] = useState(false);
 
   const totalOdds = bets.reduce((acc, bet) => acc * bet.odd, 1);
   const potentialWinnings = stake !== '' && stake > 0 ? (totalOdds * stake).toFixed(2) : '0.00';
+
+  const handlePlaceBet = async () => {
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Debes iniciar sesión',
+            description: 'Por favor, accede a tu cuenta para realizar una apuesta.',
+        });
+        return;
+    }
+    if (!stake || stake <= 0) {
+        toast({
+            variant: 'destructive',
+            title: 'Monto inválido',
+            description: 'Por favor, introduce un monto para apostar.',
+        });
+        return;
+    }
+
+    setLoading(true);
+    try {
+        await addDoc(collection(db, 'user_bets'), {
+            userId: user.uid,
+            bets: bets.map(b => ({ event: b.event, selection: b.selection, odd: b.odd, market: b.market })),
+            stake: stake,
+            totalOdds: totalOdds,
+            potentialWinnings: parseFloat(potentialWinnings),
+            status: 'pending',
+            createdAt: serverTimestamp(),
+        });
+        
+        toast({
+            title: '¡Apuesta realizada!',
+            description: 'Tu apuesta ha sido guardada con éxito.',
+        });
+
+        clearBets();
+        setStake('');
+
+    } catch (error) {
+        console.error("Error placing bet: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error al apostar',
+            description: 'No se pudo guardar tu apuesta. Inténtalo de nuevo.',
+        });
+    } finally {
+        setLoading(false);
+    }
+  }
+
 
   return (
     <div className="flex h-full flex-col bg-card lg:rounded-lg lg:border">
@@ -74,7 +132,8 @@ export function BetSlip() {
               <span>Ganancia Potencial:</span>
               <span>${potentialWinnings}</span>
             </div>
-            <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handlePlaceBet} disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Realizar Apuesta
             </Button>
           </div>
