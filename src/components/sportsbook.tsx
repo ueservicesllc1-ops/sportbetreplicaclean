@@ -149,14 +149,29 @@ function SportSection({ sport }: { sport: SportData }) {
 
 
 function EventList({ events, isLive }: { events: ApiMatchEvent[], isLive: boolean }) {
+  const [showAll, setShowAll] = useState(false);
+  const initialLimit = 5;
+
   if (events.length === 0) {
     return <p className="text-center text-muted-foreground py-10">No hay eventos {isLive ? 'en vivo' : 'próximos'} disponibles.</p>
   }
+  
+  const displayedEvents = showAll ? events : events.slice(0, initialLimit);
+
   return (
     <div className="space-y-4">
-      {events.map((event) => (
+      {displayedEvents.map((event) => (
         <EventCard key={event.id} event={event} isLive={isLive} />
       ))}
+      {events.length > initialLimit && !showAll && (
+        <Button 
+          variant="outline" 
+          className="w-full"
+          onClick={() => setShowAll(true)}
+        >
+          Ver más ({events.length - initialLimit})
+        </Button>
+      )}
     </div>
   );
 }
