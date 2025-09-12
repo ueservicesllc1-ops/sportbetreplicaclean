@@ -175,6 +175,12 @@ function EventCard({ event, isLive }: { event: ApiMatchEvent, isLive: boolean })
   }
   
   const hasOdds = homeOdd > 0 || awayOdd > 0 || drawOdd > 0;
+  
+  const eventDate = new Date(event.commence_time);
+  const formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formattedDate = eventDate.toLocaleDateString([], { day: '2-digit', month: 'short' });
+  const isToday = new Date().toDateString() === eventDate.toDateString();
+
 
   return (
     <Card className="bg-card">
@@ -183,7 +189,7 @@ function EventCard({ event, isLive }: { event: ApiMatchEvent, isLive: boolean })
           {event.home_team} vs {event.away_team}
         </p>
         <Badge variant={isLive ? 'destructive' : 'secondary'}>
-          {isLive ? 'En Vivo' : new Date(event.commence_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {isLive ? 'En Vivo' : `${isToday ? '' : formattedDate + ' - '}${formattedTime}`}
         </Badge>
       </div>
       {hasOdds ? (
