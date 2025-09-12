@@ -5,6 +5,7 @@ import { SportsSidebar } from '@/components/sports-sidebar';
 import { Sportsbook } from '@/components/sportsbook';
 import { BetSlip } from '@/components/bet-slip';
 import { BetSlipProvider } from '@/contexts/bet-slip-context';
+import { Footer } from '@/components/layout/footer';
 
 export default function Home() {
   return (
