@@ -6,7 +6,7 @@ import {
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select"
-import { apiSports } from "@/lib/odds-api";
+import { apiSports } from "@/lib/sports-data";
   
 interface SportSelectorProps {
     value: string;

@@ -1,22 +1,13 @@
 'use server'
 
+import { sportsData } from "./sports-data";
+
 const API_KEY = process.env.THE_ODDS_API_KEY;
 const API_URL = 'https://api.the-odds-api.com/v4/sports';
 
 if (!API_KEY || API_KEY === 'YOUR_API_KEY') {
     console.warn('THE_ODDS_API_KEY is not set in .env file. Using placeholder data. Get a free key from https://the-odds-api.com/');
 }
-
-export const apiSports = [
-    { key: 'soccer_ecuador_liga_pro', title: 'Fútbol - Ecuador Liga Pro' },
-    { key: 'soccer_spain_la_liga', title: 'Fútbol - La Liga España' },
-    { key: 'soccer_england_premier_league', title: 'Fútbol - Premier League' },
-    { key: 'soccer_uefa_champs_league', title: 'Fútbol - Champions League' },
-    { key: 'basketball_nba', title: 'Baloncesto - NBA' },
-    { key: 'tennis_atp_wimbledon', title: 'Tenis - Wimbledon' },
-    { key: 'americanfootball_nfl', title: 'Fútbol Americano - NFL' },
-    { key: 'baseball_mlb', title: 'Béisbol - MLB' },
-];
 
 export async function getSportsOdds(sportKey: string) {
     if (!API_KEY || API_KEY === 'YOUR_API_KEY') {
