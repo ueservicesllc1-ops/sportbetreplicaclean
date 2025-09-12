@@ -9,7 +9,6 @@ import {
   query,
   where,
   onSnapshot,
-  orderBy,
   type Timestamp,
 } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -18,6 +17,15 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 
 interface BetSelection {
   event: string;
@@ -35,6 +43,17 @@ interface BetDoc {
   potentialWinnings: number;
   status: 'pending' | 'won' | 'lost';
   createdAt: Timestamp;
+}
+
+function BetStatusBadge({ status }: { status: BetDoc['status'] }) {
+    return (
+        <Badge
+            variant={status === 'pending' ? 'secondary' : status === 'won' ? 'default' : 'destructive'}
+            className={status === 'won' ? 'bg-green-600 text-white' : ''}
+        >
+            {status === 'pending' ? 'Pendiente' : status === 'won' ? 'Ganada' : 'Perdida'}
+        </Badge>
+    );
 }
 
 export default function MyBetsPage() {
@@ -93,7 +112,7 @@ export default function MyBetsPage() {
   
 
   return (
-    <div className="container mx-auto max-w-4xl py-8">
+    <div className="container mx-auto max-w-6xl py-8">
       <div className='flex items-center justify-between mb-8'>
         <h1 className="text-3xl font-bold tracking-tight">Mis Apuestas</h1>
          <Button asChild variant="outline">
@@ -107,19 +126,16 @@ export default function MyBetsPage() {
           <p className="text-sm text-muted-foreground mt-2">¡Dirígete a la página principal para empezar!</p>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <>
+        {/* Mobile View */}
+        <div className="space-y-4 md:hidden">
           {bets.map((bet) => (
             <Card key={bet.id}>
               <CardHeader className="flex-row items-center justify-between">
-                <CardTitle className="text-lg">
-                  Apuesta del {new Date(bet.createdAt.seconds * 1000).toLocaleString()}
+                <CardTitle className="text-base">
+                  {new Date(bet.createdAt.seconds * 1000).toLocaleString()}
                 </CardTitle>
-                <Badge
-                    variant={bet.status === 'pending' ? 'secondary' : bet.status === 'won' ? 'default' : 'destructive'}
-                    className={bet.status === 'won' ? 'bg-green-600 text-white' : ''}
-                >
-                  {bet.status === 'pending' ? 'Pendiente' : bet.status === 'won' ? 'Ganada' : 'Perdida'}
-                </Badge>
+                <BetStatusBadge status={bet.status} />
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className='text-sm font-semibold'>Selecciones:</p>
@@ -153,6 +169,47 @@ export default function MyBetsPage() {
             </Card>
           ))}
         </div>
+
+        {/* Desktop View */}
+        <Card className='hidden md:block'>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className='w-[150px]'>Fecha</TableHead>
+                        <TableHead>Selecciones</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                        <TableHead className="text-right">Cuotas Totales</TableHead>
+                        <TableHead className="text-right">Ganancia Pot.</TableHead>
+                        <TableHead className="text-center">Estado</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {bets.map((bet) => (
+                        <TableRow key={bet.id}>
+                            <TableCell className="text-xs">{new Date(bet.createdAt.seconds * 1000).toLocaleString()}</TableCell>
+                            <TableCell>
+                                <ul className='space-y-1.5'>
+                                    {bet.bets.map((selection, index) => (
+                                        <li key={index} className="flex justify-between items-center text-sm">
+                                            <div>
+                                                <p className='font-medium'>{selection.selection}</p>
+                                                <p className='text-xs text-muted-foreground'>{selection.event}</p>
+                                            </div>
+                                            <span className="font-bold text-primary ml-4">{selection.odd.toFixed(2)}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </TableCell>
+                            <TableCell className="text-right font-medium">${bet.stake.toFixed(2)}</TableCell>
+                            <TableCell className="text-right font-medium">{bet.totalOdds.toFixed(2)}</TableCell>
+                            <TableCell className="text-right font-bold text-primary">${bet.potentialWinnings.toFixed(2)}</TableCell>
+                            <TableCell className="text-center"><BetStatusBadge status={bet.status} /></TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </Card>
+        </>
       )}
     </div>
   );
