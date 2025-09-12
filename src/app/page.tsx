@@ -15,15 +15,19 @@ export default function Home() {
         <MainNav />
         <main className="container mx-auto flex-grow px-2 py-4 md:px-4">
           <PromotionsCarousel />
-          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
+          <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
             <aside className="hidden lg:col-span-1 lg:block">
-              <SportsSidebar />
+              <div className="sticky top-20">
+                <SportsSidebar />
+              </div>
             </aside>
             <div className="col-span-1 lg:col-span-3">
               <Sportsbook />
             </div>
             <aside className="hidden lg:col-span-1 lg:block">
-              <BetSlip />
+              <div className="sticky top-20">
+                <BetSlip />
+              </div>
             </aside>
           </div>
         </main>
