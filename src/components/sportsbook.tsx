@@ -39,7 +39,7 @@ interface ApiMatchEvent {
   bookmakers: Bookmaker[];
 }
 
-const DEFAULT_SPORT_KEY = 'soccer_ecuador_serie_a';
+const DEFAULT_SPORT_KEY = 'soccer_south_america_copa_sudamericana';
 
 export function Sportsbook() {
   const [events, setEvents] = useState<ApiMatchEvent[]>([]);
