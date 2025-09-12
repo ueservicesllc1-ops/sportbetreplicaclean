@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Loader2 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { apiSports } from '@/lib/sports-data';
+import Link from 'next/link';
 
 interface Bookmaker {
   key: string;
@@ -227,9 +228,11 @@ function EventCard({ event, isLive }: { event: ApiMatchEvent, isLive: boolean })
   return (
     <Card className="bg-card">
        <div className="flex items-center justify-between p-3 border-b">
-        <p className="font-headline text-base font-medium">
-          {event.home_team} vs {event.away_team}
-        </p>
+         <Link href={`/match/${event.id}`} className="hover:text-primary transition-colors">
+            <p className="font-headline text-base font-medium">
+            {event.home_team} vs {event.away_team}
+            </p>
+        </Link>
         <Badge variant={isLive ? 'destructive' : 'secondary'}>
             {isLive ? 'En Vivo' : `${isToday ? '' : formattedDate + ' - '}${formattedTime}`}
         </Badge>
