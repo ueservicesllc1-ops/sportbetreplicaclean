@@ -106,9 +106,20 @@ function SportSection({ sport }: { sport: SportData }) {
     const hasEvents = sport.events.length > 0;
     const hasLiveEvents = liveEvents.length > 0;
     const hasUpcomingEvents = upcomingEvents.length > 0;
+    
+    // Quick mapping for anchor IDs
+    const sportAnchorId: { [key: string]: string } = {
+        'Fútbol': 'futbol',
+        'Tenis': 'tenis',
+        'Baloncesto': 'baloncesto',
+        'e-Sports': 'esports'
+    };
+    const titleKey = Object.keys(sportAnchorId).find(key => sport.title.includes(key));
+    const anchorId = titleKey ? sportAnchorId[titleKey] : '';
+
 
     return (
-        <Card>
+        <Card id={anchorId}>
             <CardHeader>
                 <CardTitle>{sport.title}</CardTitle>
             </CardHeader>
@@ -130,7 +141,7 @@ function SportSection({ sport }: { sport: SportData }) {
                 )}
                 
                 {!sport.error && hasEvents && (
-                     <Tabs defaultValue={hasUpcomingEvents ? "upcoming" : "live"} className='mt-4'>
+                     <Tabs defaultValue={hasUpcomingEvents ? "upcoming" : "live"} className='mt-4' id="en-vivo">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="live" disabled={!hasLiveEvents}>En Vivo</TabsTrigger>
                             <TabsTrigger value="upcoming" disabled={!hasUpcomingEvents}>Próximos</TabsTrigger>

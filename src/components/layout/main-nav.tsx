@@ -10,7 +10,7 @@ export function MainNav() {
         <ScrollArea className="whitespace-nowrap">
           <div className="flex items-center justify-center space-x-1 py-2">
             {mainNavSports.map((sport) => (
-              <Link href="#" key={sport.name} passHref>
+              <Link href={sport.href} key={sport.name} passHref>
                 <Button variant="ghost" className="flex h-auto items-center gap-2 p-3">
                   <sport.icon className="h-5 w-5 text-primary" />
                   <span className="text-sm font-medium">{sport.name}</span>

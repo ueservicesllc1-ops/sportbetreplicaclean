@@ -95,9 +95,9 @@ export const sportsData: Sport[] = [
 ];
 
 export const mainNavSports = [
-  { name: 'En Vivo', icon: Flame },
-  { name: 'Fútbol', icon: SoccerBallIcon },
-  { name: 'Tenis', icon: Trophy },
-  { name: 'e-Sports', icon: Gamepad2 },
-  { name: 'Casino', icon: Dices },
+  { name: 'En Vivo', icon: Flame, href: '/#en-vivo' },
+  { name: 'Fútbol', icon: SoccerBallIcon, href: '/#futbol' },
+  { name: 'Tenis', icon: Trophy, href: '/#tenis' },
+  { name: 'e-Sports', icon: Gamepad2, href: '/#esports' },
+  { name: 'Casino', icon: Dices, href: '/casino' },
 ];
