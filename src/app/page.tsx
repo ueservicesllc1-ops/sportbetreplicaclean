@@ -6,6 +6,7 @@ import { Sportsbook } from '@/components/sportsbook';
 import { BetSlip } from '@/components/bet-slip';
 import { BetSlipProvider } from '@/contexts/bet-slip-context';
 import { Footer } from '@/components/layout/footer';
+import { SecondaryNav } from '@/components/layout/secondary-nav';
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <MainNav />
+        <SecondaryNav />
         <main className="container mx-auto flex-grow px-2 py-4 md:px-4">
           <PromotionsCarousel />
           <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
