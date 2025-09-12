@@ -12,10 +12,9 @@ export function BasketballIcon(props: SVGProps<SVGSVGElement>) {
       {...props}
     >
       <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a5 5 0 0 0-5 5" />
-      <path d="M12 22a5 5 0 0 1-5-5" />
-      <path d="M22 12a5 5 0 0 0-5-5" />
-      <path d="M2 12a5 5 0 0 1 5-5" />
+      <path d="M7 7a5.8 5.8 0 0 1 10 0" />
+      <path d="M7 17a5.8 5.8 0 0 0 10 0" />
+      <path d="M12 2v20" />
     </svg>
   );
 }

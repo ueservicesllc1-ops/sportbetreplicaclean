@@ -11,9 +11,9 @@ export function MainNav() {
           <div className="flex items-center justify-center space-x-1 py-2">
             {mainNavSports.map((sport) => (
               <Link href="#" key={sport.name} passHref>
-                <Button variant="ghost" className="flex h-auto flex-col items-center gap-1 p-2">
-                  <sport.icon className="h-6 w-6 text-primary" />
-                  <span className="text-xs font-medium">{sport.name}</span>
+                <Button variant="ghost" className="flex h-auto items-center gap-2 p-3">
+                  <sport.icon className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">{sport.name}</span>
                 </Button>
               </Link>
             ))}

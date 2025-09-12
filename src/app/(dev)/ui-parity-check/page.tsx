@@ -47,7 +47,7 @@ export default function UiParityCheckPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='font-headline'>UI Parity Check</CardTitle>
+        <CardTitle>UI Parity Check</CardTitle>
         <CardDescription>
           Sube una captura de pantalla del sitio original y una de la réplica para obtener sugerencias de mejora de la IA.
         </CardDescription>
@@ -83,7 +83,7 @@ export default function UiParityCheckPage() {
         {suggestions && (
             <Card className='bg-secondary'>
                 <CardHeader>
-                    <CardTitle className='font-headline text-lg'>Sugerencias de la IA</CardTitle>
+                    <CardTitle className='text-lg'>Sugerencias de la IA</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <pre className="whitespace-pre-wrap font-body text-sm">{suggestions}</pre>

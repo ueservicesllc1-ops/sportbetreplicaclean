@@ -17,10 +17,10 @@ export function BetSlip() {
 
   return (
     <div className="flex h-full flex-col bg-card lg:rounded-lg lg:border">
-      <div className="border-b p-2">
-        <h2 className="p-2 font-headline text-lg font-semibold tracking-tight">Boleto de Apuesta</h2>
-      </div>
-      <div className="flex-grow overflow-y-auto p-4">
+      <CardHeader className="border-b p-4">
+        <CardTitle>Boleto de Apuesta</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-grow overflow-y-auto p-4">
         {bets.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground">
             Seleccione una apuesta para empezar.
@@ -50,10 +50,10 @@ export function BetSlip() {
             ))}
           </div>
         )}
-      </div>
+      </CardContent>
       {bets.length > 0 && (
-        <div className="mt-auto border-t p-4">
-           <Button variant="outline" size="sm" className="w-full mb-4" onClick={clearBets}>Limpiar todo</Button>
+        <CardFooter className="mt-auto flex-col items-stretch gap-2 border-t p-4">
+           <Button variant="outline" size="sm" className="w-full" onClick={clearBets}>Limpiar todo</Button>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Total de Cuotas:</span>
@@ -78,7 +78,7 @@ export function BetSlip() {
               Realizar Apuesta
             </Button>
           </div>
-        </div>
+        </CardFooter>
       )}
     </div>
   );
