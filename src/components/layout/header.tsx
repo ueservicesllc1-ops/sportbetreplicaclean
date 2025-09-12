@@ -12,10 +12,10 @@ import { useAuth } from '@/contexts/auth-context';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { AuthForm } from '@/components/auth/auth-form';
 import {
@@ -78,6 +78,9 @@ export function Header() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <Link href="/my-bets" passHref>
+                    <DropdownMenuItem>Mis Apuestas</DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
