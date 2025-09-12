@@ -185,7 +185,7 @@ export default function MyBetsPage() {
                 </TableHeader>
                 <TableBody>
                     {bets.map((bet) => (
-                        <TableRow key={bet.id}>
+                        <TableRow key={bet.id} className="odd:bg-secondary/40">
                             <TableCell className="text-xs">{new Date(bet.createdAt.seconds * 1000).toLocaleString()}</TableCell>
                             <TableCell>
                                 <ul className='space-y-1.5'>
