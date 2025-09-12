@@ -51,8 +51,7 @@ export default function MyBetsPage() {
 
     const q = query(
       collection(db, 'user_bets'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -60,7 +59,9 @@ export default function MyBetsPage() {
       querySnapshot.forEach((doc) => {
         userBets.push({ id: doc.id, ...doc.data() } as BetDoc);
       });
-      setBets(userBets);
+      // Sort bets by creation date on the client side
+      const sortedBets = userBets.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+      setBets(sortedBets);
       setLoading(false);
     });
 
@@ -156,4 +157,3 @@ export default function MyBetsPage() {
     </div>
   );
 }
-
