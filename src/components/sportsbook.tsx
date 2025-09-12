@@ -39,7 +39,7 @@ interface ApiMatchEvent {
   bookmakers: Bookmaker[];
 }
 
-const DEFAULT_SPORT_KEY = 'soccer_spain_la_liga';
+const DEFAULT_SPORT_KEY = 'soccer_ecuador_serie_a';
 
 export function Sportsbook() {
   const [events, setEvents] = useState<ApiMatchEvent[]>([]);
@@ -55,9 +55,6 @@ export function Sportsbook() {
       try {
         setLoading(true);
         setError(null);
-        setEvents([]);
-        setLiveEvents([]);
-        setUpcomingEvents([]);
         const odds = await getSportsOdds(selectedSport);
         setEvents(odds);
         
@@ -70,6 +67,9 @@ export function Sportsbook() {
 
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+        setEvents([]);
+        setLiveEvents([]);
+        setUpcomingEvents([]);
       } finally {
         setLoading(false);
       }
@@ -95,7 +95,13 @@ export function Sportsbook() {
                 </Alert>
             </div>
         )}
-        {!loading && !error && (
+        {!loading && !error && events.length === 0 && (
+          <div className="py-10 text-center text-muted-foreground">
+            <p>No hay eventos o cuotas disponibles para esta selección en este momento.</p>
+            <p className="text-xs">Esto puede deberse a limitaciones del plan de la API.</p>
+          </div>
+        )}
+        {!loading && !error && events.length > 0 && (
             <Tabs defaultValue="upcoming" className='mt-4'>
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="live">En Vivo</TabsTrigger>
@@ -116,7 +122,7 @@ export function Sportsbook() {
 
 function EventList({ events, isLive }: { events: ApiMatchEvent[], isLive: boolean }) {
   if (events.length === 0) {
-    return <p className="text-center text-muted-foreground py-10">No hay eventos disponibles.</p>
+    return <p className="text-center text-muted-foreground py-10">No hay eventos {isLive ? 'en vivo' : 'próximos'} disponibles.</p>
   }
   return (
     <div className="space-y-4">
