@@ -1,12 +1,13 @@
 import {
   Flame,
-  Football,
-  Basketball,
-  Baseball,
   Gamepad2,
   type LucideIcon,
+  SoccerBall,
 } from 'lucide-react';
 import { TennisBallIcon } from '@/components/icons/tennis-ball-icon';
+import { BaseballIcon } from '@/components/icons/baseball-icon';
+import { BasketballIcon } from '@/components/icons/basketball-icon';
+import { FootballIcon } from '@/components/icons/football-icon';
 
 export interface Sport {
   name: string;
@@ -34,7 +35,7 @@ export interface MatchEvent {
 export const sportsData: Sport[] = [
   {
     name: 'Fútbol',
-    icon: Football,
+    icon: FootballIcon,
     leagues: [
       {
         name: 'Liga Pro Ecuador',
@@ -54,7 +55,7 @@ export const sportsData: Sport[] = [
   },
   {
     name: 'Baloncesto',
-    icon: Basketball,
+    icon: BasketballIcon,
     leagues: [
       {
         name: 'NBA',
@@ -79,7 +80,7 @@ export const sportsData: Sport[] = [
   },
     {
     name: 'Béisbol',
-    icon: Baseball,
+    icon: BaseballIcon,
     leagues: [
       {
         name: 'MLB',
@@ -105,9 +106,9 @@ export const sportsData: Sport[] = [
 
 export const mainNavSports = [
   { name: 'En Vivo', icon: Flame },
-  { name: 'Fútbol', icon: Football },
+  { name: 'Fútbol', icon: FootballIcon },
   { name: 'Tenis', icon: TennisBallIcon },
-  { name: 'Baloncesto', icon: Basketball },
-  { name: 'Béisbol', icon: Baseball },
+  { name: 'Baloncesto', icon: BasketballIcon },
+  { name: 'Béisbol', icon: BaseballIcon },
   { name: 'e-Sports', icon: Gamepad2 },
 ];
