@@ -3,6 +3,8 @@
 import {
   Card,
   CardContent,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from './ui/button';
@@ -13,7 +15,7 @@ import { getSportsOdds } from '@/lib/odds-api';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Loader2 } from 'lucide-react';
 import { Badge } from './ui/badge';
-import { SportSelector } from './sport-selector';
+import { apiSports } from '@/lib/sports-data';
 
 interface Bookmaker {
   key: string;
@@ -39,86 +41,112 @@ interface ApiMatchEvent {
   bookmakers: Bookmaker[];
 }
 
-const DEFAULT_SPORT_KEY = 'soccer_south_america_copa_sudamericana';
+interface SportData {
+    key: string;
+    title: string;
+    events: ApiMatchEvent[];
+    error: string | null;
+}
 
 export function Sportsbook() {
-  const [events, setEvents] = useState<ApiMatchEvent[]>([]);
+  const [sportsData, setSportsData] = useState<SportData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedSport, setSelectedSport] = useState(DEFAULT_SPORT_KEY);
-  
-  const [liveEvents, setLiveEvents] = useState<ApiMatchEvent[]>([]);
-  const [upcomingEvents, setUpcomingEvents] = useState<ApiMatchEvent[]>([]);
 
   useEffect(() => {
-    async function fetchOdds() {
-      try {
-        setLoading(true);
-        setError(null);
-        const odds = await getSportsOdds(selectedSport);
-        setEvents(odds);
-        
-        const now = new Date();
-        const live = odds.filter(e => new Date(e.commence_time) <= now);
-        const upcoming = odds.filter(e => new Date(e.commence_time) > now);
+    async function fetchAllOdds() {
+      setLoading(true);
+      const allSportsPromises = apiSports.map(async (sport) => {
+        try {
+          const odds = await getSportsOdds(sport.key);
+          return { key: sport.key, title: sport.title, events: odds, error: null };
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+          return { key: sport.key, title: sport.title, events: [], error: errorMessage };
+        }
+      });
 
-        setLiveEvents(live);
-        setUpcomingEvents(upcoming);
-
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-        setEvents([]);
-        setLiveEvents([]);
-        setUpcomingEvents([]);
-      } finally {
-        setLoading(false);
-      }
+      const results = await Promise.all(allSportsPromises);
+      setSportsData(results);
+      setLoading(false);
     }
-    fetchOdds();
-  }, [selectedSport]);
+    fetchAllOdds();
+  }, []);
 
+
+  if (loading) {
+    return (
+        <div className="flex justify-center items-center h-60">
+           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+       </div>
+   );
+  }
 
   return (
-    <Card>
-      <CardContent className="p-2 md:p-4">
-        <SportSelector value={selectedSport} onChange={setSelectedSport} />
-        {loading && (
-             <div className="flex justify-center items-center h-40">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        )}
-        {error && !loading && (
-             <div className="p-4">
-                <Alert variant="destructive">
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            </div>
-        )}
-        {!loading && !error && events.length === 0 && (
-          <div className="py-10 text-center text-muted-foreground">
-            <p>No hay eventos o cuotas disponibles para esta selección en este momento.</p>
-            <p className="text-xs">Esto puede deberse a limitaciones del plan de la API.</p>
-          </div>
-        )}
-        {!loading && !error && events.length > 0 && (
-            <Tabs defaultValue="upcoming" className='mt-4'>
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="live">En Vivo</TabsTrigger>
-                <TabsTrigger value="upcoming">Próximos</TabsTrigger>
-            </TabsList>
-            <TabsContent value="live" className="mt-4">
-                <EventList events={liveEvents} isLive={true} />
-            </TabsContent>
-            <TabsContent value="upcoming" className="mt-4">
-                <EventList events={upcomingEvents} isLive={false} />
-            </TabsContent>
-            </Tabs>
-        )}
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      {sportsData.map(sport => (
+        <SportSection key={sport.key} sport={sport} />
+      ))}
+    </div>
   );
 }
+
+function SportSection({ sport }: { sport: SportData }) {
+    const [liveEvents, setLiveEvents] = useState<ApiMatchEvent[]>([]);
+    const [upcomingEvents, setUpcomingEvents] = useState<ApiMatchEvent[]>([]);
+
+    useEffect(() => {
+        const now = new Date();
+        const live = sport.events.filter(e => new Date(e.commence_time) <= now);
+        const upcoming = sport.events.filter(e => new Date(e.commence_time) > now);
+        setLiveEvents(live);
+        setUpcomingEvents(upcoming);
+    }, [sport.events]);
+
+    const hasEvents = sport.events.length > 0;
+    const hasLiveEvents = liveEvents.length > 0;
+    const hasUpcomingEvents = upcomingEvents.length > 0;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>{sport.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-2 md:p-4">
+                {sport.error && (
+                    <div className="p-4">
+                        <Alert variant="destructive">
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{sport.error}</AlertDescription>
+                        </Alert>
+                    </div>
+                )}
+
+                {!sport.error && !hasEvents && (
+                    <div className="py-10 text-center text-muted-foreground">
+                        <p>No hay eventos o cuotas disponibles para este deporte en este momento.</p>
+                        <p className="text-xs">Esto puede deberse a limitaciones del plan de la API.</p>
+                    </div>
+                )}
+                
+                {!sport.error && hasEvents && (
+                     <Tabs defaultValue={hasUpcomingEvents ? "upcoming" : "live"} className='mt-4'>
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="live" disabled={!hasLiveEvents}>En Vivo</TabsTrigger>
+                            <TabsTrigger value="upcoming" disabled={!hasUpcomingEvents}>Próximos</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="live" className="mt-4">
+                            <EventList events={liveEvents} isLive={true} />
+                        </TabsContent>
+                        <TabsContent value="upcoming" className="mt-4">
+                            <EventList events={upcomingEvents} isLive={false} />
+                        </TabsContent>
+                    </Tabs>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
 
 function EventList({ events, isLive }: { events: ApiMatchEvent[], isLive: boolean }) {
   if (events.length === 0) {
@@ -136,7 +164,6 @@ function EventList({ events, isLive }: { events: ApiMatchEvent[], isLive: boolea
 function EventCard({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) {
   const { addBet, bets } = useBetSlip();
 
-  // Find the first bookmaker with h2h odds
   const bookmaker = event.bookmakers?.find(b => b.markets.some(m => m.key === 'h2h'));
   const h2hMarket = bookmaker?.markets.find(m => m.key === 'h2h');
 
