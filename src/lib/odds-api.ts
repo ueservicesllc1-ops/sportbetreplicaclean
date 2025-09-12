@@ -1,7 +1,5 @@
 'use server'
 
-import { sportsData } from "./sports-data";
-
 const API_KEY = process.env.THE_ODDS_API_KEY;
 const API_URL = 'https://api.the-odds-api.com/v4/sports';
 
@@ -36,7 +34,7 @@ export async function getSportsOdds(sportKey: string) {
     return data;
   } catch (error) {
     console.error('Failed to fetch sports odds:', error);
-    if (error instanceof Error && error.message.startsWith('API error:')) {
+    if (error instanceof Error && error.message.startsWith('Error de API:')) {
         throw error;
     }
     throw new Error('No se pudieron obtener los datos de The Odds API.');
