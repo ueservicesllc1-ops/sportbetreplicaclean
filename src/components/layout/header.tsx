@@ -12,6 +12,9 @@ import { useAuth } from '@/contexts/auth-context';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { AuthForm } from '@/components/auth/auth-form';
@@ -94,6 +97,12 @@ export function Header() {
                   </DialogTrigger>
                 </div>
                 <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Autenticación</DialogTitle>
+                    <DialogDescription>
+                      Accede o crea una cuenta para empezar a apostar.
+                    </DialogDescription>
+                  </DialogHeader>
                   <AuthForm />
                 </DialogContent>
               </Dialog>

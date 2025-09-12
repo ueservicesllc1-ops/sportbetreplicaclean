@@ -24,10 +24,7 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
 import { Loader2 } from 'lucide-react';
@@ -92,8 +89,6 @@ export function AuthForm() {
       </TabsList>
       <TabsContent value="signin">
         <AuthCard
-          title="Acceder"
-          description="Introduce tus datos para iniciar sesión."
           buttonText="Acceder"
           form={form}
           onSubmit={onSubmit}
@@ -103,8 +98,6 @@ export function AuthForm() {
       </TabsContent>
       <TabsContent value="signup">
         <AuthCard
-          title="Crear una cuenta"
-          description="Introduce tus datos para registrarte."
           buttonText="Registrarse"
           form={form}
           onSubmit={onSubmit}
@@ -117,8 +110,6 @@ export function AuthForm() {
 }
 
 interface AuthCardProps {
-  title: string;
-  description: string;
   buttonText: string;
   form: any;
   onSubmit: (values: AuthFormValues) => void;
@@ -127,8 +118,6 @@ interface AuthCardProps {
 }
 
 function AuthCard({
-  title,
-  description,
   buttonText,
   form,
   onSubmit,
@@ -137,13 +126,9 @@ function AuthCard({
 }: AuthCardProps) {
   return (
     <Card className="border-0 shadow-none">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <FormField
               control={form.control}
               name="email"
