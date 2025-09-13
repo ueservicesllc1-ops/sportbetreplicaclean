@@ -202,7 +202,7 @@ export default function CasinoPage() {
                         )}>
                             {multiplier.toFixed(2)}x
                         </p>
-                        {gameState === 'crashed' && <p className="mt-2 animate-pulse text-xl font-bold text-destructive drop-shadow-lg">&nbsp;</p>}
+                        {gameState === 'crashed' && <p className="mt-2 animate-pulse text-xl font-bold text-destructive drop-shadow-lg">Motor Fundido</p>}
                         {gameState === 'cashout' && <p className="mt-2 text-lg font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
                     </div>
                     <RevolutionMeter multiplier={multiplier} gameState={gameState} />
