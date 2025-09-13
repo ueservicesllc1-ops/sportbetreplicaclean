@@ -15,8 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogTrigger,
 } from '@/components/ui/dialog';
-import { AuthForm } from '@/components/auth/auth-form';
 import {
   DropdownMenu,
   DropdownMenuContent,
