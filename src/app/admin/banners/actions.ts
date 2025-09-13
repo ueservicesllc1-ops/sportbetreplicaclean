@@ -7,22 +7,23 @@ import { collection, addDoc, serverTimestamp, deleteDoc, doc, getDoc } from 'fir
 import { revalidatePath } from 'next/cache';
 
 export async function addBanner(formData: FormData) {
-    const title = formData.get('title') as string;
-    const imageFile = formData.get('image') as File;
-
-    if (!title || title.trim().length === 0) {
-        return { success: false, message: 'El título es requerido.' };
-    }
-    if (!imageFile || imageFile.size === 0) {
-        return { success: false, message: 'La imagen es requerida.' };
-    }
-
-    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-    if (!bucketName) {
-        return { success: false, message: 'El bucket de almacenamiento no está configurado.' };
-    }
-
     try {
+        const title = formData.get('title') as string;
+        const imageFile = formData.get('image') as File;
+
+        if (!title || title.trim().length === 0) {
+            return { success: false, message: 'El título es requerido.' };
+        }
+        if (!imageFile || imageFile.size === 0) {
+            return { success: false, message: 'La imagen es requerida.' };
+        }
+
+        const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+        if (!bucketName) {
+            console.error('Firebase Storage bucket name is not configured.');
+            return { success: false, message: 'El bucket de almacenamiento no está configurado.' };
+        }
+
         const bucket = admin.storage().bucket(bucketName);
         const imagePath = `banners/${Date.now()}-${imageFile.name}`;
         const file = bucket.file(imagePath);
@@ -34,7 +35,6 @@ export async function addBanner(formData: FormData) {
         });
 
         await file.makePublic();
-
         const imageUrl = file.publicUrl();
 
         await addDoc(collection(db, 'banners'), {
@@ -76,9 +76,12 @@ export async function deleteBanner(bannerId: string) {
 
         // Delete from storage
         if(imagePath){
-            const bucket = admin.storage().bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
-            const file = bucket.file(imagePath);
-            await file.delete();
+             const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+            if (bucketName) {
+                const bucket = admin.storage().bucket(bucketName);
+                const file = bucket.file(imagePath);
+                await file.delete();
+            }
         }
         
         revalidatePath('/');
