@@ -123,6 +123,13 @@ export function Header() {
                         <Wallet className="h-5 w-5" />
                         <span className='relative z-10'><UserBalance /></span>
                     </Button>
+                  {isAdmin && (
+                    <Link href="/admin" passHref>
+                      <Button variant="ghost" size="icon" aria-label="Panel de Administración">
+                        <Shield className="h-5 w-5" />
+                      </Button>
+                    </Link>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="flex items-center gap-2">
@@ -143,17 +150,6 @@ export function Header() {
                             <span>Mis Apuestas</span>
                         </DropdownMenuItem>
                       </Link>
-                      {isAdmin && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <Link href="/admin" passHref>
-                              <DropdownMenuItem>
-                                  <Shield className="mr-2 h-4 w-4" />
-                                  <span>Administrador</span>
-                              </DropdownMenuItem>
-                          </Link>
-                        </>
-                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
                     </DropdownMenuContent>
