@@ -7,56 +7,44 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
-interface BannerData {
-    title: string;
-    imagePath: string;
-}
-
 function getPublicUrl(bucketName: string, filePath: string) {
     return `https://storage.googleapis.com/${bucketName}/${filePath}`;
 }
 
-export async function uploadFileToStorage(formData: FormData) {
-  const image = formData.get('image') as File | null;
-  if (!image) {
-    throw new Error('No se encontró ninguna imagen en la solicitud.');
-  }
-
-  const bucket = admin.storage().bucket();
-  const filePath = `user-documents/banners/${Date.now()}-${image.name}`;
-  const file = bucket.file(filePath);
-
-  const fileBuffer = Buffer.from(await image.arrayBuffer());
-
-  try {
-    await file.save(fileBuffer, {
-      metadata: { contentType: image.type },
-      public: true, // Make file public
-    });
-     return { filePath };
-  } catch (error) {
-    console.error('Error al subir el archivo a GCS:', error);
-    throw new Error('No se pudo subir el archivo a Storage.');
-  }
-}
-
-export async function addBanner(data: BannerData) {
-    if (!data.title || !data.imagePath) {
-        throw new Error('Título e imagen son requeridos.');
+export async function addBanner(formData: FormData) {
+    const title = formData.get('title') as string | null;
+    const image = formData.get('image') as File | null;
+    
+    if (!title || !image) {
+        return { success: false, message: 'Título e imagen son requeridos.' };
     }
 
+    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+    if (!bucketName) {
+         return { success: false, message: 'La configuración del bucket de almacenamiento no está definida.' };
+    }
+    
+    const bucket = admin.storage().bucket();
+    const filePath = `user-documents/banners/${Date.now()}-${image.name}`;
+    const file = bucket.file(filePath);
+    const fileBuffer = Buffer.from(await image.arrayBuffer());
+
     try {
-        const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-        if (!bucketName) {
-            throw new Error('La configuración del bucket de almacenamiento no está definida.');
-        }
+        // Upload image to GCS
+        await file.save(fileBuffer, {
+            metadata: { contentType: image.type },
+        });
+        
+        // Make file public to get public URL
+        await file.makePublic();
 
-        const imageUrl = getPublicUrl(bucketName, data.imagePath);
+        const imageUrl = getPublicUrl(bucketName, filePath);
 
+        // Save banner metadata to Firestore
         await addDoc(collection(db, 'banners'), {
-            title: data.title,
+            title: title,
             imageUrl: imageUrl,
-            imagePath: data.imagePath, // Keep track of the path for deletion
+            imagePath: filePath, // Keep track of the path for deletion
             createdAt: serverTimestamp(),
         });
         
@@ -67,7 +55,7 @@ export async function addBanner(data: BannerData) {
 
     } catch (error) {
         console.error('Error adding banner:', error);
-        throw new Error('No se pudo añadir el banner.');
+        return { success: false, message: 'No se pudo añadir el banner.' };
     }
 }
 
@@ -90,7 +78,7 @@ export async function deleteBanner(bannerId: string) {
 
         // Delete from storage
         if(imagePath){
-            const bucket = admin.storage().bucket();
+            const bucket = admin.storage().bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
             const file = bucket.file(imagePath);
             await file.delete();
         }

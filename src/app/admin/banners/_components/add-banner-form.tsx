@@ -17,7 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload } from 'lucide-react';
-import { addBanner, uploadFileToStorage } from '../actions';
+import { addBanner } from '../actions';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -62,18 +62,14 @@ export function AddBannerForm() {
 
     try {
       const formData = new FormData();
+      formData.append('title', values.title);
       formData.append('image', values.image);
 
-      const { filePath } = await uploadFileToStorage(formData);
+      const result = await addBanner(formData);
       
-      if (!filePath) {
-        throw new Error('La ruta del archivo no fue devuelta por el servidor.');
+      if (!result.success) {
+        throw new Error(result.message);
       }
-
-      await addBanner({
-        title: values.title,
-        imagePath: filePath,
-      });
 
       toast({
         title: '¡Banner añadido!',
@@ -81,6 +77,10 @@ export function AddBannerForm() {
       });
       form.reset();
       setPreview(null);
+      // Manually clear the file input value if needed
+      const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+      if(fileInput) fileInput.value = '';
+      
     } catch (err: any) {
       const errorMessage = err.message || 'No se pudo guardar el banner.';
       setError(errorMessage);
