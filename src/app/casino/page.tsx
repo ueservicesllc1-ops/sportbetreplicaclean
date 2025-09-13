@@ -8,21 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Gauge } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 type GameState = 'betting' | 'playing' | 'crashed' | 'cashout';
-
-const MAX_ANGLE = 135; // Corresponds to the end of the speedometer arc (from -135 to 135)
-function multiplierToAngle(multiplier: number): number {
-  if (multiplier <= 1) return -MAX_ANGLE;
-  // Use a logarithmic scale to make the needle move fast at the beginning and slow down for higher multipliers
-  const logMultiplier = Math.log10(multiplier);
-  // We'll map a log10 value of 0 (1x) to -135 deg and a log10 of 2 (100x) to 135 deg
-  const maxLog = 2.5; // Corresponds to ~316x
-  const angle = -MAX_ANGLE + (logMultiplier / maxLog) * (2 * MAX_ANGLE);
-  
-  return Math.min(angle, MAX_ANGLE);
-}
-
 
 // This is a client-side simulation. True multiplayer requires a server.
 export default function CasinoPage() {
@@ -103,7 +91,7 @@ export default function CasinoPage() {
   const getMultiplierColor = () => {
       if(gameState === 'crashed') return 'text-destructive';
       if(gameState === 'cashout') return 'text-blue-400';
-      if (multiplier < 2) return 'text-foreground';
+      if (multiplier < 2) return 'text-white';
       if (multiplier < 10) return 'text-green-400';
       return 'text-primary';
   }
@@ -119,67 +107,29 @@ export default function CasinoPage() {
         {/* Game Area */}
         <div className="lg:col-span-2">
           <Card className="relative aspect-[2/1] overflow-hidden">
-            <CardContent className="flex h-full flex-col items-center justify-center bg-black p-0 transition-all duration-300">
+             <Image 
+                src="/images/f1.jpg"
+                alt="F1 Cockpit"
+                fill
+                className="object-cover"
+                data-ai-hint="formula 1 cockpit"
+            />
+            <div className="absolute inset-0 bg-black/30" />
+            <CardContent className="relative flex h-full flex-col items-center justify-center p-4">
               {gameState === 'betting' && (
-                <div className="z-20 text-center">
-                  <p className="text-lg text-muted-foreground">La próxima carrera comienza en...</p>
-                  <p className="text-6xl font-bold">{countdown.toFixed(0)}s</p>
+                <div className="z-20 text-center text-white">
+                  <p className="text-lg text-neutral-300">La próxima carrera comienza en...</p>
+                  <p className="text-6xl font-bold drop-shadow-lg">{countdown.toFixed(0)}s</p>
                 </div>
               )}
               {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
-                 <div className='absolute inset-0 flex flex-col items-center justify-center'>
-                    <svg viewBox="0 0 200 120" className="h-full w-full">
-                         <defs>
-                            <pattern id="bgPattern" patternUnits="userSpaceOnUse" width="200" height="120">
-                                <image href="/images/f1.jpg" x="0" y="0" width="200" height="120" preserveAspectRatio="xMidYMid slice" />
-                            </pattern>
-                             <filter id="blur">
-                                <feGaussianBlur stdDeviation="1" />
-                            </filter>
-                        </defs>
-
-                        {/* Background Image */}
-                        <rect width="200" height="120" fill="url(#bgPattern)" filter="url(#blur)" />
-                        <rect width="200" height="120" fill="black" fillOpacity="0.6" />
-
-                        {/* Dial Background */}
-                        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="hsl(var(--border) / 0.5)" strokeWidth="10" strokeLinecap="round" />
-                        
-                        {/* Dial Foreground/Progress */}
-                        <path
-                            d="M 20 100 A 80 80 0 0 1 180 100"
-                            fill="none"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth="10"
-                            strokeLinecap="round"
-                            className="transition-all duration-200"
-                            style={{
-                                strokeDasharray: 251.2,
-                                strokeDashoffset: 251.2 * (1 - (multiplierToAngle(multiplier) + MAX_ANGLE) / (2 * MAX_ANGLE))
-                            }}
-                        />
-                        
-                        {/* Needle */}
-                        <g style={{ transformOrigin: '100px 100px', transform: `rotate(${multiplierToAngle(multiplier)}deg)`, transition: 'transform 50ms linear' }}>
-                            <path d="M 100 100 L 100 25" stroke="hsl(var(--foreground))" strokeWidth="2" strokeLinecap="round" />
-                            <circle cx="100" cy="100" r="4" fill="hsl(var(--foreground))" />
-                        </g>
-
-                         {/* Dial markings */}
-                         <text x="15" y="85" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10">1x</text>
-                         <text x="45" y="32" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10">2x</text>
-                         <text x="100" y="15" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10">5x</text>
-                         <text x="155" y="32" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10">10x</text>
-                         <text x="185" y="85" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10">50x+</text>
-                    </svg>
-                    <div className="absolute z-10 mt-[-40px] text-center" style={{top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
-                        <p className={cn("text-6xl md:text-8xl font-bold transition-colors", getMultiplierColor())}>
-                            {multiplier.toFixed(2)}x
-                        </p>
-                        {gameState === 'crashed' && <p className="mt-2 animate-pulse text-4xl font-bold text-destructive">¡CRASH!</p>}
-                        {gameState === 'cashout' && <p className="mt-2 text-2xl font-bold text-blue-400">GANANCIA: ${winnings.toFixed(2)}</p>}
-                    </div>
-                 </div>
+                 <div className="z-10 text-center">
+                    <p className={cn("text-8xl md:text-9xl font-bold transition-colors font-mono drop-shadow-2xl", getMultiplierColor())}>
+                        {multiplier.toFixed(2)}x
+                    </p>
+                    {gameState === 'crashed' && <p className="mt-2 animate-pulse text-5xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
+                    {gameState === 'cashout' && <p className="mt-2 text-3xl font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -256,5 +206,3 @@ export default function CasinoPage() {
     </div>
   );
 }
-
-    
