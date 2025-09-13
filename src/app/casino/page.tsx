@@ -23,6 +23,8 @@ export default function CasinoPage() {
   const history = useRef([2.34, 1.56, 1.02, 8.91, 3.45, 1.19, 4.01, 1.88, 2.76, 10.21, 1.00, 3.12]);
   const crashPoint = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const [pathLength, setPathLength] = useState(0);
   
   const p0 = { x: 0, y: 200 };
   const p1 = { x: 150, y: 200 };
@@ -42,6 +44,12 @@ export default function CasinoPage() {
     return Math.atan2(dy, dx) * (180 / Math.PI);
   };
   
+  useEffect(() => {
+    if (pathRef.current) {
+        setPathLength(pathRef.current.getTotalLength());
+    }
+  }, []);
+
   // Game loop management
   useEffect(() => {
     if (gameState === 'betting') {
@@ -92,9 +100,11 @@ export default function CasinoPage() {
     };
   }, [gameState]);
 
+  const progress = Math.min( (multiplier - 1) / ((crashPoint.current || multiplier) - 1), 1);
+  const strokeDashoffset = pathLength * (1 - progress);
+
+
   useEffect(() => {
-    const progress = Math.min( (multiplier - 1) / ((crashPoint.current || multiplier) - 1), 1);
-    
     let point, angle;
     if (progress < 0.5) {
       const t = progress * 2;
@@ -113,13 +123,12 @@ export default function CasinoPage() {
         setRocketPosition(point);
         setRocketRotation(angle);
     }
-  }, [multiplier, gameState]);
+  }, [multiplier, gameState, progress]);
 
 
   const handlePlaceBet = () => {
     // This is just for UI state change, in a real app this would register the bet
     // For this simulation, we assume the bet is placed when the game starts
-    // In this simulation, the user just needs to have a bet amount set.
     // In this simulation, the user just needs to have a bet amount set.
   };
 
@@ -165,7 +174,16 @@ export default function CasinoPage() {
                {/* Graph Area */}
                <div className="absolute bottom-0 left-0 h-full w-full">
                 <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none">
-                    <path d="M 0 200 Q 150 200 200 100 T 400 0" stroke="hsl(var(--primary))" fill="none" strokeWidth="4" />
+                    <path
+                        ref={pathRef}
+                        d="M 0 200 Q 150 200 200 100 T 400 0" 
+                        stroke="hsl(var(--primary))"
+                        fill="none" 
+                        strokeWidth="4"
+                        strokeDasharray={pathLength}
+                        strokeDashoffset={gameState === 'betting' ? pathLength : strokeDashoffset}
+                        className={gameState !== 'betting' ? 'transition-all duration-100 linear' : ''}
+                    />
                 </svg>
                  <Rocket 
                     className="absolute h-6 w-6 text-primary transition-all duration-100 linear"
@@ -250,5 +268,7 @@ export default function CasinoPage() {
       </Card>
     </div>
   );
+
+    
 
     
