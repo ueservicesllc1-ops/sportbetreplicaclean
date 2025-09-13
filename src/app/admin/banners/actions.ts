@@ -17,13 +17,13 @@ export async function addBanner(prevState: any, formData: FormData) {
         return { success: false, message: 'La imagen es requerida.' };
     }
 
-    try {
-        const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-        if (!bucketName) {
-            console.error('Firebase Storage bucket name is not configured.');
-            return { success: false, message: 'El bucket de almacenamiento no está configurado.' };
-        }
+    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+    if (!bucketName) {
+        console.error('Error: La variable de entorno NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET no está configurada.');
+        return { success: false, message: 'El bucket de almacenamiento no está configurado en el servidor.' };
+    }
 
+    try {
         const bucket = admin.storage().bucket(bucketName);
         const imagePath = `banners/${Date.now()}-${imageFile.name}`;
         const file = bucket.file(imagePath);
@@ -50,7 +50,7 @@ export async function addBanner(prevState: any, formData: FormData) {
         return { success: true, message: 'El banner ha sido añadido correctamente.' };
 
     } catch(error) {
-        console.error('Error adding banner: ', error);
+        console.error('Error al añadir el banner:', error);
         const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido.';
         return { success: false, message: `No se pudo añadir el banner: ${errorMessage}` };
     }
