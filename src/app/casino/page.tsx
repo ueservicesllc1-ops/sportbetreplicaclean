@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -105,18 +105,18 @@ export default function CasinoPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Game Area */}
-        <div className="lg:col-span-2">
+        <div className="relative lg:col-span-2">
            <Card 
-            className="relative aspect-[16/9] overflow-hidden"
+            className="relative -z-10 aspect-[16/9] overflow-hidden"
             style={{
               backgroundImage: `url('https://iili.io/KT1BDrb.jpg')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              transform: gameState !== 'betting' ? 'scale(1.3)' : 'scale(1)',
+              transform: gameState !== 'betting' ? 'scale(1.35)' : 'scale(1)',
               transition: 'transform 0.5s ease-in-out',
             }}
           >
-            <div className="absolute inset-0 bg-black/50" />
+            <div className="absolute inset-0 bg-black/40" />
             <CardContent className="relative flex h-full flex-col items-center justify-center p-4">
               {gameState === 'betting' && (
                 <div className="z-20 text-center text-white">
@@ -125,7 +125,7 @@ export default function CasinoPage() {
                 </div>
               )}
               {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
-                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform text-center" style={{ top: '52%', left: '50.5%'}}>
+                 <div className="absolute text-center" style={{ top: '52%', left: '50.5%', transform: 'translate(-50%, -50%)' }}>
                     <p className={cn(
                       "text-4xl md:text-5xl font-bold transition-colors font-mono drop-shadow-2xl", 
                       getMultiplierColor()
