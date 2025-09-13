@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 type GameState = 'betting' | 'playing' | 'crashed' | 'cashout';
 
@@ -108,7 +109,7 @@ export default function CasinoPage() {
            <Card 
             className="relative aspect-[16/9] overflow-hidden"
             style={{ 
-              backgroundImage: `url('/images/f1.jpg')`,
+              backgroundImage: `url('https://www.photo-pick.com/online/XcOMsWB7.link')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
