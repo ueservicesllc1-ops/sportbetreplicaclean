@@ -74,8 +74,17 @@ export function AddBannerForm() {
         });
 
         if(!uploadResponse.ok) {
-            const uploadErrorText = await uploadResponse.text();
-            throw new Error(`Error al subir a GCS: ${uploadErrorText}`);
+            // Attempt to get more detailed error from GCS XML response
+            const errorText = await uploadResponse.text();
+            console.error('GCS Upload Error:', errorText);
+            
+            // Extract a cleaner message from the XML if possible
+            const codeMatch = errorText.match(/<Code>(.*?)<\/Code>/);
+            const messageMatch = errorText.match(/<Message>(.*?)<\/Message>/);
+            if (codeMatch && messageMatch) {
+                 throw new Error(`Error de Storage: ${codeMatch[1]} - ${messageMatch[1]}. Revisa la configuración de CORS del bucket.`);
+            }
+            throw new Error(`Error al subir a GCS: ${uploadResponse.statusText}`);
         }
 
         // 3. Update banners collection in Firestore
