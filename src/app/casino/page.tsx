@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -108,13 +108,15 @@ export default function CasinoPage() {
         <div className="lg:col-span-2">
            <Card 
             className="relative aspect-[16/9] overflow-hidden"
-            style={{ 
+            style={{
               backgroundImage: `url('https://iili.io/KT19ecP.jpg')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+              transform: gameState !== 'betting' ? 'scale(1.1)' : 'scale(1)',
+              transition: 'transform 0.5s ease-in-out',
             }}
           >
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/50" />
             <CardContent className="relative flex h-full flex-col items-center justify-center p-4">
               {gameState === 'betting' && (
                 <div className="z-20 text-center text-white">
@@ -125,13 +127,13 @@ export default function CasinoPage() {
               {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform text-center" style={{ top: '52%', left: '50.5%'}}>
                     <p className={cn(
-                      "text-6xl md:text-7xl font-bold transition-colors font-mono drop-shadow-2xl", 
+                      "text-4xl md:text-5xl font-bold transition-colors font-mono drop-shadow-2xl", 
                       getMultiplierColor()
                     )}>
                         {multiplier.toFixed(2)}x
                     </p>
-                    {gameState === 'crashed' && <p className="mt-2 animate-pulse text-3xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
-                    {gameState === 'cashout' && <p className="mt-2 text-xl font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
+                    {gameState === 'crashed' && <p className="mt-2 animate-pulse text-xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
+                    {gameState === 'cashout' && <p className="mt-2 text-lg font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
                 </div>
               )}
             </CardContent>
