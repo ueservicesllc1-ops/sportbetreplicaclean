@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
-import { Menu, Ticket, User as UserIcon } from 'lucide-react';
+import { Menu, Ticket, User as UserIcon, Wallet } from 'lucide-react';
 import { SportsSidebar } from '../sports-sidebar';
 import { BetSlip } from '../bet-slip';
 import { useAuth } from '@/contexts/auth-context';
@@ -26,6 +26,35 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useEffect, useState } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+function UserBalance() {
+  const { user } = useAuth();
+  const [balance, setBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, 'users', user.uid);
+      const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+          setBalance(doc.data().balance);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  if (balance === null) return null;
+
+  return (
+    <span className="font-bold text-primary">
+      ${balance.toFixed(2)}
+    </span>
+  );
+}
+
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -68,22 +97,33 @@ export function Header() {
           </div>
           <div className="hidden items-center gap-2 md:flex">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <UserIcon className="h-5 w-5" />
-                     <span className='truncate max-w-28'>{user.email}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <Link href="/my-bets" passHref>
-                    <DropdownMenuItem>Mis Apuestas</DropdownMenuItem>
-                  </Link>
-                  <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                 <Button variant="ghost" asChild>
+                    <Link href="/wallet" className='flex items-center gap-2'>
+                        <Wallet className="h-5 w-5" />
+                        <UserBalance />
+                    </Link>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                      <UserIcon className="h-5 w-5" />
+                      <span className='truncate max-w-28'>{user.email}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                     <Link href="/wallet" passHref>
+                        <DropdownMenuItem>Billetera</DropdownMenuItem>
+                    </Link>
+                    <Link href="/my-bets" passHref>
+                      <DropdownMenuItem>Mis Apuestas</DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
               <Dialog>
                 <div className="flex items-center gap-2">

@@ -17,9 +17,10 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { AuthFormValues } from '@/components/auth/auth-form';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -45,10 +46,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const createUserWallet = async (user: User) => {
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+      await setDoc(userDocRef, {
+        email: user.email,
+        balance: 100, // Starting balance
+        createdAt: new Date(),
+      });
+    }
+  };
+
   const signUp = async (values: AuthFormValues) => {
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
-      toast({ title: '¡Registro exitoso!', description: 'Bienvenido.' });
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      await createUserWallet(userCredential.user);
+      toast({ title: '¡Registro exitoso!', description: 'Bienvenido. Te hemos dado $100 para empezar.' });
     } catch (error: any) {
       console.error('Error signing up:', error);
       toast({
@@ -78,7 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      await createUserWallet(userCredential.user);
       toast({ title: '¡Inicio de sesión exitoso!', description: 'Bienvenido.' });
     } catch (error: any) {
       console.error('Error signing in with Google:', error);

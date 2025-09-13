@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +11,7 @@ import { Loader2, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, runTransaction, serverTimestamp } from 'firebase/firestore';
 
 export function BetSlip() {
   const { bets, removeBet, clearBets } = useBetSlip();
@@ -41,31 +42,50 @@ export function BetSlip() {
     }
 
     setLoading(true);
+
     try {
-        await addDoc(collection(db, 'user_bets'), {
-            userId: user.uid,
-            bets: bets.map(b => ({ event: b.event, selection: b.selection, odd: b.odd, market: b.market })),
-            stake: stake,
-            totalOdds: totalOdds,
-            potentialWinnings: parseFloat(potentialWinnings),
-            status: 'pending',
-            createdAt: serverTimestamp(),
+        const userWalletRef = doc(db, 'users', user.uid);
+
+        await runTransaction(db, async (transaction) => {
+            const userWalletDoc = await transaction.get(userWalletRef);
+            if (!userWalletDoc.exists()) {
+                throw new Error("No se encontró tu billetera.");
+            }
+
+            const currentBalance = userWalletDoc.data().balance;
+            if (currentBalance < stake) {
+                throw new Error("Saldo insuficiente para realizar esta apuesta.");
+            }
+
+            const newBalance = currentBalance - stake;
+            transaction.update(userWalletRef, { balance: newBalance });
+
+            const newBetRef = doc(collection(db, 'user_bets'));
+            transaction.set(newBetRef, {
+                userId: user.uid,
+                bets: bets.map(b => ({ event: b.event, selection: b.selection, odd: b.odd, market: b.market })),
+                stake: stake,
+                totalOdds: totalOdds,
+                potentialWinnings: parseFloat(potentialWinnings),
+                status: 'pending',
+                createdAt: serverTimestamp(),
+            });
         });
         
         toast({
             title: '¡Apuesta realizada!',
-            description: 'Tu apuesta ha sido guardada con éxito.',
+            description: 'Tu apuesta ha sido guardada y el monto ha sido descontado de tu saldo.',
         });
 
         clearBets();
         setStake('');
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error placing bet: ", error);
         toast({
             variant: 'destructive',
             title: 'Error al apostar',
-            description: 'No se pudo guardar tu apuesta. Inténtalo de nuevo.',
+            description: error.message || 'No se pudo guardar tu apuesta. Inténtalo de nuevo.',
         });
     } finally {
         setLoading(false);
