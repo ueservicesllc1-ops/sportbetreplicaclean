@@ -3,24 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { addBanner } from '../actions';
-import { revalidatePath } from 'next/cache';
 
-export async function AddBannerForm() {
-
-  async function handleAddBanner(formData: FormData) {
-    'use server';
-    try {
-      await addBanner(formData);
-      revalidatePath('/admin/banners');
-    } catch (error) {
-      console.error(error);
-      // In a real app, you'd want to return this error to the user.
-      // For now, we log it to the server console.
-    }
-  }
-
+export function AddBannerForm() {
   return (
-    <form action={handleAddBanner} className="space-y-6">
+    <form action={addBanner} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="title">Título del Banner</Label>
         <Input

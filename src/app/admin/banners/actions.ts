@@ -52,6 +52,8 @@ export async function addBanner(formData: FormData) {
         
     } catch (error) {
         console.error('Error adding banner:', error);
+        // En una app real, podrías devolver un estado de error más detallado.
+        // Por ahora, lanzamos el error para que se pueda depurar en el servidor.
         throw new Error('No se pudo añadir el banner. Revisa la consola del servidor para más detalles.');
     }
 }
