@@ -176,7 +176,7 @@ export default function CasinoPage() {
         {/* Game Area */}
         <div className="relative lg:col-span-2">
             <Card className="relative aspect-[16/9] overflow-hidden">
-                <Image
+                 <Image
                     src="https://iili.io/KT1Ttt4.jpg"
                     alt="F1 Cockpit"
                     fill
@@ -186,7 +186,10 @@ export default function CasinoPage() {
                     )}
                     priority
                 />
-                <div className="absolute inset-0 flex h-full flex-col items-center justify-center p-4">
+                 {gameState === 'crashed' && (
+                  <div className="absolute inset-0 z-10 animate-pulse bg-red-600/70" />
+                )}
+                <div className="absolute inset-0 z-20 flex h-full flex-col items-center justify-center p-4">
                 {gameState === 'betting' && (
                     <div className="text-center" style={{ transform: 'translateY(-20%)' }}>
                     <p className="text-3xl font-semibold text-yellow-400 drop-shadow-lg">La próxima carrera comienza en...</p>
