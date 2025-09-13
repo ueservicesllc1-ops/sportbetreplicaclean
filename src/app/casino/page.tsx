@@ -104,9 +104,9 @@ export default function CasinoPage() {
         <h1 className="text-3xl font-bold tracking-tight">Speedrun</h1>
       </div>
 
-      <div className="relative grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 [transform:translateZ(0)]">
         {/* Game Area */}
-        <div className="relative z-10 lg:col-span-2">
+        <div className="relative lg:col-span-2">
            <Card 
             className="aspect-[16/9] overflow-hidden"
           >
@@ -148,7 +148,7 @@ export default function CasinoPage() {
         </div>
 
         {/* Control Panel */}
-        <div className="relative z-20">
+        <div className="relative">
           <Card>
             <CardContent className="p-4">
               <Tabs defaultValue="manual">
