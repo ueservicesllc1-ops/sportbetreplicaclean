@@ -1,11 +1,12 @@
+
 import Link from 'next/link';
 import { Logo } from '../logo';
 import { Separator } from '../ui/separator';
 
 const footerSections = {
-  'Sobre Nosotros': ['Quiénes somos', 'Juego Responsable', 'Términos y Condiciones'],
-  Ayuda: ['Contáctanos', 'Preguntas Frecuentes', 'Reglas de Apuestas'],
-  Social: ['Facebook', 'Twitter', 'Instagram'],
+  'Sobre Nosotros': [['Quiénes somos', '/quienes-somos'], ['Juego Responsable', '#'], ['Términos y Condiciones', '#']],
+  Ayuda: [['Contáctanos', '#'], ['Preguntas Frecuentes', '#'], ['Reglas de Apuestas', '#']],
+  Social: [['Facebook', '#'], ['Twitter', '#'], ['Instagram', '#']],
 };
 
 export function Footer() {
@@ -17,10 +18,10 @@ export function Footer() {
             <div key={title}>
               <h3 className="font-headline text-lg font-semibold">{title}</h3>
               <ul className="mt-4 space-y-2">
-                {links.map((link) => (
-                  <li key={link}>
-                    <Link href="#" className="text-sm text-muted-foreground hover:text-primary">
-                      {link}
+                {links.map(([label, href]) => (
+                  <li key={label}>
+                    <Link href={href} className="text-sm text-muted-foreground hover:text-primary">
+                      {label}
                     </Link>
                   </li>
                 ))}
