@@ -4,9 +4,6 @@
 import { useEffect, useRef, useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
-import {
-  FormDescription,
-} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldQuestion, Upload } from 'lucide-react';
@@ -41,22 +38,17 @@ export function KycForm() {
   const formRef = useRef<HTMLFormElement>(null);
 
    useEffect(() => {
-    if (state.message) {
-      if (state.success) {
-        toast({
-          title: '¡Documentos enviados!',
-          description: state.message,
-        });
-        formRef.current?.reset();
-        setPreview(null);
-        // The parent component will re-render and show the 'pending' status due to revalidation
-      } else {
-        toast({
-            variant: 'destructive',
-            title: 'Error al enviar',
-            description: state.message,
-        });
-      }
+    if (!state.message) return;
+
+    if (state.success) {
+      toast({
+        title: '¡Documentos enviados!',
+        description: state.message,
+      });
+      formRef.current?.reset();
+      setPreview(null);
+    } else {
+      // The error is now shown in an Alert, but you can toast it too if you want.
     }
   }, [state, toast]);
 
@@ -83,7 +75,6 @@ export function KycForm() {
       </Alert>
 
       <form ref={formRef} action={formAction} className="space-y-6">
-        {/* Pass user ID to the server action */}
         <input type="hidden" name="uid" value={user?.uid} />
         
         <div className="space-y-2">
@@ -118,9 +109,6 @@ export function KycForm() {
                     </div>
                 )}
             </div>
-            <FormDescription className="text-xs px-1">
-                Asegúrate de que la imagen sea clara y legible.
-            </FormDescription>
         </div>
         
         {state.message && !state.success && (
