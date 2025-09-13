@@ -28,12 +28,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'www.photo-pick.com',
-        port: '',
-        pathname: '/**',
-      },
     ],
   },
 };

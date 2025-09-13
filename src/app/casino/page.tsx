@@ -109,7 +109,7 @@ export default function CasinoPage() {
            <Card 
             className="relative aspect-[16/9] overflow-hidden"
             style={{ 
-              backgroundImage: `url('https://www.photo-pick.com/online/XcOMsWB7.link')`,
+              backgroundImage: `url('https://picsum.photos/seed/casino/1200/675')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
