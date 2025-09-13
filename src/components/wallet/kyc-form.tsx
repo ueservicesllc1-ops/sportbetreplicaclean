@@ -1,54 +1,68 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useEffect, useRef, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
   FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldQuestion, Upload } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { getSignedUploadUrl, updateUserVerification } from '@/app/wallet/actions';
+import { updateUserVerification } from '@/app/wallet/actions';
 import Image from 'next/image';
+import { Label } from '../ui/label';
+import { useAuth } from '@/contexts/auth-context';
 
-const kycSchema = z.object({
-  realName: z.string().min(3, { message: 'Por favor, introduce tu nombre completo.' }),
-  idNumber: z.string().min(5, { message: 'Por favor, introduce un número de ID válido.' }),
-  idPhoto: z.any().refine(file => file instanceof File, 'Por favor, sube una imagen.'),
-});
 
-type KycFormValues = z.infer<typeof kycSchema>;
+const initialState = {
+  success: false,
+  message: '',
+};
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Enviar para Verificación
+    </Button>
+  );
+}
+
 
 export function KycForm() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [state, formAction] = useActionState(updateUserVerification, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const form = useForm<KycFormValues>({
-    resolver: zodResolver(kycSchema),
-    defaultValues: {
-      realName: '',
-      idNumber: '',
-      idPhoto: null,
-    },
-  });
+   useEffect(() => {
+    if (state.message) {
+      if (state.success) {
+        toast({
+          title: '¡Documentos enviados!',
+          description: state.message,
+        });
+        formRef.current?.reset();
+        setPreview(null);
+        // The parent component will re-render and show the 'pending' status due to revalidation
+      } else {
+        toast({
+            variant: 'destructive',
+            title: 'Error al enviar',
+            description: state.message,
+        });
+      }
+    }
+  }, [state, toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      form.setValue('idPhoto', file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -57,49 +71,6 @@ export function KycForm() {
     }
   };
 
-
-  const onSubmit = async (values: KycFormValues) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-        // 1. Get signed URL for upload
-        const { url, filePath } = await getSignedUploadUrl(values.idPhoto.type, values.idPhoto.name);
-        
-        // 2. Upload file to Google Cloud Storage
-        const uploadResponse = await fetch(url, {
-            method: 'PUT',
-            body: values.idPhoto,
-            headers: { 'Content-Type': values.idPhoto.type }
-        });
-
-        if(!uploadResponse.ok) {
-            throw new Error('No se pudo subir la imagen.');
-        }
-
-        // 3. Update user profile in Firestore
-        await updateUserVerification({
-            realName: values.realName,
-            idNumber: values.idNumber,
-            idPhotoPath: filePath,
-        });
-
-      toast({
-        title: '¡Documentos enviados!',
-        description: 'Hemos recibido tus documentos y los estamos revisando.',
-      });
-      // The parent component will re-render and show the 'pending' status
-    } catch (err: any) {
-      setError(err.message || 'Ocurrió un error inesperado.');
-      toast({
-        variant: 'destructive',
-        title: 'Error al enviar',
-        description: err.message || 'No se pudieron enviar tus documentos.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -111,79 +82,58 @@ export function KycForm() {
         </AlertDescription>
       </Alert>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="realName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre Completo</FormLabel>
-                <FormControl>
-                  <Input placeholder="Tu nombre como aparece en tu ID" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <form ref={formRef} action={formAction} className="space-y-6">
+        {/* Pass user ID to the server action */}
+        <input type="hidden" name="uid" value={user?.uid} />
+        
+        <div className="space-y-2">
+            <Label htmlFor="realName">Nombre Completo</Label>
+            <Input id="realName" name="realName" placeholder="Tu nombre como aparece en tu ID" required minLength={3} />
+        </div>
 
-          <FormField
-            control={form.control}
-            name="idNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número de Cédula o Pasaporte</FormLabel>
-                <FormControl>
-                  <Input placeholder="Tu número de identificación" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="idNumber">Número de Cédula o Pasaporte</Label>
+            <Input id="idNumber" name="idNumber" placeholder="Tu número de identificación" required minLength={5} />
+        </div>
 
-          <FormField
-            control={form.control}
-            name="idPhoto"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Foto de tu ID</FormLabel>
-                <FormControl>
-                     <div className="relative flex justify-center items-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
-                        <Input
-                            id="id-photo-upload"
-                            type="file"
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            accept="image/png, image/jpeg, image/webp"
-                            onChange={handleFileChange}
-                            disabled={loading}
-                        />
-                        {preview ? (
-                            <Image src={preview} alt="ID preview" layout="fill" objectFit="contain" className="rounded-lg" />
-                        ) : (
-                            <div className="flex flex-col items-center gap-1 text-center text-muted-foreground">
-                                <Upload className="h-6 w-6" />
-                                <p className="text-sm">Arrastra o haz clic para subir</p>
-                                <p className="text-xs">PNG, JPG, WEBP (max 5MB)</p>
-                            </div>
-                        )}
+        <div className="space-y-2">
+            <Label>Foto de tu ID</Label>
+            <div className="relative flex justify-center items-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
+                <Input
+                    id="idPhoto"
+                    name="idPhoto"
+                    type="file"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={handleFileChange}
+                    required
+                />
+                {preview ? (
+                    <Image src={preview} alt="ID preview" fill objectFit="contain" className="rounded-lg" />
+                ) : (
+                    <div className="flex flex-col items-center gap-1 text-center text-muted-foreground">
+                        <Upload className="h-6 w-6" />
+                        <p className="text-sm">Arrastra o haz clic para subir</p>
+                        <p className="text-xs">PNG, JPG, WEBP (max 4MB)</p>
                     </div>
-                </FormControl>
-                 <FormDescription>
-                    Asegúrate de que la imagen sea clara y legible.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+                )}
+            </div>
+            <FormDescription className="text-xs px-1">
+                Asegúrate de que la imagen sea clara y legible.
+            </FormDescription>
+        </div>
+        
+        {state.message && !state.success && (
+            <Alert variant="destructive">
+            <AlertTitle>Error Detallado</AlertTitle>
+            <AlertDescription className="break-all">
+                {state.message}
+            </AlertDescription>
+            </Alert>
+        )}
           
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Enviar para Verificación
-          </Button>
-        </form>
-      </Form>
+        <SubmitButton />
+      </form>
     </div>
   );
 }
