@@ -38,11 +38,11 @@ function UserBalance() {
     if (user) {
       const userDocRef = doc(db, 'users', user.uid);
       const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        if (doc.exists()) {
-          const data = doc.data();
-          setBalance(data.balance ?? 0);
+        if (doc.exists() && typeof doc.data().balance === 'number') {
+          setBalance(doc.data().balance);
         } else {
-          setBalance(null); // Should be handled by context creating the wallet
+          // This handles the case where the doc might not exist yet or balance is not set
+          setBalance(null); 
         }
       });
       return () => unsubscribe();
@@ -52,7 +52,7 @@ function UserBalance() {
   }, [user]);
 
   if (balance === null) {
-    return null; // Don't render anything while loading or if no user
+    return null; // Don't render anything while loading or if no user/balance
   }
 
   return (
