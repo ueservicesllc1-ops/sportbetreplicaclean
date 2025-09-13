@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -120,7 +121,15 @@ export default function CasinoPage() {
         {/* Game Area */}
         <div className="lg:col-span-2">
           <Card className="relative aspect-[2/1] overflow-hidden">
-            <CardContent className="flex h-full flex-col items-center justify-center bg-secondary/30 p-6 transition-all duration-300">
+            <Image 
+                src="https://picsum.photos/seed/car-cockpit/1200/600"
+                alt="Car cockpit background"
+                fill
+                className="object-cover blur-sm"
+                data-ai-hint="car cockpit"
+            />
+             <div className="absolute inset-0 bg-black/60" />
+            <CardContent className="relative flex h-full flex-col items-center justify-center bg-transparent p-6 transition-all duration-300">
               {gameState === 'betting' && (
                 <div className="text-center">
                   <p className="text-lg text-muted-foreground">La próxima carrera comienza en...</p>
@@ -132,7 +141,7 @@ export default function CasinoPage() {
                     <div className='relative w-full max-w-sm'>
                          <svg viewBox="0 0 200 120" className="w-full">
                             {/* Dial Background */}
-                            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="hsl(var(--border))" strokeWidth="10" strokeLinecap="round" />
+                            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="hsl(var(--border) / 0.5)" strokeWidth="10" strokeLinecap="round" />
                             {/* Dial Foreground/Progress */}
                             <path
                                 d="M 20 100 A 80 80 0 0 1 180 100"
@@ -243,5 +252,3 @@ export default function CasinoPage() {
     </div>
   );
 }
-
-    
