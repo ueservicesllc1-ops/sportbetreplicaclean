@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { AuthFormValues } from '@/components/auth/auth-form';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-const ADMIN_EMAIL = "ueservicesll1@gmail.com";
+const ADMIN_EMAIL = "ueservicesllc1@gmail.com";
 
 interface AuthContextType {
   user: User | null;
@@ -45,7 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
-      setIsAdmin(user?.email === ADMIN_EMAIL);
+      // Temporarily make all logged-in users admin
+      setIsAdmin(!!user);
       setLoading(false);
     });
     return () => unsubscribe();

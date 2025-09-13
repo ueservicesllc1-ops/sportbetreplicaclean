@@ -22,7 +22,7 @@ export default function AdminLayout({
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user) {
     router.replace('/');
     return null;
   }
