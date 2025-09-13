@@ -112,7 +112,7 @@ export default function CasinoPage() {
               backgroundImage: `url('https://iili.io/KT1BDrb.jpg')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              transform: gameState !== 'betting' ? 'scale(1.1)' : 'scale(1)',
+              transform: gameState !== 'betting' ? 'scale(1.2)' : 'scale(1)',
               transition: 'transform 0.5s ease-in-out',
             }}
           >
