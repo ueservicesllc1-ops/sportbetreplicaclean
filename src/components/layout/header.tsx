@@ -98,6 +98,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Mobile bet slip */}
           <div className="lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -115,21 +116,25 @@ export function Header() {
               </SheetContent>
             </Sheet>
           </div>
+          
+          {/* Desktop auth controls */}
           <div className="hidden items-center gap-2 md:flex">
              <Sheet open={isWalletOpen} onOpenChange={setIsWalletOpen}>
-              {user ? (
+                {user ? (
                 <>
                    <Button variant="ghost" className='flex items-center gap-2' onClick={() => setIsWalletOpen(true)}>
                         <Wallet className="h-5 w-5" />
                         <span className='relative z-10'><UserBalance /></span>
                     </Button>
+                  
                   {isAdmin && (
-                    <Link href="/admin" passHref>
-                      <Button variant="ghost" size="icon" aria-label="Panel de Administración">
-                        <Shield className="h-5 w-5" />
-                      </Button>
+                     <Link href="/admin" passHref>
+                        <Button variant="ghost" size="icon" aria-label="Panel de Administración">
+                            <Shield className="h-5 w-5 text-primary" />
+                        </Button>
                     </Link>
                   )}
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="flex items-center gap-2">
@@ -181,6 +186,7 @@ export function Header() {
                   </DialogContent>
                 </Dialog>
               )}
+              {/* This is the sheet content for the wallet */}
                <SheetContent className="w-[400px] sm:w-[540px]">
                 <SheetHeader className="mb-6">
                     <SheetTitle className="flex items-center gap-2">
