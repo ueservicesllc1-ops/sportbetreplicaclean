@@ -114,7 +114,7 @@ export default function CasinoPage() {
               className='absolute inset-0 h-full w-full bg-cover bg-center transition-transform duration-500 ease-in-out'
               style={{
                 backgroundImage: `url('https://iili.io/KT1Ttt4.jpg')`,
-                transform: gameState !== 'betting' ? 'scale(1.35)' : 'scale(1)',
+                transform: gameState !== 'betting' ? 'scale(1.5)' : 'scale(1)',
               }}
             />
             <CardContent className="absolute inset-0 flex h-full flex-col items-center justify-center p-4">
