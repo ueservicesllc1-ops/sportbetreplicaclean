@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Handshake, ListChecks, Goal, Lifebuoy } from "lucide-react";
+import { Handshake, ListChecks, Goal, LifeBuoy } from "lucide-react";
 
 export default function JuegoResponsablePage() {
   return (
@@ -64,7 +64,7 @@ export default function JuegoResponsablePage() {
         <Card>
             <CardHeader>
             <CardTitle className="flex items-center gap-2">
-                <Lifebuoy className="h-6 w-6" />
+                <LifeBuoy className="h-6 w-6" />
                 <span>¿Necesitas Ayuda?</span>
             </CardTitle>
             </CardHeader>
