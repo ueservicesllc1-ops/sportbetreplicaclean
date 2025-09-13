@@ -122,11 +122,11 @@ export default function CasinoPage() {
         <div className="lg:col-span-2">
           <Card className="relative aspect-[2/1] overflow-hidden">
             <Image 
-                src="https://picsum.photos/seed/car-cockpit/1200/600"
-                alt="Car cockpit background"
+                src="https://picsum.photos/seed/f1-track/1200/600"
+                alt="Formula One track background"
                 fill
                 className="object-cover blur-sm"
-                data-ai-hint="car cockpit"
+                data-ai-hint="formula one track"
             />
              <div className="absolute inset-0 bg-black/60" />
             <CardContent className="relative flex h-full flex-col items-center justify-center bg-transparent p-6 transition-all duration-300">
