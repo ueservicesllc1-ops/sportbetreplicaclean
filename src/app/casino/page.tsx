@@ -12,8 +12,22 @@ import Image from 'next/image';
 
 type GameState = 'betting' | 'playing' | 'crashed' | 'cashout';
 
-const RevolutionMeter = ({ multiplier }: { multiplier: number }) => {
+const RevolutionMeter = ({ multiplier, gameState }: { multiplier: number, gameState: GameState }) => {
     const totalBars = 20;
+    const [_, setTick] = useState(0);
+
+    // Re-render on animation frame to create the vibration effect
+    useEffect(() => {
+        let animationFrameId: number;
+        if (gameState === 'playing') {
+            const animate = () => {
+                setTick(prev => prev + 1);
+                animationFrameId = requestAnimationFrame(animate);
+            };
+            animationFrameId = requestAnimationFrame(animate);
+        }
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [gameState]);
   
     const getBarColor = (index: number) => {
       const percentage = (index + 1) / totalBars;
@@ -23,29 +37,42 @@ const RevolutionMeter = ({ multiplier }: { multiplier: number }) => {
       return 'bg-red-500'; // Red
     };
 
-    // Map multiplier to the number of active bars
-    // This mapping can be adjusted to control the "suspense"
-    const activeBars = Math.min(
+    const baseActiveBars = Math.min(
         totalBars,
-        // The meter fills up slowly at first, then accelerates
-        // It will reach the top around a 12x multiplier
         Math.floor(Math.log2(Math.max(1, multiplier)) * (totalBars / 3.5)) 
     );
+
+    let activeBars = baseActiveBars;
+    // Fluctuation logic for suspense
+    const isHighRisk = baseActiveBars > totalBars * 0.7; // Start fluctuating in yellow zone
+    if (gameState === 'playing' && isHighRisk) {
+        // Create a a fast but small oscillation
+        const fluctuation = Math.floor(Math.sin(Date.now() / 50) * 2); // oscillates between -1, 0, 1
+        activeBars = baseActiveBars + fluctuation;
+    }
+    
+    if (gameState === 'crashed') {
+        activeBars = totalBars;
+    }
   
     return (
       <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col-reverse gap-1.5 p-2 rounded-lg bg-black/30">
-        {Array.from({ length: totalBars }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-3 w-5 md:h-4 md:w-6 rounded-sm transition-all duration-100",
-              i < activeBars ? getBarColor(i) : 'bg-secondary/50'
-            )}
-            style={{
-                boxShadow: i < activeBars ? `0 0 5px ${getBarColor(i).replace('bg-','').replace('-500','')}` : 'none'
-            }}
-          />
-        ))}
+        {Array.from({ length: totalBars }).map((_, i) => {
+            const barColor = gameState === 'crashed' ? 'bg-red-500' : getBarColor(i);
+            const isLit = i < activeBars;
+            return (
+                <div
+                    key={i}
+                    className={cn(
+                    "h-3 w-5 md:h-4 md:w-6 rounded-sm transition-all duration-100",
+                    isLit ? barColor : 'bg-secondary/50'
+                    )}
+                    style={{
+                        boxShadow: isLit ? `0 0 5px ${barColor.replace('bg-','').replace('-500','')}` : 'none'
+                    }}
+                />
+            );
+        })}
       </div>
     );
   };
@@ -79,11 +106,11 @@ export default function CasinoPage() {
     } else if (gameState === 'playing') {
       const r = Math.random();
       if (r < 0.5) { 
-        crashPoint.current = 1 + Math.random();
+        crashPoint.current = 1 + Math.random() * 2; // More crashes at low multipliers
       } else if (r < 0.9) {
-        crashPoint.current = 2 + Math.random() * 8;
+        crashPoint.current = 3 + Math.random() * 7; // Medium multipliers
       } else { 
-        crashPoint.current = 10 + Math.random() * 40;
+        crashPoint.current = 10 + Math.random() * 40; // High multipliers are rare
       }
 
       setMultiplier(1.00);
@@ -176,7 +203,7 @@ export default function CasinoPage() {
                         {gameState === 'crashed' && <p className="mt-2 animate-pulse text-xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
                         {gameState === 'cashout' && <p className="mt-2 text-lg font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
                     </div>
-                    <RevolutionMeter multiplier={multiplier} />
+                    <RevolutionMeter multiplier={multiplier} gameState={gameState} />
                     </>
                 )}
                 </div>
