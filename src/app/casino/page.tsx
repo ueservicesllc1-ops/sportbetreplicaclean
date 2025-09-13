@@ -12,6 +12,45 @@ import Image from 'next/image';
 
 type GameState = 'betting' | 'playing' | 'crashed' | 'cashout';
 
+const RevolutionMeter = ({ multiplier }: { multiplier: number }) => {
+    const totalBars = 20;
+  
+    const getBarColor = (index: number) => {
+      const percentage = (index + 1) / totalBars;
+      if (percentage <= 0.3) return 'bg-blue-500'; // Blue
+      if (percentage <= 0.6) return 'bg-green-500'; // Green
+      if (percentage <= 0.8) return 'bg-yellow-500'; // Yellow
+      return 'bg-red-500'; // Red
+    };
+
+    // Map multiplier to the number of active bars
+    // This mapping can be adjusted to control the "suspense"
+    const activeBars = Math.min(
+        totalBars,
+        // The meter fills up slowly at first, then accelerates
+        // It will reach the top around a 12x multiplier
+        Math.floor(Math.log2(Math.max(1, multiplier)) * (totalBars / 3.5)) 
+    );
+  
+    return (
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col-reverse gap-1.5 p-2 rounded-lg bg-black/30">
+        {Array.from({ length: totalBars }).map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "h-3 w-5 md:h-4 md:w-6 rounded-sm transition-all duration-100",
+              i < activeBars ? getBarColor(i) : 'bg-secondary/50'
+            )}
+            style={{
+                boxShadow: i < activeBars ? `0 0 5px ${getBarColor(i).replace('bg-','').replace('-500','')}` : 'none'
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
+
+
 // This is a client-side simulation. True multiplayer requires a server.
 export default function CasinoPage() {
   const [betAmount, setBetAmount] = useState<string>('1.00');
@@ -76,7 +115,7 @@ export default function CasinoPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [gameState]);
+  }, [gameState, multiplier]);
 
   const handlePlaceBet = () => {
     // This is just for UI state change, in a real app this would register the bet
@@ -106,48 +145,49 @@ export default function CasinoPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Game Area */}
-        <div className="lg:col-span-2">
-           <Card 
-            className="relative aspect-[16/9] overflow-hidden"
-          >
-            <Image
-                src="https://iili.io/KT1Ttt4.jpg"
-                alt="F1 Cockpit"
-                layout="fill"
-                objectFit="cover"
-                className={cn(
-                    'transition-transform duration-500 ease-in-out',
-                    gameState !== 'betting' ? 'scale-150' : 'scale-100'
+        <div className="relative lg:col-span-2">
+            <Card className="relative aspect-[16/9] overflow-hidden">
+                <Image
+                    src="https://iili.io/KT1Ttt4.jpg"
+                    alt="F1 Cockpit"
+                    fill
+                    className={cn(
+                        'object-cover transition-transform duration-500 ease-in-out',
+                        gameState !== 'betting' ? 'scale-150' : 'scale-100'
+                    )}
+                    priority
+                />
+                <div className="absolute inset-0 flex h-full flex-col items-center justify-center p-4">
+                {gameState === 'betting' && (
+                    <div className="text-center text-white">
+                    <p className="text-lg text-neutral-300">La próxima carrera comienza en...</p>
+                    <p className="text-6xl font-bold drop-shadow-lg">{countdown.toFixed(0)}s</p>
+                    </div>
                 )}
-            />
-            <CardContent className="absolute inset-0 flex h-full flex-col items-center justify-center p-4">
-              {gameState === 'betting' && (
-                <div className="text-center text-white">
-                  <p className="text-lg text-neutral-300">La próxima carrera comienza en...</p>
-                  <p className="text-6xl font-bold drop-shadow-lg">{countdown.toFixed(0)}s</p>
+                {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
+                    <>
+                    <div className="absolute text-center" style={{ top: '52%', left: '50.5%', transform: 'translate(-50%, -50%)' }}>
+                        <p className={cn(
+                        "text-4xl md:text-5xl font-bold transition-colors font-mono drop-shadow-2xl", 
+                        getMultiplierColor()
+                        )}>
+                            {multiplier.toFixed(2)}x
+                        </p>
+                        {gameState === 'crashed' && <p className="mt-2 animate-pulse text-xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
+                        {gameState === 'cashout' && <p className="mt-2 text-lg font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
+                    </div>
+                    <RevolutionMeter multiplier={multiplier} />
+                    </>
+                )}
                 </div>
-              )}
-              {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
-                 <div className="absolute text-center" style={{ top: '52%', left: '50.5%', transform: 'translate(-50%, -50%)' }}>
-                    <p className={cn(
-                      "text-4xl md:text-5xl font-bold transition-colors font-mono drop-shadow-2xl", 
-                      getMultiplierColor()
-                    )}>
-                        {multiplier.toFixed(2)}x
-                    </p>
-                    {gameState === 'crashed' && <p className="mt-2 animate-pulse text-xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
-                    {gameState === 'cashout' && <p className="mt-2 text-lg font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
-             {history.current.map((h, i) => (
-                <div key={i} className={`flex h-8 w-16 flex-shrink-0 items-center justify-center rounded-md text-sm font-semibold ${h < 2 ? 'bg-muted text-muted-foreground' : h < 10 ? 'bg-green-600/20 text-green-400' : 'bg-primary/20 text-primary'}`}>
-                    {h.toFixed(2)}x
-                </div>
-             ))}
-          </div>
+            </Card>
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
+                {history.current.map((h, i) => (
+                    <div key={i} className={`flex h-8 w-16 flex-shrink-0 items-center justify-center rounded-md text-sm font-semibold ${h < 2 ? 'bg-muted text-muted-foreground' : h < 10 ? 'bg-green-600/20 text-green-400' : 'bg-primary/20 text-primary'}`}>
+                        {h.toFixed(2)}x
+                    </div>
+                ))}
+            </div>
         </div>
 
         {/* Control Panel */}
