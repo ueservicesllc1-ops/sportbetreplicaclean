@@ -18,46 +18,10 @@ export default function CasinoPage() {
   const [gameState, setGameState] = useState<GameState>('betting');
   const [countdown, setCountdown] = useState<number>(5);
   const [winnings, setWinnings] = useState<number>(0);
-  const [rocketPosition, setRocketPosition] = useState({ x: 0, y: 200 });
-  const [rocketRotation, setRocketRotation] = useState(0);
 
   const history = useRef([2.34, 1.56, 1.02, 8.91, 3.45, 1.19, 4.01, 1.88, 2.76, 10.21, 1.00, 3.12]);
   const crashPoint = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const pathRef = useRef<SVGPathElement>(null);
-  const [pathLength, setPathLength] = useState(0);
-  
-  // Adjusted path points to make the rocket fly off-screen
-  const p0 = { x: 0, y: 200 };
-  const p1 = { x: 150, y: 180 };
-  const p2 = { x: 300, y: 50 };
-  const p3 = { x: 450, y: -50 }; // End point is now outside the viewbox
-
-  const getPointOnCubicBezier = (p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}, p3: {x:number, y:number}, t: number) => {
-    const u = 1 - t;
-    const tt = t * t;
-    const uu = u * u;
-    const uuu = uu * u;
-    const ttt = tt * t;
-    
-    const x = uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x;
-    const y = uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y;
-    
-    return { x, y };
-  };
-
-  const getTangentOnCubicBezier = (p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}, p3: {x:number, y:number}, t: number) => {
-    const u = 1 - t;
-    const dx = 3 * u * u * (p1.x - p0.x) + 6 * u * t * (p2.x - p1.x) + 3 * t * t * (p3.x - p2.x);
-    const dy = 3 * u * u * (p1.y - p0.y) + 6 * u * t * (p2.y - p1.y) + 3 * t * t * (p3.y - p2.y);
-    return Math.atan2(dy, dx) * (180 / Math.PI);
-  };
-  
-  useEffect(() => {
-    if (pathRef.current) {
-        setPathLength(pathRef.current.getTotalLength());
-    }
-  }, []);
 
   // Game loop management
   useEffect(() => {
@@ -73,16 +37,14 @@ export default function CasinoPage() {
         });
       }, 1000);
     } else if (gameState === 'playing') {
-      // Use a more realistic crash point distribution
       const r = Math.random();
-      if (r < 0.5) { // 50% chance of crashing between 1.00x and 1.99x
+      if (r < 0.5) { 
         crashPoint.current = 1 + Math.random();
-      } else if (r < 0.9) { // 40% chance of crashing between 2.00x and 9.99x
+      } else if (r < 0.9) {
         crashPoint.current = 2 + Math.random() * 8;
-      } else { // 10% chance of crashing over 10.00x
+      } else { 
         crashPoint.current = 10 + Math.random() * 40;
       }
-
 
       setMultiplier(1.00);
       setWinnings(0);
@@ -96,7 +58,7 @@ export default function CasinoPage() {
           const increment = 0.01 + (prevMultiplier / 500);
           return prevMultiplier + increment;
         });
-      }, 50); // Faster updates for smoother animation
+      }, 50); 
     } else if (gameState === 'crashed' || gameState === 'cashout') {
         if(intervalRef.current) clearInterval(intervalRef.current);
         
@@ -115,34 +77,6 @@ export default function CasinoPage() {
     };
   }, [gameState]);
 
-
-  useEffect(() => {
-    // This function maps the multiplier to the animation progress `t` (0 to 1)
-    // We can use a non-linear mapping (like log) to make the rocket move faster at higher multipliers
-    const maxMultiplierViewable = 15; // The multiplier at which the rocket leaves the screen
-    const progress = Math.min(Math.log(multiplier) / Math.log(maxMultiplierViewable), 1);
-    
-    let point, angle;
-
-    if (gameState === 'betting') {
-        point = p0;
-        angle = getTangentOnCubicBezier(p0, p1, p2, p3, 0);
-    } else {
-        point = getPointOnCubicBezier(p0, p1, p2, p3, progress);
-        angle = getTangentOnCubicBezier(p0, p1, p2, p3, progress);
-    }
-    
-    setRocketPosition(point);
-    setRocketRotation(angle);
-
-  }, [multiplier, gameState]);
-
-  // Animation for the trail
-  const maxMultiplierForTrail = 15; // Corresponds to the viewable part of the path
-  const trailProgress = Math.min(Math.log(multiplier) / Math.log(maxMultiplierForTrail), 1);
-  const strokeDashoffset = pathLength * (1 - trailProgress);
-
-
   const handlePlaceBet = () => {
     // This is just for UI state change, in a real app this would register the bet
   };
@@ -158,6 +92,45 @@ export default function CasinoPage() {
       if(gameState === 'cashout') return 'text-blue-400';
       return 'text-green-400';
   }
+  
+  // New animation logic
+  const gameAreaRef = useRef<HTMLDivElement>(null);
+  const [rocketStyle, setRocketStyle] = useState<React.CSSProperties>({});
+  const [linePoints, setLinePoints] = useState('0,200');
+
+  useEffect(() => {
+    const width = gameAreaRef.current?.clientWidth || 400;
+    const height = gameAreaRef.current?.clientHeight || 200;
+
+    // Map multiplier to a progress value (0 to infinity)
+    // We use a log scale to make the progress increase slower at higher multipliers
+    const progress = multiplier > 1 ? Math.log(multiplier) / Math.log(1.1) : 0;
+    
+    // X position moves steadily across the screen
+    const x = (progress * 15) % (width + 50); 
+
+    // Y position goes up and then stabilizes
+    const y = height - Math.min(progress * 5, height * 0.8);
+    
+    // Angle of the rocket
+    const angle = -15 + Math.min(progress, 15);
+
+    setRocketStyle({
+        transform: `translate(${x}px, ${y}px) rotate(${angle}deg)`,
+        transition: 'transform 50ms linear',
+    });
+    
+    // Update the line path
+    if (gameState === 'playing') {
+      setLinePoints(prev => `${prev} ${x},${y}`);
+    } else {
+       setLinePoints(`${x},${y}`);
+    }
+
+  }, [multiplier, gameState]);
+  
+  const viewBox = `0 0 ${gameAreaRef.current?.clientWidth || 400} ${gameAreaRef.current?.clientHeight || 200}`;
+
 
   return (
     <div className="space-y-6">
@@ -170,7 +143,7 @@ export default function CasinoPage() {
         {/* Game Area */}
         <div className="lg:col-span-2">
           <Card className="relative aspect-[2/1] overflow-hidden">
-            <CardContent className="flex h-full flex-col items-center justify-center bg-secondary/30 p-6">
+            <CardContent ref={gameAreaRef} className="flex h-full flex-col items-center justify-center bg-secondary/30 p-6">
               {gameState === 'betting' && (
                 <div className="text-center">
                   <p className="text-lg text-muted-foreground">La próxima ronda comienza en...</p>
@@ -178,7 +151,7 @@ export default function CasinoPage() {
                 </div>
               )}
               {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
-                <div className="relative text-center">
+                <div className="relative z-20 text-center">
                   <p className={`text-7xl font-bold transition-colors ${getMultiplierColor()}`}>
                     {multiplier.toFixed(2)}x
                   </p>
@@ -188,26 +161,18 @@ export default function CasinoPage() {
               )}
                {/* Graph Area */}
                <div className="absolute bottom-0 left-0 h-full w-full">
-                <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none">
-                    <path
-                        ref={pathRef}
-                        d={`M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`}
+                <svg width="100%" height="100%" viewBox={viewBox} preserveAspectRatio="xMidYMid meet" className="absolute bottom-0 left-0">
+                    <polyline
+                        points={linePoints}
+                        fill="none"
                         stroke="hsl(var(--primary))"
-                        fill="none" 
                         strokeWidth="4"
-                        strokeDasharray={pathLength}
-                        strokeDashoffset={gameState === 'betting' ? pathLength : strokeDashoffset}
                         className={gameState !== 'betting' ? 'transition-all duration-[50ms] linear' : ''}
                     />
                 </svg>
                  <Rocket 
-                    className="absolute h-10 w-10 text-primary transition-all duration-[50ms] linear"
-                    style={{
-                        left: `${(rocketPosition.x / 400) * 100}%`,
-                        top: `${(rocketPosition.y / 200) * 100}%`,
-                        transform: `translate(-50%, -50%) rotate(${rocketRotation}deg)`,
-                        willChange: 'left, top, transform',
-                    }}
+                    className="absolute h-10 w-10 text-primary -translate-x-1/2 -translate-y-1/2"
+                    style={rocketStyle}
                  />
                </div>
             </CardContent>
@@ -284,8 +249,4 @@ export default function CasinoPage() {
       </Card>
     </div>
   );
-
-    
-
-    
-
+}
