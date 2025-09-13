@@ -20,9 +20,8 @@ function getPublicUrl(bucketName: string, filePath: string) {
 
 
 export async function getSignedUploadUrl(fileType: string, fileName: string) {
-    // This is not ideal for production as it doesn't secure the upload on a per-user basis on the server-side check.
-    // However, it fixes the immediate issue of `auth.currentUser` being null on the server.
-    // For a production app, you'd pass the user's auth token to the server action and verify it.
+    // This action is now deprecated in favor of server-side uploads to avoid CORS issues.
+    // Kept here to avoid breaking other parts of the app if they use it, but should be refactored.
     const filePath = `user-documents/banners/${Date.now()}-${fileName}`;
     const bucket = admin.storage().bucket();
     const file = bucket.file(filePath);

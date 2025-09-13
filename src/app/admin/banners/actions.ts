@@ -2,7 +2,7 @@
 
 'use server';
 
-import '@/lib/firebase-admin'; // Ensure admin is initialized
+import admin from '@/lib/firebase-admin'; // Ensure admin is initialized
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
@@ -14,6 +14,29 @@ interface BannerData {
 
 function getPublicUrl(bucketName: string, filePath: string) {
     return `https://storage.googleapis.com/${bucketName}/${filePath}`;
+}
+
+export async function uploadFileToStorage(formData: FormData) {
+  const image = formData.get('image') as File | null;
+  if (!image) {
+    throw new Error('No se encontró ninguna imagen en la solicitud.');
+  }
+
+  const bucket = admin.storage().bucket();
+  const filePath = `user-documents/banners/${Date.now()}-${image.name}`;
+  const file = bucket.file(filePath);
+
+  const fileBuffer = Buffer.from(await image.arrayBuffer());
+
+  try {
+    await file.save(fileBuffer, {
+      metadata: { contentType: image.type },
+    });
+    return { filePath };
+  } catch (error) {
+    console.error('Error al subir el archivo a GCS:', error);
+    throw new Error('No se pudo subir el archivo a Storage.');
+  }
 }
 
 export async function addBanner(data: BannerData) {

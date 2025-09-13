@@ -18,8 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload } from 'lucide-react';
-import { addBanner } from '../actions';
-import { getSignedUploadUrl } from '@/app/wallet/actions'; // Re-using this action
+import { addBanner, uploadFileToStorage } from '../actions';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -63,35 +62,19 @@ export function AddBannerForm() {
     setError(null);
 
     try {
-        // 1. Get signed URL for upload
-        const { url, filePath } = await getSignedUploadUrl(values.image.type, values.image.name);
-        
-        // 2. Upload file to Google Cloud Storage
-        const uploadResponse = await fetch(url, {
-            method: 'PUT',
-            body: values.image,
-            headers: { 'Content-Type': values.image.type }
-        });
+      const formData = new FormData();
+      formData.append('image', values.image);
 
-        if(!uploadResponse.ok) {
-            // Attempt to get more detailed error from GCS XML response
-            const errorText = await uploadResponse.text();
-            console.error('GCS Upload Error:', errorText);
-            
-            // Extract a cleaner message from the XML if possible
-            const codeMatch = errorText.match(/<Code>(.*?)<\/Code>/);
-            const messageMatch = errorText.match(/<Message>(.*?)<\/Message>/);
-            if (codeMatch && messageMatch) {
-                 throw new Error(`Error de Storage: ${codeMatch[1]} - ${messageMatch[1]}. Revisa la configuración de CORS del bucket.`);
-            }
-            throw new Error(`Error al subir a GCS: ${uploadResponse.statusText}`);
-        }
+      const { filePath } = await uploadFileToStorage(formData);
+      
+      if (!filePath) {
+        throw new Error('La ruta del archivo no fue devuelta por el servidor.');
+      }
 
-        // 3. Update banners collection in Firestore
-        await addBanner({
-            title: values.title,
-            imagePath: filePath,
-        });
+      await addBanner({
+        title: values.title,
+        imagePath: filePath,
+      });
 
       toast({
         title: '¡Banner añadido!',
