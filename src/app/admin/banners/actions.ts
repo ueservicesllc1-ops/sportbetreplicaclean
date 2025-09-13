@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import admin from '@/lib/firebase-admin'; // Ensure admin is initialized
@@ -11,12 +10,15 @@ function getPublicUrl(bucketName: string, filePath: string) {
     return `https://storage.googleapis.com/${bucketName}/${filePath}`;
 }
 
-export async function addBanner(formData: FormData) {
+export async function addBanner(prevState: any, formData: FormData) {
     const title = formData.get('title') as string | null;
     const image = formData.get('image') as File | null;
     
-    if (!title || !image) {
-        return { success: false, message: 'Título e imagen son requeridos.' };
+    if (!title || title.trim().length < 3) {
+        return { success: false, message: 'El título es requerido y debe tener al menos 3 caracteres.' };
+    }
+    if (!image || image.size === 0) {
+        return { success: false, message: 'La imagen es requerida.' };
     }
 
     const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
@@ -24,12 +26,12 @@ export async function addBanner(formData: FormData) {
          return { success: false, message: 'La configuración del bucket de almacenamiento no está definida.' };
     }
     
-    const bucket = admin.storage().bucket();
-    const filePath = `user-documents/banners/${Date.now()}-${image.name}`;
-    const file = bucket.file(filePath);
-    const fileBuffer = Buffer.from(await image.arrayBuffer());
-
     try {
+        const bucket = admin.storage().bucket();
+        const filePath = `user-documents/banners/${Date.now()}-${image.name}`;
+        const file = bucket.file(filePath);
+        const fileBuffer = Buffer.from(await image.arrayBuffer());
+
         // Upload image to GCS
         await file.save(fileBuffer, {
             metadata: { contentType: image.type },
@@ -55,7 +57,8 @@ export async function addBanner(formData: FormData) {
 
     } catch (error) {
         console.error('Error adding banner:', error);
-        return { success: false, message: 'No se pudo añadir el banner.' };
+        const errorMessage = error instanceof Error ? error.message : 'No se pudo añadir el banner.';
+        return { success: false, message: errorMessage };
     }
 }
 
