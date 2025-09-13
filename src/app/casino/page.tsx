@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -186,7 +187,7 @@ export default function CasinoPage() {
                     />
                 </svg>
                  <Rocket 
-                    className="absolute h-6 w-6 text-primary transition-all duration-100 linear"
+                    className="absolute h-8 w-8 text-primary transition-all duration-100 linear"
                     style={{
                         left: `${(rocketPosition.x / 400) * 100}%`,
                         top: `${(rocketPosition.y / 200) * 100}%`,
