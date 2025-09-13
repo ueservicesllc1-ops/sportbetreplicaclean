@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -55,7 +54,8 @@ export default function CasinoPage() {
             setGameState('crashed');
             return prevMultiplier;
           }
-          const increment = 0.01 + (prevMultiplier / 500);
+          // Faster increment
+          const increment = 0.015 + (prevMultiplier / 250);
           return prevMultiplier + increment;
         });
       }, 50); 
@@ -102,18 +102,18 @@ export default function CasinoPage() {
     const width = gameAreaRef.current?.clientWidth || 400;
     const height = gameAreaRef.current?.clientHeight || 200;
 
-    // Map multiplier to a progress value (0 to infinity)
-    // We use a log scale to make the progress increase slower at higher multipliers
-    const progress = multiplier > 1 ? Math.log(multiplier) / Math.log(1.1) : 0;
+    // Use a logarithmic-like scale for smoother visual progression
+    const progress = Math.log(multiplier) / Math.log(1.05); // Adjust base for speed
     
-    // X position moves steadily across the screen
-    const x = (progress * 15) % (width + 50); 
+    // X position moves across the screen
+    const x = Math.min(progress * 10, width * 1.5); // Allow going off-screen
 
-    // Y position goes up and then stabilizes
-    const y = height - Math.min(progress * 5, height * 0.8);
+    // Y position has a more pronounced curve, slowing down its vertical ascent
+    const y = height - (height * (1 - 1 / (0.02 * progress + 1)));
     
-    // Angle of the rocket
-    const angle = -15 + Math.min(progress, 15);
+    // Angle of the rocket based on the curve's derivative
+    const derivative = (height * 0.02) / Math.pow(0.02 * progress + 1, 2);
+    const angle = -Math.atan(derivative) * (180 / Math.PI);
 
     setRocketStyle({
         transform: `translate(${x}px, ${y}px) rotate(${angle}deg)`,
@@ -122,9 +122,16 @@ export default function CasinoPage() {
     
     // Update the line path
     if (gameState === 'playing') {
-      setLinePoints(prev => `${prev} ${x},${y}`);
+      // Append new point only if it's different from the last one to avoid performance issues
+      setLinePoints(prev => {
+        const lastPoint = prev.slice(prev.lastIndexOf(' ')+1);
+        const newPoint = `${x.toFixed(1)},${y.toFixed(1)}`;
+        if(lastPoint === newPoint) return prev;
+        return `${prev} ${newPoint}`;
+      });
     } else {
-       setLinePoints(`${x},${y}`);
+       // Reset line on new game
+       setLinePoints(`0,${height}`);
     }
 
   }, [multiplier, gameState]);
@@ -161,17 +168,17 @@ export default function CasinoPage() {
               )}
                {/* Graph Area */}
                <div className="absolute bottom-0 left-0 h-full w-full">
-                <svg width="100%" height="100%" viewBox={viewBox} preserveAspectRatio="xMidYMid meet" className="absolute bottom-0 left-0">
+                <svg width="100%" height="100%" viewBox={viewBox} preserveAspectRatio="none" className="absolute bottom-0 left-0">
                     <polyline
                         points={linePoints}
                         fill="none"
                         stroke="hsl(var(--primary))"
-                        strokeWidth="4"
-                        className={gameState !== 'betting' ? 'transition-all duration-[50ms] linear' : ''}
+                        strokeWidth="3"
+                        strokeLinecap="round"
                     />
                 </svg>
                  <Rocket 
-                    className="absolute h-10 w-10 text-primary -translate-x-1/2 -translate-y-1/2"
+                    className="absolute h-8 w-8 text-primary -translate-x-1/2 -translate-y-1/2"
                     style={rocketStyle}
                  />
                </div>
@@ -250,3 +257,5 @@ export default function CasinoPage() {
     </div>
   );
 }
+
+    
