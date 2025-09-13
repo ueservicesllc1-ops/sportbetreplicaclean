@@ -6,9 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Gauge } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 
 type GameState = 'betting' | 'playing' | 'crashed' | 'cashout';
 
@@ -96,20 +94,23 @@ export default function CasinoPage() {
       return 'text-primary';
   }
 
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Gauge className="h-8 w-8 text-primary" />
+       <div className="flex items-center gap-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 10.5 4 4"></path><path d="m14 10.5-4 4"></path></svg>
         <h1 className="text-3xl font-bold tracking-tight">Speedrun</h1>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Game Area */}
         <div className="lg:col-span-2">
-          <Card 
-            className="relative aspect-[2/1] overflow-hidden bg-cover bg-center"
+           <Card 
+            className="relative aspect-[16/9] overflow-hidden bg-cover bg-center"
             style={{ 
-              backgroundImage: `url(https://picsum.photos/seed/racecar/1200/600)`,
+              backgroundImage: `url(/images/f1.jpg)`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
             }}
           >
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
@@ -122,7 +123,10 @@ export default function CasinoPage() {
               )}
               {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
                  <div className="z-10 text-center">
-                    <p className={cn("text-8xl md:text-9xl font-bold transition-colors font-mono drop-shadow-2xl", getMultiplierColor())}>
+                    <p className={cn(
+                      "text-8xl md:text-9xl font-bold transition-colors font-mono drop-shadow-2xl", 
+                      getMultiplierColor()
+                    )}>
                         {multiplier.toFixed(2)}x
                     </p>
                     {gameState === 'crashed' && <p className="mt-2 animate-pulse text-5xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
