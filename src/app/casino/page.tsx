@@ -109,7 +109,7 @@ export default function CasinoPage() {
            <Card 
             className="relative aspect-[16/9] overflow-hidden"
             style={{
-              backgroundImage: `url('https://iili.io/KT19ecP.jpg')`,
+              backgroundImage: `url('https://iili.io/KT1BDrb.jpg')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               transform: gameState !== 'betting' ? 'scale(1.1)' : 'scale(1)',
