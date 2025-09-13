@@ -5,7 +5,7 @@ import { Separator } from '../ui/separator';
 
 const footerSections = {
   'Sobre Nosotros': [['Quiénes somos', '/quienes-somos'], ['Juego Responsable', '/juego-responsable'], ['Términos y Condiciones', '/terminos-y-condiciones']],
-  Ayuda: [['Contáctanos', '#'], ['Preguntas Frecuentes', '#'], ['Reglas de Apuestas', '#']],
+  Ayuda: [['Contáctanos', '#'], ['Preguntas Frecuentes', '#'], ['Reglas de Apuestas', '/reglas-de-apuestas']],
   Social: [['Facebook', '#'], ['Twitter', '#'], ['Instagram', '#']],
 };
 
