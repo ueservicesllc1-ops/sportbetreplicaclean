@@ -110,16 +110,17 @@ export default function CasinoPage() {
             className="aspect-[16/9] overflow-hidden"
           >
             <div 
-              className='h-full w-full'
+              className='absolute inset-0 h-full w-full'
               style={{
-                backgroundImage: `url('https://iili.io/KT1BDrb.jpg')`,
+                backgroundImage: `url('https://iili.io/KT1Ttt4.jpg')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 transform: gameState !== 'betting' ? 'scale(1.35)' : 'scale(1)',
                 transition: 'transform 0.5s ease-in-out',
+                zIndex: -10,
               }}
             />
-            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0" />
             <CardContent className="absolute inset-0 flex h-full flex-col items-center justify-center p-4">
               {gameState === 'betting' && (
                 <div className="text-center text-white">
