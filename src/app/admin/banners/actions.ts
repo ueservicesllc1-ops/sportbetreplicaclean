@@ -2,8 +2,8 @@
 
 'use server';
 
+import '@/lib/firebase-admin'; // Ensure admin is initialized
 import { db } from '@/lib/firebase';
-import admin from '@/lib/firebase-admin';
 import { collection, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
