@@ -14,7 +14,7 @@ export default function AdminBannersPage() {
                     <CardHeader>
                         <CardTitle>Añadir Nuevo Banner</CardTitle>
                         <CardDescription>
-                            Crea un nuevo banner usando una palabra clave para generar la imagen.
+                            Crea un nuevo banner usando una URL para la imagen.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

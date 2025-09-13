@@ -57,15 +57,16 @@ export function AddBannerForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="keyword">Palabra Clave para Imagen</Label>
+        <Label htmlFor="imageUrl">URL de la Imagen</Label>
         <Input
-          id="keyword"
-          name="keyword"
-          placeholder="Ej: soccer stadium, poker chips"
+          id="imageUrl"
+          name="imageUrl"
+          type="url"
+          placeholder="https://ejemplo.com/imagen.jpg"
           required
         />
          <p className="text-xs text-muted-foreground">
-          Usa 1 o 2 palabras en inglés para mejores resultados.
+          Sube tu imagen a un servicio como postimages.org y pega la URL aquí.
         </p>
       </div>
 

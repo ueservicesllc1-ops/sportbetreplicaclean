@@ -13,25 +13,20 @@ interface FormState {
 
 export async function addBanner(prevState: FormState, formData: FormData): Promise<FormState> {
   const title = formData.get('title') as string | null;
-  const keyword = formData.get('keyword') as string | null;
+  const imageUrl = formData.get('imageUrl') as string | null;
 
   if (!title || title.trim().length < 3) {
     return { success: false, message: 'El título es requerido y debe tener al menos 3 caracteres.' };
   }
-  if (!keyword || keyword.trim().length === 0) {
-    return { success: false, message: 'La palabra clave es requerida para generar la imagen.' };
+  if (!imageUrl || !imageUrl.trim().startsWith('http')) {
+    return { success: false, message: 'La URL de la imagen es requerida y debe ser un enlace válido.' };
   }
 
   try {
-    // Sanitize keyword for URL: replace spaces with dashes and encode
-    const seed = encodeURIComponent(keyword.trim().replace(/\s+/g, '-'));
-    const imageUrl = `https://picsum.photos/seed/${seed}/1200/400`;
-    
     await addDoc(collection(db, 'banners'), {
       title: title,
       imageUrl: imageUrl,
-      // We don't have a real image path in Storage, so we'll leave it empty
-      imagePath: '', 
+      imagePath: '', // This field can be used in the future if we switch to direct uploads
       createdAt: serverTimestamp(),
     });
     
