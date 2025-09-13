@@ -17,15 +17,34 @@ export default function CasinoPage() {
   const [gameState, setGameState] = useState<GameState>('betting');
   const [countdown, setCountdown] = useState<number>(5);
   const [winnings, setWinnings] = useState<number>(0);
+  const [rocketPosition, setRocketPosition] = useState({ x: 0, y: 200 });
+  const [rocketRotation, setRocketRotation] = useState(0);
 
   const history = useRef([2.34, 1.56, 1.02, 8.91, 3.45, 1.19, 4.01, 1.88, 2.76, 10.21, 1.00, 3.12]);
   const crashPoint = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   
+  const p0 = { x: 0, y: 200 };
+  const p1 = { x: 150, y: 200 };
+  const p2 = { x: 200, y: 100 };
+  const p3 = { x: 400, y: 0 };
+  const controlPoint2 = { x: 2 * p2.x - p1.x, y: 2 * p2.y - p1.y };
+
+  const getPointOnQuadraticBezier = (p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}, t: number) => {
+    const x = Math.pow(1 - t, 2) * p0.x + 2 * (1 - t) * t * p1.x + Math.pow(t, 2) * p2.x;
+    const y = Math.pow(1 - t, 2) * p0.y + 2 * (1 - t) * t * p1.y + Math.pow(t, 2) * p2.y;
+    return { x, y };
+  };
+
+  const getTangentOnQuadraticBezier = (p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}, t: number) => {
+    const dx = 2 * (1 - t) * (p1.x - p0.x) + 2 * t * (p2.x - p1.x);
+    const dy = 2 * (1 - t) * (p1.y - p0.y) + 2 * t * (p2.y - p1.y);
+    return Math.atan2(dy, dx) * (180 / Math.PI);
+  };
+  
   // Game loop management
   useEffect(() => {
     if (gameState === 'betting') {
-      // Countdown before the round starts
       intervalRef.current = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -37,23 +56,20 @@ export default function CasinoPage() {
         });
       }, 1000);
     } else if (gameState === 'playing') {
-      // Set a random crash point for the round
-      crashPoint.current = Math.random() * 10 + 1; // Crashes between 1.00 and 11.00
-      if(Math.random() > 0.8) { // 20% chance of a big multiplier
+      crashPoint.current = Math.random() * 10 + 1;
+      if(Math.random() > 0.8) {
           crashPoint.current = Math.random() * 40 + 10;
       }
 
       setMultiplier(1.00);
       setWinnings(0);
 
-      // Multiplier increase logic
       intervalRef.current = setInterval(() => {
         setMultiplier((prevMultiplier) => {
           if (prevMultiplier >= crashPoint.current) {
             setGameState('crashed');
             return prevMultiplier;
           }
-          // The multiplier increases faster over time
           const increment = 0.01 + (prevMultiplier / 500);
           return prevMultiplier + increment;
         });
@@ -62,9 +78,8 @@ export default function CasinoPage() {
         if(intervalRef.current) clearInterval(intervalRef.current);
         
         const finalMultiplier = gameState === 'crashed' ? crashPoint.current : multiplier;
-        history.current = [finalMultiplier, ...history.current.slice(0, 11)];
+        history.current = [parseFloat(finalMultiplier.toFixed(2)), ...history.current.slice(0, 11)];
 
-        // Reset for the next round after a delay
         setTimeout(() => {
             setGameState('betting');
             setCountdown(5);
@@ -77,10 +92,34 @@ export default function CasinoPage() {
     };
   }, [gameState]);
 
+  useEffect(() => {
+    const progress = Math.min( (multiplier - 1) / ((crashPoint.current || multiplier) - 1), 1);
+    
+    let point, angle;
+    if (progress < 0.5) {
+      const t = progress * 2;
+      point = getPointOnQuadraticBezier(p0, p1, p2, t);
+      angle = getTangentOnQuadraticBezier(p0, p1, p2, t);
+    } else {
+      const t = (progress - 0.5) * 2;
+      point = getPointOnQuadraticBezier(p2, controlPoint2, p3, t);
+      angle = getTangentOnQuadraticBezier(p2, controlPoint2, p3, t);
+    }
+    
+    if (gameState === 'betting') {
+        setRocketPosition(p0);
+        setRocketRotation(getTangentOnQuadraticBezier(p0,p1,p2,0));
+    } else {
+        setRocketPosition(point);
+        setRocketRotation(angle);
+    }
+  }, [multiplier, gameState]);
+
 
   const handlePlaceBet = () => {
     // This is just for UI state change, in a real app this would register the bet
     // For this simulation, we assume the bet is placed when the game starts
+    // In this simulation, the user just needs to have a bet amount set.
     // In this simulation, the user just needs to have a bet amount set.
   };
 
@@ -123,17 +162,19 @@ export default function CasinoPage() {
                    {gameState === 'cashout' && <p className="mt-2 text-2xl font-bold text-blue-400">GANANCIA: ${winnings.toFixed(2)}</p>}
                 </div>
               )}
-               {/* Placeholder for the graph line */}
-               <div className="absolute bottom-0 left-0 h-1/2 w-full p-4">
+               {/* Graph Area */}
+               <div className="absolute bottom-0 left-0 h-full w-full">
                 <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none">
-                    <path d="M 0 200 Q 150 200 200 100 T 400 0" stroke="hsl(var(--primary))" fill="none" strokeWidth="4" 
-                     style={{
-                        strokeDasharray: 500,
-                        strokeDashoffset: gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout' ? 500 - (500 * Math.min(multiplier / (crashPoint.current || multiplier), 1)) : 500,
-                        transition: 'stroke-dashoffset 0.1s linear'
-                     }}
-                    />
+                    <path d="M 0 200 Q 150 200 200 100 T 400 0" stroke="hsl(var(--primary))" fill="none" strokeWidth="4" />
                 </svg>
+                 <Rocket 
+                    className="absolute h-6 w-6 text-primary transition-all duration-100 linear"
+                    style={{
+                        left: `${(rocketPosition.x / 400) * 100}%`,
+                        top: `${(rocketPosition.y / 200) * 100}%`,
+                        transform: `translate(-50%, -50%) rotate(${rocketRotation}deg)`,
+                    }}
+                 />
                </div>
             </CardContent>
           </Card>
@@ -209,4 +250,5 @@ export default function CasinoPage() {
       </Card>
     </div>
   );
-}
+
+    
