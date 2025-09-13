@@ -106,9 +106,9 @@ export default function CasinoPage() {
         {/* Game Area */}
         <div className="lg:col-span-2">
            <Card 
-            className="relative aspect-[16/9] overflow-hidden bg-cover bg-center"
+            className="relative aspect-[16/9] overflow-hidden"
             style={{ 
-              backgroundImage: `url(/images/f1.jpg)`,
+              backgroundImage: `url('/images/f1.jpg')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
