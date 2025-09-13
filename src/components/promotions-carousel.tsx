@@ -19,7 +19,6 @@ import Autoplay from "embla-carousel-autoplay";
 
 interface BannerDoc {
   id: string;
-  title?: string; // Title is now optional
   imageUrl: string;
   createdAt: Timestamp;
 }
@@ -76,7 +75,7 @@ export function PromotionsCarousel() {
                 <CardContent className="relative flex aspect-[3/1] items-center justify-center p-0">
                   <Image
                     src={promo.imageUrl}
-                    alt={promo.title || 'Promotional Banner'}
+                    alt={'Promotional Banner'}
                     fill
                     className="object-cover"
                     priority={true}
