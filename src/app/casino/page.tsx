@@ -192,20 +192,20 @@ export default function CasinoPage() {
                 <div className="absolute inset-0 z-20 flex h-full flex-col items-center justify-center p-4">
                 {gameState === 'betting' && (
                     <div className="text-center" style={{ transform: 'translateY(-20%)' }}>
-                    <p className="text-3xl font-semibold text-yellow-400 drop-shadow-lg">La próxima carrera comienza en...</p>
-                    <p className="text-9xl font-bold text-yellow-400 drop-shadow-lg">{countdown.toFixed(0)}s</p>
+                    <p className="font-headline text-3xl font-semibold text-yellow-400 drop-shadow-lg">La próxima carrera comienza en...</p>
+                    <p className="font-headline text-9xl font-bold text-yellow-400 drop-shadow-lg">{countdown.toFixed(0)}s</p>
                     </div>
                 )}
                 {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
                     <>
                     <div className="absolute text-center" style={{ top: '48%', left: '50.5%', transform: 'translate(-50%, -50%)' }}>
                         <p className={cn(
-                        "text-4xl md:text-5xl font-bold transition-colors font-mono drop-shadow-2xl", 
+                        "text-4xl md:text-5xl font-bold transition-colors font-headline drop-shadow-2xl", 
                         getMultiplierColor()
                         )}>
                             {multiplier.toFixed(2)}x
                         </p>
-                        {gameState === 'crashed' && <p className="mt-2 animate-pulse text-5xl font-bold text-white drop-shadow-lg">Motor Fundido</p>}
+                        {gameState === 'crashed' && <p className="mt-2 animate-pulse text-5xl font-bold font-headline text-white drop-shadow-lg">Motor Fundido</p>}
                         {gameState === 'cashout' && <p className="mt-2 text-lg font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
                     </div>
                     <RevolutionMeter multiplier={multiplier} gameState={gameState} />
