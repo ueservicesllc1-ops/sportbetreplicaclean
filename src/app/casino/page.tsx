@@ -188,9 +188,9 @@ export default function CasinoPage() {
                 />
                 <div className="absolute inset-0 flex h-full flex-col items-center justify-center p-4">
                 {gameState === 'betting' && (
-                    <div className="text-center text-white" style={{ transform: 'translateY(-20%)' }}>
-                    <p className="text-3xl font-semibold text-neutral-300 drop-shadow-lg">La próxima carrera comienza en...</p>
-                    <p className="text-9xl font-bold drop-shadow-lg">{countdown.toFixed(0)}s</p>
+                    <div className="text-center" style={{ transform: 'translateY(-20%)' }}>
+                    <p className="text-3xl font-semibold text-yellow-400 drop-shadow-lg">La próxima carrera comienza en...</p>
+                    <p className="text-9xl font-bold text-yellow-400 drop-shadow-lg">{countdown.toFixed(0)}s</p>
                     </div>
                 )}
                 {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
