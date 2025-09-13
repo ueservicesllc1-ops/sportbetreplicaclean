@@ -41,7 +41,7 @@ function UserBalance() {
         if (doc.exists() && typeof doc.data().balance === 'number') {
           setBalance(doc.data().balance);
         } else {
-          setBalance(0); 
+          setBalance(null); 
         }
       });
       return () => unsubscribe();
@@ -50,8 +50,12 @@ function UserBalance() {
     }
   }, [user]);
 
+  if (balance === null && user) {
+    return null;
+  }
+  
   if (balance === null) {
-    return null; // Don't render anything if balance is still loading
+      return null;
   }
 
   return (
@@ -139,15 +143,18 @@ export function Header() {
                             <span>Mis Apuestas</span>
                         </DropdownMenuItem>
                       </Link>
-                      <DropdownMenuSeparator />
-                       {isAdmin && (
-                        <Link href="/admin" passHref>
-                            <DropdownMenuItem>
-                                <Shield className="mr-2 h-4 w-4" />
-                                <span>Administrador</span>
-                            </DropdownMenuItem>
-                        </Link>
+                      {isAdmin && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <Link href="/admin" passHref>
+                              <DropdownMenuItem>
+                                  <Shield className="mr-2 h-4 w-4" />
+                                  <span>Administrador</span>
+                              </DropdownMenuItem>
+                          </Link>
+                        </>
                       )}
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
