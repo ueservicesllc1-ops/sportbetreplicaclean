@@ -126,6 +126,7 @@ export default function CasinoPage() {
                 alt="Formula One track background"
                 fill
                 className="object-cover blur-sm"
+                data-ai-hint="formula one race track"
             />
              <div className="absolute inset-0 bg-black/60" />
             <CardContent className="relative flex h-full flex-col items-center justify-center bg-transparent p-6 transition-all duration-300">
