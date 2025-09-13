@@ -7,13 +7,13 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import promotions from '@/lib/placeholder-images.json';
 
 export function PromotionsCarousel() {
   return (
     <Carousel className="w-full" opts={{ loop: true }}>
       <CarouselContent>
-        {PlaceHolderImages.map((promo) => (
+        {promotions.placeholderImages.map((promo) => (
           <CarouselItem key={promo.id}>
             <div className="p-1">
               <Card className="overflow-hidden">
