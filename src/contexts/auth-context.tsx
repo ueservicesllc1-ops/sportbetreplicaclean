@@ -67,17 +67,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        setIsAdmin(true);
-        await createUserWallet(user); // Ensure user document exists
+        setIsAdmin(true); // Asumiendo que cualquier usuario logueado puede ser admin por ahora
+        await createUserWallet(user); // Asegura que el documento del usuario exista
 
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
                 setUserProfile(doc.data() as UserProfile);
             }
+            setLoading(false); // Ponemos loading a false una vez que tenemos el perfil (o no existe)
         });
 
-        return () => unsubscribeProfile();
+        return () => {
+            unsubscribeProfile();
+        };
 
       } else {
         setIsAdmin(false);
@@ -86,17 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Set loading to false only after initial auth check is complete
-    const initialAuthCheck = onAuthStateChanged(auth, (user) => {
-        if (!user) {
-            setLoading(false);
-        }
-    });
-
-    return () => {
-        unsubscribe();
-        initialAuthCheck();
-    };
+    return () => unsubscribe();
   }, []);
 
   const createUserWallet = async (user: User) => {
@@ -108,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await setDoc(userDocRef, {
             uid: user.uid,
             email: user.email,
-            balance: 100, // Starting balance
+            balance: 100, // Saldo inicial
             createdAt: serverTimestamp(),
             shortId: shortId,
             verificationStatus: 'unverified',
@@ -121,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Error creating user wallet:", error);
       }
     } else {
-        // This is for users that existed before the shortId or verification feature
+        // Esto es para usuarios que existían antes de las nuevas características
         const data = userDoc.data();
         const updates: any = {};
         if (!data.shortId) {
@@ -212,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
