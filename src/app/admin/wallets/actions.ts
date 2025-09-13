@@ -15,11 +15,9 @@ export async function searchUsers(searchTerm: string): Promise<UserSearchResult[
     if (!searchTerm) return [];
     
     const usersRef = collection(db, 'users');
-    const searchTermLower = searchTerm.toLowerCase();
     
     // Firestore queries are case-sensitive. A common workaround is to store a lowercase version of the email.
-    // For now, we'll do an exact match, which is case-sensitive. The user must type the exact email.
-    // A more robust solution might involve client-side filtering or a more complex backend search.
+    // For this implementation, we will perform two separate queries: one for the exact email and one for the short ID.
     const searchByEmail = query(usersRef, where('email', '==', searchTerm));
     const searchByShortId = query(usersRef, where('shortId', '==', searchTerm.toUpperCase()));
 
