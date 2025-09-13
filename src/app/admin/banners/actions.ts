@@ -3,58 +3,8 @@
 
 import admin from '@/lib/firebase-admin';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
-
-export async function addBanner(prevState: any, formData: FormData) {
-    const title = formData.get('title') as string;
-    const imageFile = formData.get('image') as File;
-
-    if (!title || title.trim().length === 0) {
-        return { success: false, message: 'El título es requerido.' };
-    }
-    if (!imageFile || imageFile.size === 0) {
-        return { success: false, message: 'La imagen es requerida.' };
-    }
-
-    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-    if (!bucketName) {
-        console.error('Error: La variable de entorno NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET no está configurada.');
-        return { success: false, message: 'El bucket de almacenamiento no está configurado en el servidor.' };
-    }
-
-    try {
-        const bucket = admin.storage().bucket(bucketName);
-        const imagePath = `banners/${Date.now()}-${imageFile.name}`;
-        const file = bucket.file(imagePath);
-
-        const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
-
-        await file.save(fileBuffer, {
-            metadata: { contentType: imageFile.type },
-        });
-
-        await file.makePublic();
-        const imageUrl = file.publicUrl();
-
-        await addDoc(collection(db, 'banners'), {
-            title,
-            imageUrl,
-            imagePath, // Guardamos la ruta para poder borrarla después
-            createdAt: serverTimestamp(),
-        });
-        
-        revalidatePath('/admin/banners');
-        revalidatePath('/'); // Revalida la página de inicio para que se vea el nuevo banner
-        
-        return { success: true, message: 'El banner ha sido añadido correctamente.' };
-
-    } catch(error) {
-        console.error('Error al añadir el banner:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido.';
-        return { success: false, message: `No se pudo añadir el banner: ${errorMessage}` };
-    }
-}
 
 
 export async function deleteBanner(bannerId: string) {
