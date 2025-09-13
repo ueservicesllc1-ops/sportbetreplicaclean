@@ -22,8 +22,6 @@ import { useToast } from '@/hooks/use-toast';
 import type { AuthFormValues } from '@/components/auth/auth-form';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-const ADMIN_EMAIL = "ueservicesllc1@gmail.com";
-
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -35,6 +33,13 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function generateShortId(): string {
+    const numbers = Math.floor(1000 + Math.random() * 9000);
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const letter = letters[Math.floor(Math.random() * letters.length)];
+    return `${numbers}${letter}`;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -56,13 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
     if (!userDoc.exists()) {
+      const shortId = generateShortId();
       await setDoc(userDocRef, {
         email: user.email,
         balance: 100, // Starting balance
         createdAt: new Date(),
         uid: user.uid,
+        shortId: shortId,
       });
-      toast({ title: '¡Bienvenido!', description: 'Te hemos dado $100 para empezar a apostar.' });
+      toast({ title: '¡Bienvenido!', description: `Te hemos dado $100 para empezar a apostar. Tu ID de usuario es ${shortId}` });
     }
   };
 

@@ -1,4 +1,5 @@
 
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { UsersTable } from "@/components/admin/users-table";
 
@@ -11,7 +12,7 @@ export default function AdminUsersPage() {
                 <CardHeader>
                     <CardTitle>Todos los Usuarios</CardTitle>
                     <CardDescription>
-                       Aquí puedes ver y gestionar todos los usuarios registrados en la plataforma.
+                       Aquí puedes ver todos los usuarios registrados en la plataforma.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

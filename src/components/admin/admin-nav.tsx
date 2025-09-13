@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Users } from "lucide-react";
+import { Bell, Home, Users, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "../ui/badge";
 import { Logo } from "../logo";
@@ -17,6 +17,7 @@ export function AdminNav() {
     const navItems = [
         { href: "/admin", label: "Dashboard", icon: Home },
         { href: "/admin/users", label: "Usuarios", icon: Users },
+        { href: "/admin/wallets", label: "Billeteras", icon: Wallet },
     ]
 
     return (
