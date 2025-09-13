@@ -27,21 +27,29 @@ export default function CasinoPage() {
   const pathRef = useRef<SVGPathElement>(null);
   const [pathLength, setPathLength] = useState(0);
   
+  // Adjusted path points to make the rocket fly off-screen
   const p0 = { x: 0, y: 200 };
-  const p1 = { x: 150, y: 200 };
-  const p2 = { x: 200, y: 100 };
-  const p3 = { x: 400, y: 0 };
-  const controlPoint2 = { x: 2 * p2.x - p1.x, y: 2 * p2.y - p1.y };
+  const p1 = { x: 150, y: 180 };
+  const p2 = { x: 300, y: 50 };
+  const p3 = { x: 450, y: -50 }; // End point is now outside the viewbox
 
-  const getPointOnQuadraticBezier = (p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}, t: number) => {
-    const x = Math.pow(1 - t, 2) * p0.x + 2 * (1 - t) * t * p1.x + Math.pow(t, 2) * p2.x;
-    const y = Math.pow(1 - t, 2) * p0.y + 2 * (1 - t) * t * p1.y + Math.pow(t, 2) * p2.y;
+  const getPointOnCubicBezier = (p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}, p3: {x:number, y:number}, t: number) => {
+    const u = 1 - t;
+    const tt = t * t;
+    const uu = u * u;
+    const uuu = uu * u;
+    const ttt = tt * t;
+    
+    const x = uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x;
+    const y = uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y;
+    
     return { x, y };
   };
 
-  const getTangentOnQuadraticBezier = (p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}, t: number) => {
-    const dx = 2 * (1 - t) * (p1.x - p0.x) + 2 * t * (p2.x - p1.x);
-    const dy = 2 * (1 - t) * (p1.y - p0.y) + 2 * t * (p2.y - p1.y);
+  const getTangentOnCubicBezier = (p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}, p3: {x:number, y:number}, t: number) => {
+    const u = 1 - t;
+    const dx = 3 * u * u * (p1.x - p0.x) + 6 * u * t * (p2.x - p1.x) + 3 * t * t * (p3.x - p2.x);
+    const dy = 3 * u * u * (p1.y - p0.y) + 6 * u * t * (p2.y - p1.y) + 3 * t * t * (p3.y - p2.y);
     return Math.atan2(dy, dx) * (180 / Math.PI);
   };
   
@@ -65,10 +73,16 @@ export default function CasinoPage() {
         });
       }, 1000);
     } else if (gameState === 'playing') {
-      crashPoint.current = Math.random() * 10 + 1;
-      if(Math.random() > 0.8) {
-          crashPoint.current = Math.random() * 40 + 10;
+      // Use a more realistic crash point distribution
+      const r = Math.random();
+      if (r < 0.5) { // 50% chance of crashing between 1.00x and 1.99x
+        crashPoint.current = 1 + Math.random();
+      } else if (r < 0.9) { // 40% chance of crashing between 2.00x and 9.99x
+        crashPoint.current = 2 + Math.random() * 8;
+      } else { // 10% chance of crashing over 10.00x
+        crashPoint.current = 10 + Math.random() * 40;
       }
+
 
       setMultiplier(1.00);
       setWinnings(0);
@@ -82,7 +96,7 @@ export default function CasinoPage() {
           const increment = 0.01 + (prevMultiplier / 500);
           return prevMultiplier + increment;
         });
-      }, 100);
+      }, 50); // Faster updates for smoother animation
     } else if (gameState === 'crashed' || gameState === 'cashout') {
         if(intervalRef.current) clearInterval(intervalRef.current);
         
@@ -101,36 +115,36 @@ export default function CasinoPage() {
     };
   }, [gameState]);
 
-  const progress = Math.min( (multiplier - 1) / ((crashPoint.current || multiplier) - 1), 1);
-  const strokeDashoffset = pathLength * (1 - progress);
-
 
   useEffect(() => {
+    // This function maps the multiplier to the animation progress `t` (0 to 1)
+    // We can use a non-linear mapping (like log) to make the rocket move faster at higher multipliers
+    const maxMultiplierViewable = 15; // The multiplier at which the rocket leaves the screen
+    const progress = Math.min(Math.log(multiplier) / Math.log(maxMultiplierViewable), 1);
+    
     let point, angle;
-    if (progress < 0.5) {
-      const t = progress * 2;
-      point = getPointOnQuadraticBezier(p0, p1, p2, t);
-      angle = getTangentOnQuadraticBezier(p0, p1, p2, t);
+
+    if (gameState === 'betting') {
+        point = p0;
+        angle = getTangentOnCubicBezier(p0, p1, p2, p3, 0);
     } else {
-      const t = (progress - 0.5) * 2;
-      point = getPointOnQuadraticBezier(p2, controlPoint2, p3, t);
-      angle = getTangentOnQuadraticBezier(p2, controlPoint2, p3, t);
+        point = getPointOnCubicBezier(p0, p1, p2, p3, progress);
+        angle = getTangentOnCubicBezier(p0, p1, p2, p3, progress);
     }
     
-    if (gameState === 'betting') {
-        setRocketPosition(p0);
-        setRocketRotation(getTangentOnQuadraticBezier(p0,p1,p2,0));
-    } else {
-        setRocketPosition(point);
-        setRocketRotation(angle);
-    }
-  }, [multiplier, gameState, progress]);
+    setRocketPosition(point);
+    setRocketRotation(angle);
+
+  }, [multiplier, gameState]);
+
+  // Animation for the trail
+  const maxMultiplierForTrail = 15; // Corresponds to the viewable part of the path
+  const trailProgress = Math.min(Math.log(multiplier) / Math.log(maxMultiplierForTrail), 1);
+  const strokeDashoffset = pathLength * (1 - trailProgress);
 
 
   const handlePlaceBet = () => {
     // This is just for UI state change, in a real app this would register the bet
-    // For this simulation, we assume the bet is placed when the game starts
-    // In this simulation, the user just needs to have a bet amount set.
   };
 
   const handleCashOut = () => {
@@ -160,7 +174,7 @@ export default function CasinoPage() {
               {gameState === 'betting' && (
                 <div className="text-center">
                   <p className="text-lg text-muted-foreground">La próxima ronda comienza en...</p>
-                  <p className="text-6xl font-bold">{countdown.toFixed(1)}s</p>
+                  <p className="text-6xl font-bold">{countdown.toFixed(0)}s</p>
                 </div>
               )}
               {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
@@ -177,21 +191,22 @@ export default function CasinoPage() {
                 <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none">
                     <path
                         ref={pathRef}
-                        d="M 0 200 Q 150 200 200 100 T 400 0" 
+                        d={`M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`}
                         stroke="hsl(var(--primary))"
                         fill="none" 
                         strokeWidth="4"
                         strokeDasharray={pathLength}
                         strokeDashoffset={gameState === 'betting' ? pathLength : strokeDashoffset}
-                        className={gameState !== 'betting' ? 'transition-all duration-100 linear' : ''}
+                        className={gameState !== 'betting' ? 'transition-all duration-[50ms] linear' : ''}
                     />
                 </svg>
                  <Rocket 
-                    className="absolute h-8 w-8 text-primary transition-all duration-100 linear"
+                    className="absolute h-10 w-10 text-primary transition-all duration-[50ms] linear"
                     style={{
                         left: `${(rocketPosition.x / 400) * 100}%`,
                         top: `${(rocketPosition.y / 200) * 100}%`,
                         transform: `translate(-50%, -50%) rotate(${rocketRotation}deg)`,
+                        willChange: 'left, top, transform',
                     }}
                  />
                </div>
@@ -273,3 +288,4 @@ export default function CasinoPage() {
     
 
     
+
