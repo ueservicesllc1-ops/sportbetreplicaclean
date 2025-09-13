@@ -123,15 +123,15 @@ export default function CasinoPage() {
                 </div>
               )}
               {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
-                 <div className="z-10 text-center">
+                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform text-center" style={{ top: '52%', left: '50.5%'}}>
                     <p className={cn(
-                      "text-8xl md:text-9xl font-bold transition-colors font-mono drop-shadow-2xl", 
+                      "text-6xl md:text-7xl font-bold transition-colors font-mono drop-shadow-2xl", 
                       getMultiplierColor()
                     )}>
                         {multiplier.toFixed(2)}x
                     </p>
-                    {gameState === 'crashed' && <p className="mt-2 animate-pulse text-5xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
-                    {gameState === 'cashout' && <p className="mt-2 text-3xl font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
+                    {gameState === 'crashed' && <p className="mt-2 animate-pulse text-3xl font-bold text-destructive drop-shadow-lg">¡CRASH!</p>}
+                    {gameState === 'cashout' && <p className="mt-2 text-xl font-bold text-blue-400 drop-shadow-lg">GANANCIA: ${winnings.toFixed(2)}</p>}
                 </div>
               )}
             </CardContent>
