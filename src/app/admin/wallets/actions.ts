@@ -16,6 +16,8 @@ export async function searchUsers(searchTerm: string): Promise<UserSearchResult[
     
     const usersRef = collection(db, 'users');
     
+    // Since Firestore doesn't support case-insensitive search natively,
+    // we will search by exact email and exact shortId (which is always uppercase).
     const searchByEmail = query(usersRef, where('email', '==', searchTerm));
     const searchByShortId = query(usersRef, where('shortId', '==', searchTerm.toUpperCase()));
 
@@ -30,12 +32,13 @@ export async function searchUsers(searchTerm: string): Promise<UserSearchResult[
         const processSnapshot = (snapshot: any) => {
             snapshot.forEach((doc: any) => {
                 const data = doc.data();
-                if (data.uid) { // Ensure doc has data
+                // Ensure the document has the required fields before adding it to the map
+                if (data.uid && data.email && data.shortId) {
                     usersMap.set(doc.id, {
                         uid: data.uid,
                         email: data.email,
                         shortId: data.shortId,
-                        balance: data.balance
+                        balance: data.balance || 0
                     });
                 }
             });

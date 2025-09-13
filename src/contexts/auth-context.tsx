@@ -20,7 +20,7 @@ import {
 import { auth, db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { AuthFormValues } from '@/components/auth/auth-form';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -63,22 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!userDoc.exists()) {
       const shortId = generateShortId();
       await setDoc(userDocRef, {
+        uid: user.uid,
         email: user.email,
         balance: 100, // Starting balance
-        createdAt: new Date(),
-        uid: user.uid,
+        createdAt: serverTimestamp(),
         shortId: shortId,
       });
-      toast({ title: '¡Bienvenido!', description: `Te hemos dado $100 para empezar a apostar. Tu ID de usuario es ${shortId}` });
-    } else {
-        // If user exists, check if they have a shortId
-        if (!userDoc.data().shortId) {
-            const shortId = generateShortId();
-            await updateDoc(userDocRef, {
-                shortId: shortId
-            });
-            toast({ title: 'ID de Usuario Asignado', description: `Se te ha asignado un nuevo ID de usuario: ${shortId}` });
-        }
+      toast({ title: '¡Bienvenido!', description: `Te hemos dado $100 para empezar. Tu ID de usuario es ${shortId}` });
     }
   };
 
