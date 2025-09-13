@@ -21,7 +21,7 @@ import {
 import { auth, db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { AuthFormValues } from '@/components/auth/auth-form';
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot, updateDoc } from 'firebase/firestore';
 
 type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 
@@ -67,8 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        // Temporarily make all logged-in users admin
         setIsAdmin(true);
+        await createUserWallet(user); // Ensure user document exists
 
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
@@ -77,37 +77,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         });
 
-        // Ensure user wallet/profile exists
-        await createUserWallet(user);
-
         return () => unsubscribeProfile();
 
       } else {
         setIsAdmin(false);
         setUserProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
-    return () => unsubscribe();
+
+    // Set loading to false only after initial auth check is complete
+    const initialAuthCheck = onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            setLoading(false);
+        }
+    });
+
+    return () => {
+        unsubscribe();
+        initialAuthCheck();
+    };
   }, []);
 
   const createUserWallet = async (user: User) => {
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
     if (!userDoc.exists()) {
-      const shortId = generateShortId();
-      await setDoc(userDocRef, {
-        uid: user.uid,
-        email: user.email,
-        balance: 100, // Starting balance
-        createdAt: serverTimestamp(),
-        shortId: shortId,
-        verificationStatus: 'unverified',
-        realName: '',
-        idNumber: '',
-        idPhotoUrl: '',
-      });
-      toast({ title: '¡Bienvenido!', description: `Te hemos dado $100 para empezar. Tu ID de usuario es ${shortId}` });
+      try {
+        const shortId = generateShortId();
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            email: user.email,
+            balance: 100, // Starting balance
+            createdAt: serverTimestamp(),
+            shortId: shortId,
+            verificationStatus: 'unverified',
+            realName: '',
+            idNumber: '',
+            idPhotoUrl: '',
+        });
+        toast({ title: '¡Bienvenido!', description: `Te hemos dado $100 para empezar. Tu ID de usuario es ${shortId}` });
+      } catch (error) {
+        console.error("Error creating user wallet:", error);
+      }
     } else {
         // This is for users that existed before the shortId or verification feature
         const data = userDoc.data();
@@ -162,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await signInWithPopup(auth, provider);
       await createUserWallet(userCredential.user);
       toast({ title: '¡Inicio de sesión exitoso!', description: 'Bienvenido.' });
-    } catch (error: any)
+    } catch (error: any) {
       console.error('Error signing in with Google:', error);
       toast({
         variant: 'destructive',
