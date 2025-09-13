@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
-import { Menu, Ticket, User as UserIcon, Wallet } from 'lucide-react';
+import { Menu, Ticket, User as UserIcon, Wallet, Shield } from 'lucide-react';
 import { SportsSidebar } from '../sports-sidebar';
 import { BetSlip } from '../bet-slip';
 import { useAuth } from '@/contexts/auth-context';
@@ -41,8 +41,8 @@ function UserBalance() {
         if (doc.exists() && typeof doc.data().balance === 'number') {
           setBalance(doc.data().balance);
         } else {
-          // Keep it loading until we have data
-          setBalance(null); 
+          // If doc doesn't exist or balance is not a number, keep it loading
+          setBalance(null);
         }
       });
       return () => unsubscribe();
@@ -52,7 +52,7 @@ function UserBalance() {
   }, [user]);
 
   if (balance === null) {
-    return null;
+    return null; // Don't render anything if balance is still loading
   }
 
   return (
@@ -64,7 +64,7 @@ function UserBalance() {
 
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const [isWalletOpen, setIsWalletOpen] = useState(false);
 
 
@@ -130,10 +130,25 @@ export function Header() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setIsWalletOpen(true)}>Billetera</DropdownMenuItem>
+                      {isAdmin && (
+                        <Link href="/admin" passHref>
+                            <DropdownMenuItem>
+                                <Shield className="mr-2 h-4 w-4" />
+                                <span>Administrador</span>
+                            </DropdownMenuItem>
+                        </Link>
+                      )}
+                      <DropdownMenuItem onClick={() => setIsWalletOpen(true)}>
+                        <Wallet className="mr-2 h-4 w-4" />
+                        <span>Billetera</span>
+                        </DropdownMenuItem>
                       <Link href="/my-bets" passHref>
-                        <DropdownMenuItem>Mis Apuestas</DropdownMenuItem>
+                        <DropdownMenuItem>
+                            <Ticket className="mr-2 h-4 w-4" />
+                            <span>Mis Apuestas</span>
+                        </DropdownMenuItem>
                       </Link>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
