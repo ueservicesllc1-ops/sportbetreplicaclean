@@ -23,14 +23,6 @@ export function MainNav() {
                 </Button>
               </Link>
             ))}
-             {isAdmin && (
-              <Link href="/admin" passHref>
-                <Button variant="ghost" className="flex h-auto items-center gap-2 p-3">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium">Admin</span>
-                </Button>
-              </Link>
-            )}
           </div>
           <ScrollBar orientation="horizontal" className="invisible" />
         </ScrollArea>

@@ -41,8 +41,7 @@ function UserBalance() {
         if (doc.exists() && typeof doc.data().balance === 'number') {
           setBalance(doc.data().balance);
         } else {
-          // If doc doesn't exist or balance is not a number, keep it loading
-          setBalance(null);
+          setBalance(0); 
         }
       });
       return () => unsubscribe();
@@ -130,14 +129,6 @@ export function Header() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {isAdmin && (
-                        <Link href="/admin" passHref>
-                            <DropdownMenuItem>
-                                <Shield className="mr-2 h-4 w-4" />
-                                <span>Administrador</span>
-                            </DropdownMenuItem>
-                        </Link>
-                      )}
                       <DropdownMenuItem onClick={() => setIsWalletOpen(true)}>
                         <Wallet className="mr-2 h-4 w-4" />
                         <span>Billetera</span>
@@ -149,6 +140,14 @@ export function Header() {
                         </DropdownMenuItem>
                       </Link>
                       <DropdownMenuSeparator />
+                       {isAdmin && (
+                        <Link href="/admin" passHref>
+                            <DropdownMenuItem>
+                                <Shield className="mr-2 h-4 w-4" />
+                                <span>Administrador</span>
+                            </DropdownMenuItem>
+                        </Link>
+                      )}
                       <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
