@@ -1,52 +1,27 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload } from 'lucide-react';
 import { addBanner } from '../actions';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-
-const bannerSchema = z.object({
-  title: z.string().min(3, { message: 'El título debe tener al menos 3 caracteres.' }),
-  image: z.any().refine(file => file instanceof File, 'Por favor, sube una imagen.'),
-});
-
-type BannerFormValues = z.infer<typeof bannerSchema>;
+import { Label } from '@/components/ui/label';
 
 export function AddBannerForm() {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  const form = useForm<BannerFormValues>({
-    resolver: zodResolver(bannerSchema),
-    defaultValues: {
-      title: '',
-      image: null,
-    },
-  });
+  const formRef = useRef<HTMLFormElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      form.setValue('image', file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -55,93 +30,69 @@ export function AddBannerForm() {
     }
   };
 
-
-  const onSubmit = async (values: BannerFormValues) => {
+  const handleSubmit = async (formData: FormData) => {
     setLoading(true);
     setError(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('title', values.title);
-      formData.append('image', values.image);
+    const result = await addBanner(formData);
 
-      const result = await addBanner(formData);
-      
-      if (!result.success) {
-        throw new Error(result.message);
-      }
-
+    if (result.success) {
       toast({
         title: '¡Banner añadido!',
         description: 'El nuevo banner aparecerá en la página de inicio.',
       });
-      form.reset();
+      formRef.current?.reset();
       setPreview(null);
-      // Manually clear the file input value if needed
-      const fileInput = document.getElementById('image-upload') as HTMLInputElement;
-      if(fileInput) fileInput.value = '';
-      
-    } catch (err: any) {
-      const errorMessage = err.message || 'No se pudo guardar el banner.';
-      setError(errorMessage);
+    } else {
+      setError(result.message);
       toast({
         variant: 'destructive',
         title: 'Error al añadir banner',
-        description: 'Ha ocurrido un error. Revisa el mensaje en pantalla.',
+        description: result.message,
       });
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   return (
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Título del Banner</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej: Bono de Bienvenida" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <form ref={formRef} action={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+              <Label htmlFor="title">Título del Banner</Label>
+              <Input 
+                id="title"
+                name="title"
+                placeholder="Ej: Bono de Bienvenida"
+                required 
+                minLength={3}
+              />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="image"
-            render={() => (
-              <FormItem>
-                <FormLabel>Imagen del Banner</FormLabel>
-                <FormControl>
-                     <div className="relative flex justify-center items-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
-                        <Input
-                            id="image-upload"
-                            type="file"
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            accept="image/png, image/jpeg, image/webp"
-                            onChange={handleFileChange}
-                            disabled={loading}
-                        />
-                        {preview ? (
-                            <Image src={preview} alt="Banner preview" layout="fill" objectFit="contain" className="rounded-lg" />
-                        ) : (
-                            <div className="flex flex-col items-center gap-1 text-center text-muted-foreground">
-                                <Upload className="h-6 w-6" />
-                                <p className="text-sm">Arrastra o haz clic para subir</p>
-                                <p className="text-xs">Recomendado: 1200x400px</p>
-                            </div>
-                        )}
+          <div className="space-y-2">
+            <Label>Imagen del Banner</Label>
+            <div className="relative flex justify-center items-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
+                <Input
+                    ref={fileInputRef}
+                    id="image"
+                    name="image"
+                    type="file"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={handleFileChange}
+                    disabled={loading}
+                    required
+                />
+                {preview ? (
+                    <Image src={preview} alt="Banner preview" layout="fill" objectFit="contain" className="rounded-lg" />
+                ) : (
+                    <div className="flex flex-col items-center gap-1 text-center text-muted-foreground">
+                        <Upload className="h-6 w-6" />
+                        <p className="text-sm">Arrastra o haz clic para subir</p>
+                        <p className="text-xs">Recomendado: 1200x400px</p>
                     </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                )}
+            </div>
+          </div>
           
           {error && (
             <Alert variant="destructive">
@@ -156,7 +107,6 @@ export function AddBannerForm() {
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Añadir Banner
           </Button>
-        </form>
-      </Form>
+      </form>
   );
 }
