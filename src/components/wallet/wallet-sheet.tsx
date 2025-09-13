@@ -30,8 +30,6 @@ export function WalletSheet() {
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
       if (doc.exists()) {
         setBalance(doc.data().balance);
-      } else {
-        setBalance(0);
       }
       setLoading(false);
     });

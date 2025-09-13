@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         balance: 100, // Starting balance
         createdAt: new Date(),
       });
+      toast({ title: '¡Bienvenido!', description: 'Te hemos dado $100 para empezar a apostar.' });
     }
   };
 
@@ -62,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       await createUserWallet(userCredential.user);
-      toast({ title: '¡Registro exitoso!', description: 'Bienvenido. Te hemos dado $100 para empezar.' });
+      toast({ title: '¡Registro exitoso!', description: 'Bienvenido.' });
     } catch (error: any) {
       console.error('Error signing up:', error);
       toast({
@@ -76,8 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (values: AuthFormValues) => {
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-       toast({ title: '¡Inicio de sesión exitoso!', description: 'Bienvenido de vuelta.' });
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      await createUserWallet(userCredential.user);
+      toast({ title: '¡Inicio de sesión exitoso!', description: 'Bienvenido de vuelta.' });
     } catch (error: any) {
       console.error('Error signing in:', error);
       toast({

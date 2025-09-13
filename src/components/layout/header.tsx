@@ -39,15 +39,20 @@ function UserBalance() {
       const userDocRef = doc(db, 'users', user.uid);
       const unsubscribe = onSnapshot(userDocRef, (doc) => {
         if (doc.exists()) {
-          setBalance(doc.data().balance);
+          const data = doc.data();
+          setBalance(data.balance ?? 0);
+        } else {
+          setBalance(null); // Should be handled by context creating the wallet
         }
       });
       return () => unsubscribe();
+    } else {
+      setBalance(null);
     }
   }, [user]);
 
   if (balance === null) {
-    return null; // Don't render anything while loading
+    return null; // Don't render anything while loading or if no user
   }
 
   return (
