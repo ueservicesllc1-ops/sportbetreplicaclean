@@ -115,7 +115,7 @@ export default function CasinoPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [gameState, multiplier]);
+  }, [gameState]);
 
   const handlePlaceBet = () => {
     // This is just for UI state change, in a real app this would register the bet
