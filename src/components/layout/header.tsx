@@ -29,6 +29,7 @@ import {
 import { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { WalletSheet } from '../wallet/wallet-sheet';
 
 function UserBalance() {
   const { user } = useAuth();
@@ -58,6 +59,8 @@ function UserBalance() {
 
 export function Header() {
   const { user, signOut } = useAuth();
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -96,60 +99,63 @@ export function Header() {
             </Sheet>
           </div>
           <div className="hidden items-center gap-2 md:flex">
-            {user ? (
-              <>
-                 <Button variant="ghost" asChild>
-                    <Link href="/wallet" className='flex items-center gap-2'>
-                        <Wallet className="h-5 w-5" />
-                        <UserBalance />
-                    </Link>
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2">
-                      <UserIcon className="h-5 w-5" />
-                      <span className='truncate max-w-28'>{user.email}</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                     <Link href="/wallet" passHref>
-                        <DropdownMenuItem>Billetera</DropdownMenuItem>
-                    </Link>
-                    <Link href="/my-bets" passHref>
-                      <DropdownMenuItem>Mis Apuestas</DropdownMenuItem>
-                    </Link>
-                    <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            ) : (
-              <Dialog>
-                <div className="flex items-center gap-2">
-                  <DialogTrigger asChild>
-                    <Button variant="ghost">ACCEDER</Button>
-                  </DialogTrigger>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="default"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
-                    >
-                      REGISTRARSE
-                    </Button>
-                  </DialogTrigger>
-                </div>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Autenticación</DialogTitle>
-                    <DialogDescription>
-                      Accede o crea una cuenta para empezar a apostar.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <AuthForm />
-                </DialogContent>
-              </Dialog>
-            )}
+             <Sheet open={isWalletOpen} onOpenChange={setIsWalletOpen}>
+              {user ? (
+                <>
+                  <SheetTrigger asChild>
+                     <Button variant="ghost" className='flex items-center gap-2'>
+                          <Wallet className="h-5 w-5" />
+                          <UserBalance />
+                      </Button>
+                  </SheetTrigger>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="flex items-center gap-2">
+                        <UserIcon className="h-5 w-5" />
+                        <span className='truncate max-w-28'>{user.email}</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setIsWalletOpen(true)}>Billetera</DropdownMenuItem>
+                      <Link href="/my-bets" passHref>
+                        <DropdownMenuItem>Mis Apuestas</DropdownMenuItem>
+                      </Link>
+                      <DropdownMenuItem onClick={signOut}>Cerrar Sesión</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              ) : (
+                <Dialog>
+                  <div className="flex items-center gap-2">
+                    <DialogTrigger asChild>
+                      <Button variant="ghost">ACCEDER</Button>
+                    </DialogTrigger>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="default"
+                        className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      >
+                        REGISTRARSE
+                      </Button>
+                    </DialogTrigger>
+                  </div>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Autenticación</DialogTitle>
+                      <DialogDescription>
+                        Accede o crea una cuenta para empezar a apostar.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <AuthForm />
+                  </DialogContent>
+                </Dialog>
+              )}
+               <SheetContent className="w-[400px] sm:w-[540px]">
+                  <WalletSheet />
+               </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
