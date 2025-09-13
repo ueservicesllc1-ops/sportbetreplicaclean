@@ -28,7 +28,7 @@ export async function addBanner(prevState: any, formData: FormData) {
     
     try {
         const bucket = admin.storage().bucket();
-        const filePath = `user-documents/banners/${Date.now()}-${image.name}`;
+        const filePath = `banners/${Date.now()}-${image.name}`;
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await image.arrayBuffer());
 

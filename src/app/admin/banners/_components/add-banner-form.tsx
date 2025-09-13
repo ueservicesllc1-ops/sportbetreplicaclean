@@ -44,11 +44,7 @@ export function AddBannerForm() {
         formRef.current?.reset();
         setPreview(null);
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error al añadir banner',
-          description: state.message,
-        });
+        // The detailed error is now shown in an Alert component
       }
     }
   }, [state, toast]);
