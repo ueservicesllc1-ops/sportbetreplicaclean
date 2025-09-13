@@ -4,8 +4,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const secondaryNavLinks = [
     { name: 'Resultados en Vivo', href: '/#' },
-    { name: 'Estadísticas', href: '/#' },
-    { name: 'Reglas', href: '/#' },
+    { name: 'Estadísticas', href: '/estadisticas' },
+    { name: 'Reglas', href: '/reglas-de-apuestas' },
     { name: 'Noticias', href: '/#' },
 ];
 
