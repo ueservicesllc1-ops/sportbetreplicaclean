@@ -1,16 +1,16 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useFormStatus, useFormState } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect, useRef, useState } from 'react';
 import { addBanner } from '../actions';
 import { Loader2, Upload } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 const initialState = {
   success: false,
@@ -43,7 +43,7 @@ export function AddBannerForm() {
         formRef.current?.reset();
         setPreview(null);
       } else {
-        // Error is shown in the Alert component below
+        // El error se mostrará en el componente Alert de abajo
       }
     }
   }, [state, toast]);

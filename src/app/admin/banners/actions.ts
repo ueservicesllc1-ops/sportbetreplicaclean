@@ -1,23 +1,23 @@
 
 'use server';
 
-import admin from '@/lib/firebase-admin'; // Ensure admin is initialized
+import admin from '@/lib/firebase-admin';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
-export async function addBanner(formData: FormData) {
+export async function addBanner(prevState: any, formData: FormData) {
+    const title = formData.get('title') as string;
+    const imageFile = formData.get('image') as File;
+
+    if (!title || title.trim().length === 0) {
+        return { success: false, message: 'El título es requerido.' };
+    }
+    if (!imageFile || imageFile.size === 0) {
+        return { success: false, message: 'La imagen es requerida.' };
+    }
+
     try {
-        const title = formData.get('title') as string;
-        const imageFile = formData.get('image') as File;
-
-        if (!title || title.trim().length === 0) {
-            return { success: false, message: 'El título es requerido.' };
-        }
-        if (!imageFile || imageFile.size === 0) {
-            return { success: false, message: 'La imagen es requerida.' };
-        }
-
         const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
         if (!bucketName) {
             console.error('Firebase Storage bucket name is not configured.');
