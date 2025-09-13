@@ -16,8 +16,6 @@ export async function searchUsers(searchTerm: string): Promise<UserSearchResult[
     
     const usersRef = collection(db, 'users');
     
-    // Firestore queries are case-sensitive. A common workaround is to store a lowercase version of the email.
-    // For this implementation, we will perform two separate queries: one for the exact email and one for the short ID.
     const searchByEmail = query(usersRef, where('email', '==', searchTerm));
     const searchByShortId = query(usersRef, where('shortId', '==', searchTerm.toUpperCase()));
 
@@ -29,25 +27,22 @@ export async function searchUsers(searchTerm: string): Promise<UserSearchResult[
         
         const usersMap = new Map<string, UserSearchResult>();
         
-        emailSnapshot.forEach((doc) => {
-            const data = doc.data();
-            usersMap.set(doc.id, {
-                uid: data.uid,
-                email: data.email,
-                shortId: data.shortId,
-                balance: data.balance
+        const processSnapshot = (snapshot: any) => {
+            snapshot.forEach((doc: any) => {
+                const data = doc.data();
+                if (data.uid) { // Ensure doc has data
+                    usersMap.set(doc.id, {
+                        uid: data.uid,
+                        email: data.email,
+                        shortId: data.shortId,
+                        balance: data.balance
+                    });
+                }
             });
-        });
+        }
 
-        shortIdSnapshot.forEach((doc) => {
-            const data = doc.data();
-             usersMap.set(doc.id, {
-                uid: data.uid,
-                email: data.email,
-                shortId: data.shortId,
-                balance: data.balance
-            });
-        });
+        processSnapshot(emailSnapshot);
+        processSnapshot(shortIdSnapshot);
         
         return Array.from(usersMap.values());
     } catch (error) {
