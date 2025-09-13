@@ -29,6 +29,7 @@ import { useEffect, useState } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { WalletSheet } from '../wallet/wallet-sheet';
+import { AuthForm } from '../auth/auth-form';
 
 function UserBalance() {
   const { user } = useAuth();
