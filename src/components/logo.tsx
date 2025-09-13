@@ -1,33 +1,15 @@
 import type { SVGProps } from 'react';
+import Image from 'next/image';
 
-export function Logo(props: SVGProps<SVGSVGElement>) {
+export function Logo(props: Omit<React.ComponentProps<typeof Image>, 'src' | 'alt'>) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 200 50"
-      width="150"
-      height="37.5"
+    <Image
+      src="/logo.jpg"
+      alt="SportBet Replica Logo"
+      width={150}
+      height={38}
+      priority
       {...props}
-    >
-      <text
-        x="10"
-        y="35"
-        fontFamily="'Poppins', sans-serif"
-        fontSize="30"
-        fontWeight="bold"
-        fill="hsl(var(--primary))"
-      >
-        SportBet
-      </text>
-      <text
-        x="138"
-        y="35"
-        fontFamily="'Poppins', sans-serif"
-        fontSize="30"
-        fill="hsl(var(--foreground))"
-      >
-        Replica
-      </text>
-    </svg>
+    />
   );
 }
