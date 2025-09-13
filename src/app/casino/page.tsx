@@ -106,14 +106,10 @@ export default function CasinoPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Game Area */}
         <div className="lg:col-span-2">
-          <Card className="relative aspect-[2/1] overflow-hidden">
-             <Image 
-                src="/images/f1.jpg"
-                alt="F1 Cockpit"
-                fill
-                className="object-cover"
-                data-ai-hint="formula 1 cockpit"
-            />
+          <Card 
+            className="relative aspect-[2/1] overflow-hidden bg-cover bg-center"
+            style={{ backgroundImage: `url(/images/f1.jpg)` }}
+          >
             <div className="absolute inset-0 bg-black/30" />
             <CardContent className="relative flex h-full flex-col items-center justify-center p-4">
               {gameState === 'betting' && (
