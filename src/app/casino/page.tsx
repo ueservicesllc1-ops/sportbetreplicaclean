@@ -107,19 +107,22 @@ export default function CasinoPage() {
         {/* Game Area */}
         <div className="relative lg:col-span-2">
            <Card 
-            className="relative -z-10 aspect-[16/9] overflow-hidden"
-            style={{
-              backgroundImage: `url('https://iili.io/KT1BDrb.jpg')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              transform: gameState !== 'betting' ? 'scale(1.35)' : 'scale(1)',
-              transition: 'transform 0.5s ease-in-out',
-            }}
+            className="aspect-[16/9] overflow-hidden"
           >
+            <div 
+              className='h-full w-full'
+              style={{
+                backgroundImage: `url('https://iili.io/KT1BDrb.jpg')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                transform: gameState !== 'betting' ? 'scale(1.35)' : 'scale(1)',
+                transition: 'transform 0.5s ease-in-out',
+              }}
+            />
             <div className="absolute inset-0 bg-black/40" />
-            <CardContent className="relative flex h-full flex-col items-center justify-center p-4">
+            <CardContent className="absolute inset-0 flex h-full flex-col items-center justify-center p-4">
               {gameState === 'betting' && (
-                <div className="z-20 text-center text-white">
+                <div className="text-center text-white">
                   <p className="text-lg text-neutral-300">La próxima carrera comienza en...</p>
                   <p className="text-6xl font-bold drop-shadow-lg">{countdown.toFixed(0)}s</p>
                 </div>
