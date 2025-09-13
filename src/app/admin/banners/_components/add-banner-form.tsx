@@ -48,15 +48,6 @@ export function AddBannerForm() {
   return (
     <form ref={formRef} action={formAction} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="title">Título del Banner</Label>
-        <Input
-          id="title"
-          name="title"
-          placeholder="Ej: Bono de Bienvenida"
-          required
-        />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="imageUrl">URL de la Imagen</Label>
         <Input
           id="imageUrl"

@@ -12,19 +12,14 @@ interface FormState {
 }
 
 export async function addBanner(prevState: FormState, formData: FormData): Promise<FormState> {
-  const title = formData.get('title') as string | null;
   const imageUrl = formData.get('imageUrl') as string | null;
 
-  if (!title || title.trim().length < 3) {
-    return { success: false, message: 'El título es requerido y debe tener al menos 3 caracteres.' };
-  }
   if (!imageUrl || !imageUrl.trim().startsWith('http')) {
     return { success: false, message: 'La URL de la imagen es requerida y debe ser un enlace válido.' };
   }
 
   try {
     await addDoc(collection(db, 'banners'), {
-      title: title,
       imageUrl: imageUrl,
       imagePath: '', // This field can be used in the future if we switch to direct uploads
       createdAt: serverTimestamp(),

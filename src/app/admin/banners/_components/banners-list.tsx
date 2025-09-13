@@ -25,7 +25,7 @@ import {
 
 interface BannerDoc {
   id: string;
-  title: string;
+  title?: string;
   imageUrl: string;
   createdAt: Timestamp;
 }
@@ -88,13 +88,13 @@ export function BannersList() {
           <div className="relative h-16 w-28 flex-shrink-0">
              <Image
                 src={banner.imageUrl}
-                alt={banner.title}
+                alt={banner.title || 'Banner Image'}
                 fill
                 className="object-cover rounded-md"
               />
           </div>
           <div className='flex-grow'>
-            <p className="font-semibold">{banner.title}</p>
+            <p className="font-semibold truncate text-sm">{banner.imageUrl}</p>
             <p className="text-xs text-muted-foreground">
                 Creado: {new Date(banner.createdAt.seconds * 1000).toLocaleDateString()}
             </p>
