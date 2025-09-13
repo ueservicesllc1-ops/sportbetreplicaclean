@@ -1,3 +1,4 @@
+
 import {
   Accordion,
   AccordionContent,
@@ -10,8 +11,8 @@ import { SoccerBallIcon } from '@/components/icons/soccer-ball-icon';
 
 export function SportsSidebar() {
   return (
-    <div className="flex h-full flex-col bg-card lg:rounded-lg lg:border">
-      <div className="border-b p-2">
+    <div className="flex h-full flex-col">
+      <div className="p-2">
         <h2 className="p-2 font-headline text-lg font-semibold tracking-tight">Deportes</h2>
       </div>
       <div className="flex-grow overflow-y-auto">

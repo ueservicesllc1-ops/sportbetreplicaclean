@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 import { Menu, Ticket, User as UserIcon, Wallet } from 'lucide-react';
 import { SportsSidebar } from '../sports-sidebar';
 import { BetSlip } from '../bet-slip';
@@ -14,7 +14,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
 } from '@/components/ui/dialog';
 import { AuthForm } from '@/components/auth/auth-form';
@@ -75,6 +74,10 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
+                <SheetHeader className="p-4">
+                  <SheetTitle>Deportes</SheetTitle>
+                  <SheetDescription>Navega por las categorías de deportes.</SheetDescription>
+                </SheetHeader>
                 <SportsSidebar />
               </SheetContent>
             </Sheet>
@@ -94,6 +97,10 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80 p-0">
+                 <SheetHeader className="p-4">
+                  <SheetTitle>Boleto de Apuesta</SheetTitle>
+                   <SheetDescription>Tus selecciones aparecerán aquí.</SheetDescription>
+                </SheetHeader>
                 <BetSlip />
               </SheetContent>
             </Sheet>
@@ -153,6 +160,13 @@ export function Header() {
                 </Dialog>
               )}
                <SheetContent className="w-[400px] sm:w-[540px]">
+                <SheetHeader className="mb-6">
+                    <SheetTitle className="flex items-center gap-2">
+                        <Wallet className="h-7 w-7" />
+                        <span>Mi Billetera</span>
+                    </SheetTitle>
+                    <SheetDescription>Consulta tu saldo y gestiona tus fondos.</SheetDescription>
+                </SheetHeader>
                   <WalletSheet />
                </SheetContent>
             </Sheet>

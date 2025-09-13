@@ -94,8 +94,8 @@ export function BetSlip() {
 
 
   return (
-    <div className="flex h-full flex-col bg-card lg:rounded-lg lg:border">
-      <CardHeader className="border-b p-4">
+    <div className="flex h-full flex-col">
+      <CardHeader className="p-4">
         <CardTitle>Boleto de Apuesta</CardTitle>
       </CardHeader>
       <CardContent className="flex-grow overflow-y-auto p-4">

@@ -55,30 +55,15 @@ export function WalletSheet() {
 
   if (!user) {
     return (
-       <>
-        <SheetHeader>
-            <SheetTitle>Billetera</SheetTitle>
-            <SheetDescription>Debes iniciar sesión para ver y gestionar tu saldo.</SheetDescription>
-        </SheetHeader>
-        <div className="py-12 text-center">
+       <div className="py-12 text-center">
             <p className="text-muted-foreground">
             Inicia sesión para continuar.
             </p>
         </div>
-       </>
     );
   }
 
   return (
-    <>
-      <SheetHeader className="mb-6">
-        <SheetTitle className="flex items-center gap-2">
-            <WalletIcon className="h-7 w-7" />
-            <span>Mi Billetera</span>
-        </SheetTitle>
-        <SheetDescription>Consulta tu saldo y gestiona tus fondos.</SheetDescription>
-      </SheetHeader>
-      
       <div className="space-y-6">
         <Card className="text-center bg-secondary/50">
             <CardHeader>
@@ -137,6 +122,5 @@ export function WalletSheet() {
         </Card>
       </div>
 
-    </>
   );
 }
