@@ -21,6 +21,7 @@ import { Loader2, Upload } from 'lucide-react';
 import { addBanner } from '../actions';
 import { getSignedUploadUrl } from '@/app/wallet/actions'; // Re-using this action
 import Image from 'next/image';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 const bannerSchema = z.object({
@@ -33,6 +34,7 @@ type BannerFormValues = z.infer<typeof bannerSchema>;
 export function AddBannerForm() {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<BannerFormValues>({
@@ -58,6 +60,7 @@ export function AddBannerForm() {
 
   const onSubmit = async (values: BannerFormValues) => {
     setLoading(true);
+    setError(null);
 
     try {
         // 1. Get signed URL for upload
@@ -71,7 +74,8 @@ export function AddBannerForm() {
         });
 
         if(!uploadResponse.ok) {
-            throw new Error('No se pudo subir la imagen.');
+            const uploadErrorText = await uploadResponse.text();
+            throw new Error(`Error al subir a GCS: ${uploadErrorText}`);
         }
 
         // 3. Update banners collection in Firestore
@@ -87,10 +91,12 @@ export function AddBannerForm() {
       form.reset();
       setPreview(null);
     } catch (err: any) {
+      const errorMessage = err.message || 'No se pudo guardar el banner.';
+      setError(errorMessage);
       toast({
         variant: 'destructive',
         title: 'Error al añadir banner',
-        description: err.message || 'No se pudo guardar el banner.',
+        description: 'Ha ocurrido un error. Revisa el mensaje en pantalla.',
       });
     } finally {
       setLoading(false);
@@ -146,6 +152,15 @@ export function AddBannerForm() {
             )}
           />
           
+          {error && (
+            <Alert variant="destructive">
+              <AlertTitle>Error Detallado</AlertTitle>
+              <AlertDescription className="break-all">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Añadir Banner
