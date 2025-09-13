@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Users, Wallet } from "lucide-react";
+import { Bell, Home, Users, Wallet, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "../ui/badge";
 import { Logo } from "../logo";
@@ -18,6 +19,7 @@ export function AdminNav() {
         { href: "/admin", label: "Dashboard", icon: Home },
         { href: "/admin/users", label: "Usuarios", icon: Users },
         { href: "/admin/wallets", label: "Billeteras", icon: Wallet },
+        { href: "/admin/banners", label: "Banners", icon: ImageIcon },
     ]
 
     return (
@@ -39,7 +41,7 @@ export function AdminNav() {
                              <Link
                                 key={item.label}
                                 href={item.href}
-                                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${pathname === item.href ? 'bg-muted text-primary' : ''}`}
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${pathname.startsWith(item.href) ? 'bg-muted text-primary' : ''}`}
                             >
                                 <item.icon className="h-4 w-4" />
                                 {item.label}
