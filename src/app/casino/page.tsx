@@ -104,18 +104,21 @@ export default function CasinoPage() {
         <h1 className="text-3xl font-bold tracking-tight">Speedrun</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 [transform:translateZ(0)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Game Area */}
-        <div className="relative lg:col-span-2">
+        <div className="lg:col-span-2">
            <Card 
-            className="aspect-[16/9] overflow-hidden"
+            className="relative aspect-[16/9] overflow-hidden"
           >
-            <div 
-              className='absolute inset-0 h-full w-full bg-cover bg-center transition-transform duration-500 ease-in-out'
-              style={{
-                backgroundImage: `url('https://iili.io/KT1Ttt4.jpg')`,
-                transform: gameState !== 'betting' ? 'scale(1.5)' : 'scale(1)',
-              }}
+            <Image
+                src="https://iili.io/KT1Ttt4.jpg"
+                alt="F1 Cockpit"
+                layout="fill"
+                objectFit="cover"
+                className={cn(
+                    'transition-transform duration-500 ease-in-out',
+                    gameState !== 'betting' ? 'scale-150' : 'scale-100'
+                )}
             />
             <CardContent className="absolute inset-0 flex h-full flex-col items-center justify-center p-4">
               {gameState === 'betting' && (
