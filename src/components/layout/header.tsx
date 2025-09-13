@@ -41,7 +41,7 @@ function UserBalance() {
         if (doc.exists() && typeof doc.data().balance === 'number') {
           setBalance(doc.data().balance);
         } else {
-          // This handles the case where the doc might not exist yet or balance is not set
+          // Keep it loading until we have data
           setBalance(null); 
         }
       });
@@ -52,7 +52,7 @@ function UserBalance() {
   }, [user]);
 
   if (balance === null) {
-    return null; // Don't render anything while loading or if no user/balance
+    return null;
   }
 
   return (
@@ -118,7 +118,7 @@ export function Header() {
                 <>
                    <Button variant="ghost" className='flex items-center gap-2' onClick={() => setIsWalletOpen(true)}>
                         <Wallet className="h-5 w-5" />
-                        <UserBalance />
+                        <span className='relative z-10'><UserBalance /></span>
                     </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
