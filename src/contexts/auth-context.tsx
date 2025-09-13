@@ -22,9 +22,12 @@ import { useToast } from '@/hooks/use-toast';
 import type { AuthFormValues } from '@/components/auth/auth-form';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
+const ADMIN_EMAIL = "ueservicesll1@gmail.com";
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   signUp: (values: AuthFormValues) => Promise<void>;
   signIn: (values: AuthFormValues) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -36,11 +39,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      setIsAdmin(user?.email === ADMIN_EMAIL);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -54,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: user.email,
         balance: 100, // Starting balance
         createdAt: new Date(),
+        uid: user.uid,
       });
       toast({ title: '¡Bienvenido!', description: 'Te hemos dado $100 para empezar a apostar.' });
     }
@@ -125,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     loading,
+    isAdmin,
     signUp,
     signIn,
     signInWithGoogle,

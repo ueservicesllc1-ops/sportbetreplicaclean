@@ -1,9 +1,15 @@
+
+'use client';
+
 import Link from 'next/link';
 import { mainNavSports } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { useAuth } from '@/contexts/auth-context';
+import { Shield } from 'lucide-react';
 
 export function MainNav() {
+  const { isAdmin } = useAuth();
   return (
     <div className="border-b bg-card">
       <div className="container px-2 md:px-4">
@@ -17,6 +23,14 @@ export function MainNav() {
                 </Button>
               </Link>
             ))}
+             {isAdmin && (
+              <Link href="/admin" passHref>
+                <Button variant="ghost" className="flex h-auto items-center gap-2 p-3">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">Admin</span>
+                </Button>
+              </Link>
+            )}
           </div>
           <ScrollBar orientation="horizontal" className="invisible" />
         </ScrollArea>
