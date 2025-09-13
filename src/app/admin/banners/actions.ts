@@ -10,20 +10,20 @@ function getPublicUrl(bucketName: string, filePath: string) {
     return `https://storage.googleapis.com/${bucketName}/${filePath}`;
 }
 
-export async function addBanner(prevState: any, formData: FormData) {
+export async function addBanner(formData: FormData) {
     const title = formData.get('title') as string | null;
     const image = formData.get('image') as File | null;
     
     if (!title || title.trim().length < 3) {
-        return { success: false, message: 'El título es requerido y debe tener al menos 3 caracteres.' };
+        throw new Error('El título es requerido y debe tener al menos 3 caracteres.');
     }
     if (!image || image.size === 0) {
-        return { success: false, message: 'La imagen es requerida.' };
+        throw new Error('La imagen es requerida.');
     }
 
     const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
     if (!bucketName) {
-         return { success: false, message: 'La configuración del bucket de almacenamiento no está definida.' };
+         throw new Error('La configuración del bucket de almacenamiento no está definida.');
     }
     
     try {
@@ -32,33 +32,27 @@ export async function addBanner(prevState: any, formData: FormData) {
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await image.arrayBuffer());
 
-        // Upload image to GCS
         await file.save(fileBuffer, {
             metadata: { contentType: image.type },
         });
         
-        // Make file public to get public URL
         await file.makePublic();
 
         const imageUrl = getPublicUrl(bucketName, filePath);
 
-        // Save banner metadata to Firestore
         await addDoc(collection(db, 'banners'), {
             title: title,
             imageUrl: imageUrl,
-            imagePath: filePath, // Keep track of the path for deletion
+            imagePath: filePath,
             createdAt: serverTimestamp(),
         });
         
-        revalidatePath('/'); // Revalidate the homepage to show the new banner
+        revalidatePath('/');
         revalidatePath('/admin/banners');
         
-        return { success: true, message: 'Banner añadido correctamente.' };
-
     } catch (error) {
         console.error('Error adding banner:', error);
-        const errorMessage = error instanceof Error ? error.message : 'No se pudo añadir el banner.';
-        return { success: false, message: errorMessage };
+        throw new Error('No se pudo añadir el banner. Revisa la consola del servidor para más detalles.');
     }
 }
 
