@@ -4,7 +4,7 @@
 
 import admin from '@/lib/firebase-admin'; // Ensure admin is initialized
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
 interface BannerData {
@@ -31,8 +31,9 @@ export async function uploadFileToStorage(formData: FormData) {
   try {
     await file.save(fileBuffer, {
       metadata: { contentType: image.type },
+      public: true, // Make file public
     });
-    return { filePath };
+     return { filePath };
   } catch (error) {
     console.error('Error al subir el archivo a GCS:', error);
     throw new Error('No se pudo subir el archivo a Storage.');
@@ -55,6 +56,7 @@ export async function addBanner(data: BannerData) {
         await addDoc(collection(db, 'banners'), {
             title: data.title,
             imageUrl: imageUrl,
+            imagePath: data.imagePath, // Keep track of the path for deletion
             createdAt: serverTimestamp(),
         });
         
@@ -77,7 +79,21 @@ export async function deleteBanner(bannerId: string) {
     const bannerDocRef = doc(db, 'banners', bannerId);
 
     try {
+        const bannerDoc = await getDoc(bannerDocRef);
+        if(!bannerDoc.exists()){
+            throw new Error('El banner no existe.');
+        }
+        const { imagePath } = bannerDoc.data();
+
+        // Delete from firestore
         await deleteDoc(bannerDocRef);
+
+        // Delete from storage
+        if(imagePath){
+            const bucket = admin.storage().bucket();
+            const file = bucket.file(imagePath);
+            await file.delete();
+        }
         
         revalidatePath('/');
         revalidatePath('/admin/banners');
