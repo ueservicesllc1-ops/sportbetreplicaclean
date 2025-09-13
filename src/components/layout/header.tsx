@@ -46,7 +46,9 @@ function UserBalance() {
     }
   }, [user]);
 
-  if (balance === null) return null;
+  if (balance === null) {
+    return null; // Don't render anything while loading
+  }
 
   return (
     <span className="font-bold text-primary">
@@ -109,12 +111,10 @@ export function Header() {
              <Sheet open={isWalletOpen} onOpenChange={setIsWalletOpen}>
               {user ? (
                 <>
-                  <SheetTrigger asChild>
-                     <Button variant="ghost" className='flex items-center gap-2'>
-                          <Wallet className="h-5 w-5" />
-                          <UserBalance />
-                      </Button>
-                  </SheetTrigger>
+                   <Button variant="ghost" className='flex items-center gap-2' onClick={() => setIsWalletOpen(true)}>
+                        <Wallet className="h-5 w-5" />
+                        <UserBalance />
+                    </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="flex items-center gap-2">
