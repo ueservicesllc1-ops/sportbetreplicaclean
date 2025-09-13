@@ -4,7 +4,7 @@ import { Logo } from '../logo';
 import { Separator } from '../ui/separator';
 
 const footerSections = {
-  'Sobre Nosotros': [['Quiénes somos', '/quienes-somos'], ['Juego Responsable', '/juego-responsable'], ['Términos y Condiciones', '#']],
+  'Sobre Nosotros': [['Quiénes somos', '/quienes-somos'], ['Juego Responsable', '/juego-responsable'], ['Términos y Condiciones', '/terminos-y-condiciones']],
   Ayuda: [['Contáctanos', '#'], ['Preguntas Frecuentes', '#'], ['Reglas de Apuestas', '#']],
   Social: [['Facebook', '#'], ['Twitter', '#'], ['Instagram', '#']],
 };
