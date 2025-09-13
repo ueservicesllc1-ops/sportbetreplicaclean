@@ -33,7 +33,7 @@ const RevolutionMeter = ({ multiplier, gameState }: { multiplier: number, gameSt
       const percentage = (index + 1) / totalBars;
       if (percentage <= 0.3) return 'bg-blue-500'; // Blue
       if (percentage <= 0.6) return 'bg-green-500'; // Green
-      if (percentage <= 0.8) return 'bg-yellow-500'; // Yellow
+      if (percentage <= 0.8) return 'bg-yellow-400'; // Yellow
       return 'bg-red-500'; // Red
     };
 
@@ -60,6 +60,8 @@ const RevolutionMeter = ({ multiplier, gameState }: { multiplier: number, gameSt
         {Array.from({ length: totalBars }).map((_, i) => {
             const barColor = gameState === 'crashed' ? 'bg-red-500' : getBarColor(i);
             const isLit = i < activeBars;
+            const colorName = barColor.replace('bg-','').replace('-500','').replace('-400','');
+            
             return (
                 <div
                     key={i}
@@ -68,7 +70,7 @@ const RevolutionMeter = ({ multiplier, gameState }: { multiplier: number, gameSt
                     isLit ? barColor : 'bg-secondary/50'
                     )}
                     style={{
-                        boxShadow: isLit ? `0 0 5px ${barColor.replace('bg-','').replace('-500','')}` : 'none'
+                        boxShadow: isLit ? `0 0 5px ${colorName}` : 'none'
                     }}
                 />
             );
@@ -93,6 +95,7 @@ export default function CasinoPage() {
   // Game loop management
   useEffect(() => {
     if (gameState === 'betting') {
+        setMultiplier(1.00);
       intervalRef.current = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -135,7 +138,6 @@ export default function CasinoPage() {
         setTimeout(() => {
             setGameState('betting');
             setCountdown(5);
-            setMultiplier(1.00);
         }, 3000);
     }
     
