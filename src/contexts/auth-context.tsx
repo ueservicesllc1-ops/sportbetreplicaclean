@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await firebaseSignOut(auth);
       toast({ title: 'Has cerrado sesión.' });
     } catch (error: any) {
-      console.error('Error signing out:', error);
+       console.error('Error signing out:', error);
        toast({
         variant: 'destructive',
         title: 'Error',
