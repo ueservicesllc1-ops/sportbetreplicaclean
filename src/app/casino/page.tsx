@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Rocket } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type GameState = 'betting' | 'playing' | 'crashed' | 'cashout';
 
@@ -54,8 +55,7 @@ export default function CasinoPage() {
             setGameState('crashed');
             return prevMultiplier;
           }
-          // Faster increment
-          const increment = 0.015 + (prevMultiplier / 250);
+          const increment = 0.01 + (prevMultiplier / 200);
           return prevMultiplier + increment;
         });
       }, 50); 
@@ -90,54 +90,10 @@ export default function CasinoPage() {
   const getMultiplierColor = () => {
       if(gameState === 'crashed') return 'text-destructive';
       if(gameState === 'cashout') return 'text-blue-400';
-      return 'text-green-400';
+      if (multiplier < 2) return 'text-foreground';
+      if (multiplier < 10) return 'text-green-400';
+      return 'text-primary';
   }
-  
-  // New animation logic
-  const gameAreaRef = useRef<HTMLDivElement>(null);
-  const [rocketStyle, setRocketStyle] = useState<React.CSSProperties>({});
-  const [linePoints, setLinePoints] = useState('0,200');
-
-  useEffect(() => {
-    const width = gameAreaRef.current?.clientWidth || 400;
-    const height = gameAreaRef.current?.clientHeight || 200;
-
-    // Use a logarithmic-like scale for smoother visual progression
-    const progress = Math.log(multiplier) / Math.log(1.05); // Adjust base for speed
-    
-    // X position moves across the screen
-    const x = Math.min(progress * 10, width * 1.5); // Allow going off-screen
-
-    // Y position has a more pronounced curve, slowing down its vertical ascent
-    const y = height - (height * (1 - 1 / (0.02 * progress + 1)));
-    
-    // Angle of the rocket based on the curve's derivative
-    const derivative = (height * 0.02) / Math.pow(0.02 * progress + 1, 2);
-    const angle = -Math.atan(derivative) * (180 / Math.PI);
-
-    setRocketStyle({
-        transform: `translate(${x}px, ${y}px) rotate(${angle}deg)`,
-        transition: 'transform 50ms linear',
-    });
-    
-    // Update the line path
-    if (gameState === 'playing') {
-      // Append new point only if it's different from the last one to avoid performance issues
-      setLinePoints(prev => {
-        const lastPoint = prev.slice(prev.lastIndexOf(' ')+1);
-        const newPoint = `${x.toFixed(1)},${y.toFixed(1)}`;
-        if(lastPoint === newPoint) return prev;
-        return `${prev} ${newPoint}`;
-      });
-    } else {
-       // Reset line on new game
-       setLinePoints(`0,${height}`);
-    }
-
-  }, [multiplier, gameState]);
-  
-  const viewBox = `0 0 ${gameAreaRef.current?.clientWidth || 400} ${gameAreaRef.current?.clientHeight || 200}`;
-
 
   return (
     <div className="space-y-6">
@@ -150,7 +106,7 @@ export default function CasinoPage() {
         {/* Game Area */}
         <div className="lg:col-span-2">
           <Card className="relative aspect-[2/1] overflow-hidden">
-            <CardContent ref={gameAreaRef} className="flex h-full flex-col items-center justify-center bg-secondary/30 p-6">
+            <CardContent className="flex h-full flex-col items-center justify-center bg-secondary/30 p-6 transition-all duration-300">
               {gameState === 'betting' && (
                 <div className="text-center">
                   <p className="text-lg text-muted-foreground">La próxima ronda comienza en...</p>
@@ -158,30 +114,14 @@ export default function CasinoPage() {
                 </div>
               )}
               {(gameState === 'playing' || gameState === 'crashed' || gameState === 'cashout') && (
-                <div className="relative z-20 text-center">
-                  <p className={`text-7xl font-bold transition-colors ${getMultiplierColor()}`}>
+                <div className="relative z-10 text-center">
+                   <p className={cn("text-8xl font-bold transition-colors", getMultiplierColor())}>
                     {multiplier.toFixed(2)}x
                   </p>
-                   {gameState === 'crashed' && <p className="mt-2 text-2xl font-bold text-destructive">¡CRASH!</p>}
+                   {gameState === 'crashed' && <p className="mt-2 animate-pulse text-4xl font-bold text-destructive">¡CRASH!</p>}
                    {gameState === 'cashout' && <p className="mt-2 text-2xl font-bold text-blue-400">GANANCIA: ${winnings.toFixed(2)}</p>}
                 </div>
               )}
-               {/* Graph Area */}
-               <div className="absolute bottom-0 left-0 h-full w-full">
-                <svg width="100%" height="100%" viewBox={viewBox} preserveAspectRatio="none" className="absolute bottom-0 left-0">
-                    <polyline
-                        points={linePoints}
-                        fill="none"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                    />
-                </svg>
-                 <Rocket 
-                    className="absolute h-8 w-8 text-primary -translate-x-1/2 -translate-y-1/2"
-                    style={rocketStyle}
-                 />
-               </div>
             </CardContent>
           </Card>
           <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
@@ -257,5 +197,3 @@ export default function CasinoPage() {
     </div>
   );
 }
-
-    
