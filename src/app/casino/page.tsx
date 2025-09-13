@@ -108,9 +108,11 @@ export default function CasinoPage() {
         <div className="lg:col-span-2">
           <Card 
             className="relative aspect-[2/1] overflow-hidden bg-cover bg-center"
-            style={{ backgroundImage: `url(/images/f1.jpg)` }}
+            style={{ 
+              backgroundImage: `url(https://picsum.photos/seed/racecar/1200/600)`,
+            }}
           >
-            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
             <CardContent className="relative flex h-full flex-col items-center justify-center p-4">
               {gameState === 'betting' && (
                 <div className="z-20 text-center text-white">
