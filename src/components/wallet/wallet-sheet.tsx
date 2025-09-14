@@ -46,7 +46,10 @@ function DepositArea() {
 
     return (
          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Depositar Fondos</h3>
+            <h3 className="font-semibold text-lg">Depositar con PayPal</h3>
+             <p className="text-sm text-muted-foreground">
+                Serás redirigido a PayPal, donde podrás pagar con tu saldo o con tarjeta de crédito/débito.
+             </p>
 
              <div className="space-y-2">
                 <p className="text-sm font-medium">Monto a Depositar</p>
