@@ -14,7 +14,7 @@ export function getFirebaseAdmin() {
     try {
       admin.initializeApp({
         credential: cert(firebaseAdminConfig),
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        storageBucket: 'studio-3302383355-1ea39.firebasestorage.app',
       });
     } catch (error) {
       console.error('Firebase admin initialization error', error);
