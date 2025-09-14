@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons, type OnApproveData, type CreateOrderData } from "@paypal/react-paypal-js";
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-// Using the new LIVE Client ID directly in the component for reliability.
+// Using the LIVE Client ID directly in the component for reliability.
 // This is a public key and is safe to be exposed in client-side code.
 const PAYPAL_CLIENT_ID = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
 
