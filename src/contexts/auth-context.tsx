@@ -60,6 +60,9 @@ function generateShortId(): string {
     return `${numbers}${letter}`;
 }
 
+const SUPER_ADMINS = ['dev@sportbet.com', 'ypueservicesllc1@gmail.com'];
+
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -80,8 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (doc.exists()) {
                 const profile = doc.data() as UserProfile;
                 setUserProfile(profile);
-                setIsAdmin(profile.role === 'admin' || profile.role === 'superadmin');
-                setIsSuperAdmin(profile.role === 'superadmin');
+                const isUserAdmin = profile.role === 'admin' || profile.role === 'superadmin' || SUPER_ADMINS.includes(profile.email || '');
+                const isUserSuperAdmin = profile.role === 'superadmin' || SUPER_ADMINS.includes(profile.email || '');
+                setIsAdmin(isUserAdmin);
+                setIsSuperAdmin(isUserSuperAdmin);
             } else {
                  setUserProfile(null);
                  setIsAdmin(false);
@@ -109,6 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!userDoc.exists()) {
       try {
         const shortId = generateShortId();
+        const role: UserRole = SUPER_ADMINS.includes(user.email || '') ? 'superadmin' : 'user';
+
         await setDoc(userDocRef, {
             uid: user.uid,
             email: user.email,
@@ -116,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             createdAt: serverTimestamp(),
             shortId: shortId,
             verificationStatus: 'unverified',
-            role: 'user', // Default role for new users
+            role: role, // Default role for new users
             realName: '',
             idNumber: '',
             idPhotoUrl: '',
@@ -130,7 +137,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const updates: Partial<UserProfile> = {};
         if (!data.shortId) updates.shortId = generateShortId();
         if (!data.verificationStatus) updates.verificationStatus = 'unverified';
-        if (!data.role) updates.role = 'user'; // Assign default role if missing
+        
+        // Ensure superadmins always have the correct role
+        const expectedRole = SUPER_ADMINS.includes(data.email || '') ? 'superadmin' : (data.role || 'user');
+        if (data.role !== expectedRole) {
+            updates.role = expectedRole;
+        }
+
 
         if (Object.keys(updates).length > 0) {
             await updateDoc(userDocRef, updates);
