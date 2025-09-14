@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -164,6 +165,7 @@ export default function CasinoPage() {
 
       const gameInterval = setInterval(() => {
         setMultiplier((prevMultiplier) => {
+          // Use a functional update to get the latest crashPoint from the ref
           if (prevMultiplier >= crashPoint.current) {
             setGameState('crashed');
             return prevMultiplier;
@@ -379,25 +381,28 @@ export default function CasinoPage() {
                       <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting' || hasPlacedBet}>2x</Button>
                     </div>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                      <Label className="text-sm font-medium">Auto Retiro</Label>
                      <div className="flex items-center gap-2">
-                        <Input
-                            type="number"
-                            value={autoCashOutAmount}
-                            onChange={(e) => setAutoCashOutAmount(e.target.value)}
-                            placeholder="1.50"
-                            className="h-9"
-                            disabled={gameState !== 'betting' || hasPlacedBet}
-                        />
-                        <div className="flex items-center space-x-2 rounded-md border p-2 pr-3">
+                        <div className="relative flex-grow">
+                            <Input
+                                type="number"
+                                value={autoCashOutAmount}
+                                onChange={(e) => setAutoCashOutAmount(e.target.value)}
+                                placeholder="1.50"
+                                className="h-9 pr-6"
+                                disabled={gameState !== 'betting' || hasPlacedBet}
+                            />
+                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">x</span>
+                        </div>
+                        <div className="flex items-center space-x-2 rounded-md border p-2 pr-3 h-9">
                             <Switch 
                                 id="auto-cashout-switch" 
                                 checked={isAutoCashOutEnabled}
                                 onCheckedChange={setIsAutoCashOutEnabled}
                                 disabled={gameState !== 'betting' || hasPlacedBet}
                             />
-                            <Label htmlFor="auto-cashout-switch" className='text-xs'>Activar</Label>
+                            <Label htmlFor="auto-cashout-switch" className='text-xs cursor-pointer'>Activar</Label>
                         </div>
                      </div>
                   </div>
@@ -421,5 +426,3 @@ export default function CasinoPage() {
     </div>
   );
 }
-
-    
