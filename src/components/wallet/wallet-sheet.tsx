@@ -41,7 +41,7 @@ function SubmitNotificationButton() {
   );
 }
 
-function DepositNotificationForm({ depositType }: { depositType: 'transferencia bancaria' | 'depósito cripto' }) {
+function DepositNotificationForm({ depositType, notesPlaceholder }: { depositType: 'transferencia bancaria' | 'depósito cripto', notesPlaceholder: string }) {
     const { user } = useAuth();
     const [state, formAction] = useActionState(submitDepositNotification, initialNotificationState);
     const formRef = useRef<HTMLFormElement>(null);
@@ -80,7 +80,7 @@ function DepositNotificationForm({ depositType }: { depositType: 'transferencia 
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="notes">Notas (Opcional)</Label>
-                    <Textarea id="notes" name="notes" placeholder="Ej: Depósito desde cuenta de Pichincha." />
+                    <Textarea id="notes" name="notes" placeholder={notesPlaceholder} />
                 </div>
 
                  {!state.success && state.message && (
@@ -209,7 +209,7 @@ function BankTransferArea() {
                         </div>
                     ))}
                 </div>
-                <DepositNotificationForm depositType="transferencia bancaria" />
+                <DepositNotificationForm depositType="transferencia bancaria" notesPlaceholder="Ej: Depósito desde cuenta de Pichincha." />
              </DialogContent>
         </div>
     )
@@ -264,7 +264,7 @@ function CryptoDepositArea() {
                         </AlertDescription>
                     </Alert>
                 </div>
-                 <DepositNotificationForm depositType="depósito cripto" />
+                 <DepositNotificationForm depositType="depósito cripto" notesPlaceholder="Ej: USDT enviados desde mi billetera de Binance."/>
             </DialogContent>
         </Dialog>
     );
@@ -467,4 +467,3 @@ export function WalletSheet() {
     </Dialog>
   );
 }
-
