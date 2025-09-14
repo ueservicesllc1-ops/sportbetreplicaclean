@@ -16,25 +16,64 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { PaypalButton } from './paypal-button';
 import { ScrollArea } from '../ui/scroll-area';
 import Image from 'next/image';
+import { getBankingSettings, type BankingInfo } from '@/app/admin/banking/actions';
 
 const WELCOME_BONUS = 100;
 
 function BankTransferArea() {
     const { toast } = useToast();
-    const bankDetails = {
-        "Banco": { value: "Banco Pichincha", logo: "https://i.postimg.cc/9M9g0FBD/banco-pichincha-logo.png" },
-        "Titular": { value: "Wingo Sports S.A.S." },
-        "RUC": { value: "179XXXXXXXXX1" },
-        "Tipo de Cuenta": { value: "Corriente" },
-        "Número de Cuenta": { value: "1234567890" },
-        "Email para comprobantes": { value: "pagos@wingo.ec" },
-        "WhatsApp para comprobantes": { value: "+593 99 123 4567", icon: MessageSquare },
-    };
+    const [settings, setSettings] = useState<BankingInfo | null>(null);
+    const [loading, setLoading] = useState(true);
+
+     useEffect(() => {
+        async function fetchSettings() {
+            try {
+                const fetchedSettings = await getBankingSettings();
+                setSettings(fetchedSettings);
+            } catch (error) {
+                console.error("Failed to fetch banking settings", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchSettings();
+    }, []);
 
     const handleCopy = (text: string) => {
+        if (!text) return;
         navigator.clipboard.writeText(text);
         toast({ title: "Copiado", description: "El dato ha sido copiado al portapapeles." });
     }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-4 rounded-lg border h-[120px]">
+                <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+        );
+    }
+    
+    if (!settings || !settings.bankName) {
+        return (
+            <div className="space-y-4 rounded-lg border p-4 text-center">
+                 <h3 className="font-semibold text-lg">Depositar por Transferencia</h3>
+                 <p className="text-sm text-muted-foreground">
+                   La transferencia bancaria no está configurada por el administrador.
+                 </p>
+            </div>
+        );
+    }
+    
+    const bankDetails = [
+        { label: "Banco", value: settings.bankName, logo: settings.logoPichincha },
+        { label: "Titular", value: settings.accountHolder },
+        { label: "RUC", value: settings.ruc },
+        { label: "Tipo de Cuenta", value: settings.accountType },
+        { label: "Número de Cuenta", value: settings.accountNumber },
+        { label: "Email", value: settings.email },
+        { label: "WhatsApp", value: settings.whatsapp, icon: MessageSquare },
+    ];
+
 
     return (
          <div className="space-y-4 rounded-lg border p-4">
@@ -57,14 +96,14 @@ function BankTransferArea() {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-3 py-4">
-                    {Object.entries(bankDetails).map(([key, data]) => (
-                        <div key={key} className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">{key}:</span>
+                    {bankDetails.map((item) => item.value && (
+                        <div key={item.label} className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{item.label}:</span>
                             <div className="flex items-center gap-2">
-                                {data.logo && <Image src={data.logo} alt={`${key} logo`} width={20} height={20} className="mr-1"/>}
-                                {data.icon && <data.icon className="h-4 w-4 text-green-500 mr-1" />}
-                                <span className="font-semibold">{data.value}</span>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopy(data.value)}>
+                                {item.logo && <Image src={item.logo} alt={`${item.label} logo`} width={20} height={20} className="mr-1"/>}
+                                {item.icon && <item.icon className="h-4 w-4 text-green-500 mr-1" />}
+                                <span className="font-semibold">{item.value}</span>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopy(item.value!)}>
                                     <Copy className="h-4 w-4" />
                                 </Button>
                             </div>
