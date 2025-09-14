@@ -26,7 +26,8 @@ declare global {
 
 function PayPalHostedButton() {
     useEffect(() => {
-        if (window.paypal) {
+        // Check if the paypal object and HostedButtons method are available
+        if (window.paypal && window.paypal.HostedButtons) {
             window.paypal.HostedButtons({
                 hostedButtonId: "628SVMMQS7M52",
             }).render("#paypal-container-628SVMMQS7M52");
