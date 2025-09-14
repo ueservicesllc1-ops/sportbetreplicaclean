@@ -62,7 +62,7 @@ export default function PenaltyShootoutPage() {
     const [ballLeft, setBallLeft] = useState(defaultAssets.ballLeft as number);
     const [ballScale, setBallScale] = useState(defaultAssets.ballScale as number);
 
-    const { user } = useAuth();
+    const { user, isAdmin } = useAuth();
     const { toast } = useToast();
 
     const [saveState, saveAction, isSaving] = useActionState(updateGameAssetPositions, { success: false, message: '' });
@@ -279,58 +279,60 @@ export default function PenaltyShootoutPage() {
                     </Card>
                     
                     {/* DEV CONTROLS */}
-                    <Card className='w-full max-w-2xl'>
-                        <CardHeader>
-                            <CardTitle className='text-base'>Controles de Desarrollo</CardTitle>
-                            <CardDescription className='text-xs'>Ajusta la posición y escala de los elementos.</CardDescription>
-                        </CardHeader>
-                        <CardContent className='space-y-4'>
-                            <form action={saveAction} className='space-y-6'>
-                                <input type="hidden" name="keeperTop" value={keeperTop} />
-                                <input type="hidden" name="keeperLeft" value={keeperLeft} />
-                                <input type="hidden" name="keeperScale" value={keeperScale} />
-                                <input type="hidden" name="ballTop" value={ballTop} />
-                                <input type="hidden" name="ballLeft" value={ballLeft} />
-                                <input type="hidden" name="ballScale" value={ballScale} />
-                                <div className='grid grid-cols-2 gap-4'>
-                                    <div className='space-y-3 p-3 border rounded-lg'>
-                                        <Label className='font-semibold'>Portero</Label>
-                                        <div className='space-y-1'>
-                                            <Label htmlFor="keeper-top" className='text-xs'>Posición Y: {keeperTop}</Label>
-                                            <Slider id="keeper-top" value={[keeperTop]} onValueChange={(v) => setKeeperTop(v[0])} max={100} step={1} />
+                    {isAdmin && (
+                        <Card className='w-full max-w-2xl'>
+                            <CardHeader>
+                                <CardTitle className='text-base'>Controles de Desarrollo</CardTitle>
+                                <CardDescription className='text-xs'>Ajusta la posición y escala de los elementos.</CardDescription>
+                            </CardHeader>
+                            <CardContent className='space-y-4'>
+                                <form action={saveAction} className='space-y-6'>
+                                    <input type="hidden" name="keeperTop" value={keeperTop} />
+                                    <input type="hidden" name="keeperLeft" value={keeperLeft} />
+                                    <input type="hidden" name="keeperScale" value={keeperScale} />
+                                    <input type="hidden" name="ballTop" value={ballTop} />
+                                    <input type="hidden" name="ballLeft" value={ballLeft} />
+                                    <input type="hidden" name="ballScale" value={ballScale} />
+                                    <div className='grid grid-cols-2 gap-4'>
+                                        <div className='space-y-3 p-3 border rounded-lg'>
+                                            <Label className='font-semibold'>Portero</Label>
+                                            <div className='space-y-1'>
+                                                <Label htmlFor="keeper-top" className='text-xs'>Posición Y: {keeperTop}</Label>
+                                                <Slider id="keeper-top" value={[keeperTop]} onValueChange={(v) => setKeeperTop(v[0])} max={100} step={1} />
+                                            </div>
+                                            <div className='space-y-1'>
+                                                <Label htmlFor="keeper-left" className='text-xs'>Posición X: {keeperLeft}</Label>
+                                                <Slider id="keeper-left" value={[keeperLeft]} onValueChange={(v) => setKeeperLeft(v[0])} max={100} step={1} />
+                                            </div>
+                                            <div className='space-y-1'>
+                                                <Label htmlFor="keeper-scale" className='text-xs'>Escala: {keeperScale}</Label>
+                                                <Slider id="keeper-scale" value={[keeperScale]} onValueChange={(v) => setKeeperScale(v[0])} max={3} step={0.1} />
+                                            </div>
                                         </div>
-                                        <div className='space-y-1'>
-                                            <Label htmlFor="keeper-left" className='text-xs'>Posición X: {keeperLeft}</Label>
-                                            <Slider id="keeper-left" value={[keeperLeft]} onValueChange={(v) => setKeeperLeft(v[0])} max={100} step={1} />
-                                        </div>
-                                        <div className='space-y-1'>
-                                            <Label htmlFor="keeper-scale" className='text-xs'>Escala: {keeperScale}</Label>
-                                            <Slider id="keeper-scale" value={[keeperScale]} onValueChange={(v) => setKeeperScale(v[0])} max={3} step={0.1} />
+                                        <div className='space-y-3 p-3 border rounded-lg'>
+                                            <Label className='font-semibold'>Balón</Label>
+                                            <div className='space-y-1'>
+                                                <Label htmlFor="ball-top" className='text-xs'>Posición Y: {ballTop}</Label>
+                                                <Slider id="ball-top" value={[ballTop]} onValueChange={(v) => setBallTop(v[0])} max={100} step={1} />
+                                            </div>
+                                            <div className='space-y-1'>
+                                                <Label htmlFor="ball-left" className='text-xs'>Posición X: {ballLeft}</Label>
+                                                <Slider id="ball-left" value={[ballLeft]} onValueChange={(v) => setBallLeft(v[0])} max={100} step={1} />
+                                            </div>
+                                            <div className='space-y-1'>
+                                                <Label htmlFor="ball-scale" className='text-xs'>Escala: {ballScale}</Label>
+                                                <Slider id="ball-scale" value={[ballScale]} onValueChange={(v) => setBallScale(v[0])} max={3} step={0.1} />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className='space-y-3 p-3 border rounded-lg'>
-                                        <Label className='font-semibold'>Balón</Label>
-                                        <div className='space-y-1'>
-                                            <Label htmlFor="ball-top" className='text-xs'>Posición Y: {ballTop}</Label>
-                                            <Slider id="ball-top" value={[ballTop]} onValueChange={(v) => setBallTop(v[0])} max={100} step={1} />
-                                        </div>
-                                        <div className='space-y-1'>
-                                            <Label htmlFor="ball-left" className='text-xs'>Posición X: {ballLeft}</Label>
-                                            <Slider id="ball-left" value={[ballLeft]} onValueChange={(v) => setBallLeft(v[0])} max={100} step={1} />
-                                        </div>
-                                        <div className='space-y-1'>
-                                            <Label htmlFor="ball-scale" className='text-xs'>Escala: {ballScale}</Label>
-                                            <Slider id="ball-scale" value={[ballScale]} onValueChange={(v) => setBallScale(v[0])} max={3} step={0.1} />
-                                        </div>
-                                    </div>
-                                </div>
-                                 <Button type="submit" disabled={isSaving} className='w-full'>
-                                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                    Guardar Posiciones
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
+                                    <Button type="submit" disabled={isSaving} className='w-full'>
+                                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                        Guardar Posiciones
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    )}
 
                 </div>
 
@@ -396,5 +398,3 @@ export default function PenaltyShootoutPage() {
         </div>
     );
 }
-
-    
