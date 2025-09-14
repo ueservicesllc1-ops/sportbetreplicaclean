@@ -9,6 +9,7 @@ import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import getConfig from 'next/config';
 
 interface PayPalButtonsComponentProps {
     amount: number;
@@ -16,7 +17,6 @@ interface PayPalButtonsComponentProps {
     paypalClientId: string;
 }
 
-// Force redeploy
 const PayPalButtonsComponent = ({ amount, onPaymentSuccess, paypalClientId }: PayPalButtonsComponentProps) => {
     const { user } = useAuth();
     const { toast } = useToast();
@@ -115,15 +115,16 @@ interface PaypalButtonProps {
 }
 
 export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
-    const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+    // This is the new, robust way of getting public runtime config
+    const { publicRuntimeConfig } = getConfig() || {};
+    const paypalClientId = publicRuntimeConfig?.paypalClientId;
 
     if (!paypalClientId) {
         return (
             <Alert variant="destructive">
                 <AlertTitle>Error de Configuración de PayPal</AlertTitle>
                 <AlertDescription>
-                    La variable <strong>NEXT_PUBLIC_PAYPAL_CLIENT_ID</strong> no está disponible.
-                    Por favor, verifica que la variable de entorno esté configurada correctamente en Vercel y que el proyecto se haya redesplegado.
+                    La variable <strong>NEXT_PUBLIC_PAYPAL_CLIENT_ID</strong> no está disponible. Por favor, verifica que la variable de entorno esté configurada correctamente en Vercel y que el proyecto se haya redesplegado.
                 </AlertDescription>
             </Alert>
         );

@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '4mb',
     },
   },
+  publicRuntimeConfig: {
+    // Esto expone la variable de entorno al cliente de forma segura.
+    paypalClientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+  },
   images: {
     remotePatterns: [
       {
