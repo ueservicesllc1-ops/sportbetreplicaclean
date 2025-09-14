@@ -25,7 +25,6 @@ declare global {
 }
 
 function DepositArea() {
-    const [depositAmount, setDepositAmount] = useState<number | string>('');
     const { toast } = useToast();
 
     const copyToClipboard = () => {
@@ -44,25 +43,11 @@ function DepositArea() {
     return (
          <div className="space-y-4">
             <h3 className="font-semibold text-lg">Depositar Fondos</h3>
-            <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" onClick={() => setDepositAmount(10)}>$10</Button>
-                <Button variant="outline" onClick={() => setDepositAmount(20)}>$20</Button>
-                <Button variant="outline" onClick={() => setDepositAmount(50)}>$50</Button>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">$</span>
-                <Input 
-                    type="number" 
-                    placeholder="Monto personalizado"
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(e.target.value)}
-                    className="bg-white text-black"
-                />
-            </div>
+            
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
             <div className='space-y-4'>
-                 <Button onClick={openPayPal} className="w-full bg-[#0070BA] hover:bg-[#005ea6] text-white">
-                    Recargar
+                 <Button onClick={openPayPal} className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start gap-2">
+                    <CreditCard /> Recarga con tarjeta
                 </Button>
                  <Separator />
                 <Button variant="outline" className="w-full justify-start gap-2">
