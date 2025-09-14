@@ -20,7 +20,7 @@ const segments: WheelSegment[] = [
   { color: '#000000', label: '0x', value: 0 }, // black
   { color: '#16a34a', label: '1.1x', value: 1.1 }, // green (new)
   { color: '#000000', label: '0x', value: 0 },
-  { color: '#16a34a', label: '2x', value: 2 }, // green
+  { color: '#16a34a', label: '1.5x', value: 1.5 }, // green (changed from 2x)
   { color: '#000000', label: '0x', value: 0 },
   { color: '#dc2626', label: '3x', value: 3 },
   { color: '#000000', label: '0x', value: 0 },
@@ -95,6 +95,7 @@ export default function RuletaPage() {
              handleSpin();
         } else {
             setGameState('betting');
+            setSpinPower(0);
         }
         // Don't reset power here, handleSpin will do it
     }
@@ -294,5 +295,3 @@ export default function RuletaPage() {
         </div>
     );
 }
-
-    
