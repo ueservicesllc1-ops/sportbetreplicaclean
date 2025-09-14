@@ -48,7 +48,7 @@ export default function PenaltyShootoutPage() {
     const [keeperStyle, setKeeperStyle] = useState({
         top: '30%',
         left: '50%',
-        transform: 'translateX(-50%) scale(1.3)',
+        transform: 'translateX(-50%) scale(1.2)',
     });
     const [gameAssets, setGameAssets] = useState<Record<string, string>>(defaultAssets);
     const [assetsLoading, setAssetsLoading] = useState(true);
@@ -136,7 +136,7 @@ export default function PenaltyShootoutPage() {
                     setKeeperStyle({
                         top: '30%',
                         left: '50%',
-                        transform: 'translateX(-50%) scale(1.3)',
+                        transform: 'translateX(-50%) scale(1.2)',
                     });
                     setSelectedZone(null);
                 }, 3000);
@@ -323,6 +323,8 @@ export default function PenaltyShootoutPage() {
     
 
 
+
+    
 
     
 
