@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, UserCheck, Landmark, Gavel, ShieldBan, AlertTriangle } from "lucide-react";
+import { FileText, UserCheck, Landmark, Gavel, ShieldBan, AlertTriangle, Gift } from "lucide-react";
 
 export default function TerminosPage() {
   return (
@@ -55,8 +55,22 @@ export default function TerminosPage() {
         <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <Gift className="h-6 w-6" />
+            <span>4. Bonos y Promociones</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-muted-foreground">
+          <p>
+            El bono de bienvenida y otros fondos promocionales se otorgan con el único propósito de jugar en la plataforma. Estos fondos no pueden ser retirados directamente. Solo las ganancias generadas a partir de las apuestas realizadas con el saldo total (depósitos + bonos) pueden ser elegibles para retiro, sujeto a las condiciones de cada promoción.
+          </p>
+        </CardContent>
+      </Card>
+
+        <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Gavel className="h-6 w-6" />
-            <span>4. Reglas de Apuestas</span>
+            <span>5. Reglas de Apuestas</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-muted-foreground">
@@ -70,7 +84,7 @@ export default function TerminosPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldBan className="h-6 w-6" />
-            <span>5. Conducta del Usuario y Actividades Prohibidas</span>
+            <span>6. Conducta del Usuario y Actividades Prohibidas</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-muted-foreground">
@@ -84,7 +98,7 @@ export default function TerminosPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-6 w-6" />
-            <span>6. Limitación de Responsabilidad</span>
+            <span>7. Limitación de Responsabilidad</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-muted-foreground">

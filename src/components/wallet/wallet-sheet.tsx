@@ -11,6 +11,10 @@ import { Input } from '../ui/input';
 import { useState } from 'react';
 import { KycForm } from './kyc-form';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
+
+const WELCOME_BONUS = 100;
 
 function DepositArea() {
     const [depositAmount, setDepositAmount] = useState<number | string>('');
@@ -53,6 +57,74 @@ function DepositArea() {
     )
 }
 
+function WithdrawalArea() {
+    const { userProfile } = useAuth();
+    const [withdrawalAmount, setWithdrawalAmount] = useState<number | string>('');
+    const [loading, setLoading] = useState(false);
+    const { toast } = useToast();
+
+    if (!userProfile) return null;
+
+    const withdrawableBalance = Math.max(0, userProfile.balance - WELCOME_BONUS);
+
+    const handleRequestWithdrawal = async () => {
+        const amount = Number(withdrawalAmount);
+        if (isNaN(amount) || amount <= 0) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Por favor, introduce un monto válido para retirar.' });
+            return;
+        }
+        if (amount > withdrawableBalance) {
+            toast({ variant: 'destructive', title: 'Error', description: 'El monto solicitado excede tu saldo retirable.' });
+            return;
+        }
+        setLoading(true);
+        try {
+            await requestWithdrawal(userProfile.uid, amount);
+            toast({ title: 'Solicitud Enviada', description: 'Tu solicitud de retiro ha sido enviada para aprobación del administrador.'});
+            setWithdrawalAmount('');
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message });
+        } finally {
+            setLoading(false);
+        }
+    }
+
+
+    return (
+        <div className="space-y-4">
+             <h3 className="font-semibold text-lg">Retirar Fondos</h3>
+              <Card className="text-center">
+                <CardHeader className='p-3'>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Retirable</CardTitle>
+                    <CardDescription className='text-xs'>(Saldo Total - Bono de Bienvenida)</CardDescription>
+                </CardHeader>
+                <CardContent className='p-3 pt-0'>
+                    <p className="text-2xl font-bold tracking-tight text-primary">
+                        ${withdrawableBalance.toFixed(2)}
+                    </p>
+                </CardContent>
+            </Card>
+
+            <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">$</span>
+                <Input 
+                    type="number" 
+                    placeholder="Monto a retirar"
+                    value={withdrawalAmount}
+                    onChange={(e) => setWithdrawalAmount(e.target.value)}
+                    max={withdrawableBalance}
+                />
+            </div>
+             <p className="text-xs text-muted-foreground">El retiro será procesado a la cuenta bancaria registrada. La aprobación puede tardar hasta 48 horas.</p>
+
+            <Button className="w-full" onClick={handleRequestWithdrawal} disabled={loading || !withdrawalAmount || Number(withdrawalAmount) <= 0}>
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Solicitar Retiro
+            </Button>
+        </div>
+    )
+}
+
 
 export function WalletSheet() {
   const { user, userProfile, loading: authLoading } = useAuth();
@@ -81,7 +153,7 @@ export function WalletSheet() {
       <div className="space-y-6">
         <Card className="text-center bg-secondary/50">
             <CardHeader>
-            <CardTitle className="text-lg font-medium text-muted-foreground">Saldo Actual</CardTitle>
+            <CardTitle className="text-lg font-medium text-muted-foreground">Saldo Total</CardTitle>
             </CardHeader>
             <CardContent>
             <p className="text-4xl font-bold tracking-tight text-primary">
@@ -102,7 +174,12 @@ export function WalletSheet() {
                 </AlertDescription>
             </Alert>
         )}
-        {verificationStatus === 'verified' && <DepositArea />}
+        {verificationStatus === 'verified' && (
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <DepositArea />
+                <WithdrawalArea />
+            </div>
+        )}
         {verificationStatus === 'rejected' && (
             <Alert variant="destructive">
                 <AlertTitle>Verificación Rechazada</AlertTitle>

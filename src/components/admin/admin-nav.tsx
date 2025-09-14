@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Users, Wallet, Image as ImageIcon } from "lucide-react";
+import { Bell, Home, Users, Wallet, Image as ImageIcon, ArrowDownUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "../ui/badge";
 import { Logo } from "../logo";
@@ -19,13 +19,14 @@ export function AdminNav() {
         { href: "/admin", label: "Dashboard", icon: Home, requiredRole: 'admin' },
         { href: "/admin/users", label: "Usuarios", icon: Users, requiredRole: 'admin' },
         { href: "/admin/wallets", label: "Billeteras", icon: Wallet, requiredRole: 'superadmin' },
+        { href: "/admin/withdrawals", label: "Retiros", icon: ArrowDownUp, requiredRole: 'superadmin' },
         { href: "/admin/banners", label: "Banners", icon: ImageIcon, requiredRole: 'admin' },
     ];
 
-    const canSeeWallets = isSuperAdmin;
+    const canSeeSuperAdminItems = isSuperAdmin;
     const filteredNavItems = navItems.filter(item => {
         if (item.requiredRole === 'superadmin') {
-            return canSeeWallets;
+            return canSeeSuperAdminItems;
         }
         return true;
     });
