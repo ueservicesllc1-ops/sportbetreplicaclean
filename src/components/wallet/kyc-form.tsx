@@ -89,7 +89,7 @@ export function KycForm() {
                         required
                     />
                     {preview ? (
-                        <Image src={preview} alt="ID preview" fill objectFit="contain" className="rounded-lg p-2" />
+                        <Image src={preview} alt="ID preview" fill className="object-contain rounded-lg p-2" />
                     ) : (
                         <div className="flex flex-col items-center gap-1 text-center text-muted-foreground">
                         <Upload className="h-6 w-6" />
