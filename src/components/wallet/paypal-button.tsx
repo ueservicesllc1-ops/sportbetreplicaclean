@@ -9,15 +9,16 @@ import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import getConfig from 'next/config';
+
+// This is now hardcoded in the server-side library, so we just need a valid string here to initialize the provider.
+const DUMMY_CLIENT_ID = "sb"; 
 
 interface PayPalButtonsComponentProps {
     amount: number;
     onPaymentSuccess: () => void;
-    paypalClientId: string;
 }
 
-const PayPalButtonsComponent = ({ amount, onPaymentSuccess, paypalClientId }: PayPalButtonsComponentProps) => {
+const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsComponentProps) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -96,7 +97,7 @@ const PayPalButtonsComponent = ({ amount, onPaymentSuccess, paypalClientId }: Pa
                     <p className="text-sm text-muted-foreground">Procesando pago...</p>
                 </div>
             )}
-            <PayPalScriptProvider options={{ clientId: paypalClientId, currency: 'USD', intent: 'capture' }}>
+            <PayPalScriptProvider options={{ clientId: DUMMY_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
                 <PayPalButtons
                     style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
                     createOrder={handleCreateOrder}
@@ -115,23 +116,7 @@ interface PaypalButtonProps {
 }
 
 export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
-    // This is the new, robust way of getting public runtime config
-    const { publicRuntimeConfig } = getConfig() || {};
-    const paypalClientId = publicRuntimeConfig?.paypalClientId;
-
-    if (!paypalClientId) {
-        return (
-            <Alert variant="destructive">
-                <AlertTitle>Error de Configuración de PayPal</AlertTitle>
-                <AlertDescription>
-                    La variable <strong>NEXT_PUBLIC_PAYPAL_CLIENT_ID</strong> no está disponible. Por favor, verifica que la variable de entorno esté configurada correctamente en Vercel y que el proyecto se haya redesplegado.
-                </AlertDescription>
-            </Alert>
-        );
-    }
-    
     return (
-        // The key prop forces the component to re-mount when the amount changes, ensuring the new amount is used
-        <PayPalButtonsComponent key={amount} amount={amount} onPaymentSuccess={onPaymentSuccess} paypalClientId={paypalClientId} />
+        <PayPalButtonsComponent key={amount} amount={amount} onPaymentSuccess={onPaymentSuccess} />
     );
 }

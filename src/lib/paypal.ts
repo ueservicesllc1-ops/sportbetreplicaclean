@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { doc, serverTimestamp, runTransaction, increment, collection, addDoc } from 'firebase/firestore';
 
 // These variables are only accessed on the server, so no NEXT_PUBLIC_ prefix is needed.
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+const PAYPAL_CLIENT_ID = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
 const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
 
 const base = 'https://api-m.sandbox.paypal.com';
