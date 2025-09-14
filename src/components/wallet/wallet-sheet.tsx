@@ -181,12 +181,15 @@ export function WalletSheet() {
             </div>
         )}
         {verificationStatus === 'rejected' && (
-            <Alert variant="destructive">
-                <AlertTitle>Verificación Rechazada</AlertTitle>
-                <AlertDescription>
-                    Hubo un problema al verificar tus documentos. Por favor, revisa tu correo electrónico para más detalles o contacta a soporte.
-                </AlertDescription>
-            </Alert>
+            <div className='space-y-4'>
+                <Alert variant="destructive">
+                    <AlertTitle>Verificación Rechazada</AlertTitle>
+                    <AlertDescription>
+                        Hubo un problema al verificar tus documentos. Por favor, corrige los datos y vuelve a enviarlos.
+                    </AlertDescription>
+                </Alert>
+                <KycForm />
+            </div>
         )}
 
 
