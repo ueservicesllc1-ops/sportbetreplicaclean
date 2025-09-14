@@ -46,14 +46,10 @@ export default function PenaltyShootoutPage() {
     const [gameState, setGameState] = useState<GameState>('betting');
     const [shotResult, setShotResult] = useState<ShotResult | null>(null);
     
-    // Keeper and Ball initial positions
     const initialKeeperStyle = { top: '30%', left: '50%', transform: 'translateX(-50%) scale(1.2)' };
     const [keeperStyle, setKeeperStyle] = useState(initialKeeperStyle);
 
-    // --- Ball Debug Controls ---
-    const [ballTop, setBallTop] = useState(85);
-    const [ballLeft, setBallLeft] = useState(50);
-    const [ballScale, setBallScale] = useState(1);
+    const initialBallStyle = { top: '85%', left: '50%', transform: 'translate(-50%, -50%) scale(1)' };
     
     const [gameAssets, setGameAssets] = useState<Record<string, string>>(defaultAssets);
     const [assetsLoading, setAssetsLoading] = useState(true);
@@ -91,11 +87,8 @@ export default function PenaltyShootoutPage() {
         try {
             await placePenaltyBet(user.uid, amount);
 
-            // Animate the ball to the target zone
             const targetPosition = goalZones.find(z => z.id === selectedZone)!.position;
-            // The ball's style will be updated via the shooting state effect
 
-            // Determine result and keeper movement
             const isGoal = Math.random() < GOAL_CHANCE;
             const keeperTargetZoneId = isGoal 
                 ? goalZones.find(z => z.id !== selectedZone)!.id 
@@ -148,7 +141,6 @@ export default function PenaltyShootoutPage() {
 
     const keeperImage = gameState === 'shooting' ? gameAssets.keeper_flying : gameAssets.keeper_standing;
 
-    // Ball style logic
     const getBallStyle = () => {
         if (gameState === 'shooting' && selectedZone) {
             const targetPosition = goalZones.find(z => z.id === selectedZone)!.position;
@@ -158,12 +150,7 @@ export default function PenaltyShootoutPage() {
                 transform: `translate(-50%, -50%) scale(0.7)`,
             };
         }
-        // Initial position from debug controls
-        return {
-            top: `${ballTop}%`,
-            left: `${ballLeft}%`,
-            transform: `translate(-50%, -50%) scale(${ballScale})`,
-        };
+        return initialBallStyle;
     };
 
     return (
@@ -250,41 +237,6 @@ export default function PenaltyShootoutPage() {
                                 </h2>
                             </div>
                         )}
-                    </Card>
-                    
-                    {/* Dev Controls */}
-                    <Card className="w-full max-w-2xl p-4 space-y-4">
-                        <CardTitle className="text-base">Controles del Balón (Dev)</CardTitle>
-                        <div className="space-y-2">
-                            <Label>Posición Vertical (Top): {ballTop}%</Label>
-                            <Slider
-                                value={[ballTop]}
-                                onValueChange={(value) => setBallTop(value[0])}
-                                max={100}
-                                step={1}
-                                disabled={gameState !== 'betting'}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Posición Horizontal (Left): {ballLeft}%</Label>
-                            <Slider
-                                value={[ballLeft]}
-                                onValueChange={(value) => setBallLeft(value[0])}
-                                max={100}
-                                step={1}
-                                disabled={gameState !== 'betting'}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Escala (Scale): {ballScale.toFixed(1)}x</Label>
-                             <Slider
-                                value={[ballScale]}
-                                onValueChange={(value) => setBallScale(value[0])}
-                                max={3}
-                                step={0.1}
-                                disabled={gameState !== 'betting'}
-                            />
-                        </div>
                     </Card>
                 </div>
 
