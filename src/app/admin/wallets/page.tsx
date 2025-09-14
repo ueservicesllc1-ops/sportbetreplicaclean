@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { collection, onSnapshot, orderBy, query, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 
 interface UserSearchResult {
@@ -288,5 +289,6 @@ export default function AdminWalletsPage() {
             </div>
         </Dialog>
     );
+}
 
     
