@@ -74,7 +74,7 @@ export default function RuletaPage() {
         if (gameState !== 'betting') return;
         setGameState('charging');
         powerIntervalRef.current = setInterval(() => {
-            setSpinPower(prev => Math.min(100, prev + 2));
+            setSpinPower(prev => Math.min(100, prev + 1));
         }, 20);
     }
 
