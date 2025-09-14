@@ -38,11 +38,13 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         // Save the file and make it publicly readable
         await file.save(fileBuffer, {
             metadata: { contentType: idPhoto.type },
-            public: true,
         });
+        
+        // Make the file public
+        await file.makePublic();
 
-        // Construct the public URL in the correct Firebase format
-        const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`;
+        // Get the public URL
+        const publicUrl = file.publicUrl();
         
         const userDocRef = doc(db, 'users', uid);
 
