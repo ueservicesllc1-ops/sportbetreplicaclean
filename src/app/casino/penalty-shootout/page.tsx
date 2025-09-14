@@ -25,11 +25,11 @@ const GOAL_MULTIPLIER = 3;
 const GOAL_CHANCE = 0.60; // 60% chance to score
 
 const goalZones = [
-    { id: 1, name: 'Superior Izquierda', position: { top: '15%', left: '20%' } },
-    { id: 2, name: 'Superior Derecha', position: { top: '15%', left: '80%' } },
-    { id: 3, name: 'Centro', position: { top: '30%', left: '50%' } },
-    { id: 4, name: 'Inferior Izquierda', position: { top: '55%', left: '20%' } },
-    { id: 5, name: 'Inferior Derecha', position: { top: '55%', left: '80%' } },
+    { id: 1, name: 'Superior Izquierda', position: { top: '25%', left: '25%' } },
+    { id: 2, name: 'Superior Derecha', position: { top: '25%', left: '75%' } },
+    { id: 3, name: 'Centro', position: { top: '40%', left: '50%' } },
+    { id: 4, name: 'Inferior Izquierda', position: { top: '65%', left: '25%' } },
+    { id: 5, name: 'Inferior Derecha', position: { top: '65%', left: '75%' } },
 ];
 
 const defaultAssets = {
@@ -87,15 +87,12 @@ export default function PenaltyShootoutPage() {
             await placePenaltyBet(user.uid, amount);
 
             // Animate the ball
-            const targetEl = document.getElementById(`zone-${selectedZone}`);
-            if (targetEl) {
-                const rect = targetEl.getBoundingClientRect();
-                const containerRect = targetEl.parentElement!.getBoundingClientRect();
-                setBallPosition({ 
-                    x: `${rect.left - containerRect.left + rect.width / 2}px`, 
-                    y: `${rect.top - containerRect.top + rect.height / 2}px` 
-                });
-            }
+            const targetPosition = goalZones.find(z => z.id === selectedZone)!.position;
+            setBallPosition({ 
+                x: targetPosition.left, 
+                y: targetPosition.top
+            });
+
 
             // Determine result and keeper movement
             const isGoal = Math.random() < GOAL_CHANCE;
@@ -223,13 +220,27 @@ export default function PenaltyShootoutPage() {
                         )}
                         
                         {/* Zones */}
-                        <div className="absolute top-[15%] left-[15%] w-[70%] h-[60%] grid grid-cols-3 grid-rows-2">
-                           <div id="zone-1" onClick={() => gameState === 'betting' && setSelectedZone(1)} className={cn("row-start-1 col-start-1", shotResult && selectedZone === 1 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-r border-b border-white/20")}></div>
-                           <div id="zone-2" onClick={() => gameState === 'betting' && setSelectedZone(2)} className={cn("row-start-1 col-start-3", shotResult && selectedZone === 2 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-l border-b border-white/20")}></div>
-                           <div id="zone-3" onClick={() => gameState === 'betting' && setSelectedZone(3)} className={cn("row-start-1 col-start-2", shotResult && selectedZone === 3 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-b border-white/20")}></div>
-                           <div id="zone-4" onClick={() => gameState === 'betting' && setSelectedZone(4)} className={cn("row-start-2 col-start-1", shotResult && selectedZone === 4 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-r border-white/20")}></div>
-                           <div id="zone-5" onClick={() => gameState === 'betting' && setSelectedZone(5)} className={cn("row-start-2 col-start-3", shotResult && selectedZone === 5 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-l border-white/20")}></div>
-                        </div>
+                        {gameState === 'betting' && goalZones.map(zone => (
+                             <div
+                                key={zone.id}
+                                id={`zone-${zone.id}`}
+                                onClick={() => gameState === 'betting' && setSelectedZone(zone.id)}
+                                className="absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer flex items-center justify-center"
+                                style={zone.position}
+                             >
+                                 <div className={cn("w-full h-full rounded-full transition-all",
+                                    selectedZone === zone.id ? 'bg-transparent' : 'bg-white/10 hover:bg-white/30'
+                                 )}>
+                                    {selectedZone === zone.id && (
+                                        <Target className="w-12 h-12 text-primary animate-in fade-in zoom-in" />
+                                    )}
+                                 </div>
+                             </div>
+                        ))}
+                         {shotResult && selectedZone && (
+                            <div className={cn("absolute w-16 h-16 rounded-full -translate-x-1/2 -translate-y-1/2", shotResult === 'goal' ? 'bg-green-500/40' : 'bg-red-500/40')} style={goalZones.find(z => z.id === selectedZone)?.position}></div>
+                         )}
+
 
                          {/* Result text */}
                         {gameState === 'finished' && (
