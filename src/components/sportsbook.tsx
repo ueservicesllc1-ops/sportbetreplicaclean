@@ -13,10 +13,12 @@ import type { Bet } from '@/contexts/bet-slip-context';
 import { useEffect, useState } from 'react';
 import { getSportsOdds } from '@/lib/odds-api';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Loader2 } from 'lucide-react';
+import { BarChartHorizontal, Loader2 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { apiSports } from '@/lib/sports-data';
 import Link from 'next/link';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface Bookmaker {
   key: string;
@@ -123,7 +125,7 @@ function SportSection({ sport }: { sport: SportData }) {
             <CardHeader>
                 <CardTitle>{sport.title}</CardTitle>
             </CardHeader>
-            <CardContent className="p-2 md:p-4">
+            <CardContent className="p-0 md:p-0">
                 {sport.error && (
                     <div className="p-4">
                         <Alert variant="destructive">
@@ -141,16 +143,16 @@ function SportSection({ sport }: { sport: SportData }) {
                 )}
                 
                 {!sport.error && hasEvents && (
-                     <Tabs defaultValue={hasUpcomingEvents ? "upcoming" : "live"} className='mt-4' id="en-vivo">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="live" disabled={!hasLiveEvents}>En Vivo</TabsTrigger>
-                            <TabsTrigger value="upcoming" disabled={!hasUpcomingEvents}>Próximos</TabsTrigger>
+                     <Tabs defaultValue={hasUpcomingEvents ? "upcoming" : "live"} className='mt-0' id="en-vivo">
+                        <TabsList className="grid w-full grid-cols-2 rounded-none">
+                            <TabsTrigger value="live" disabled={!hasLiveEvents} className="rounded-none">En Vivo</TabsTrigger>
+                            <TabsTrigger value="upcoming" disabled={!hasUpcomingEvents} className="rounded-none">Próximos</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="live" className="mt-4">
-                            <EventList events={liveEvents} isLive={true} />
+                        <TabsContent value="live" className="mt-0">
+                            <EventTable events={liveEvents} isLive={true} />
                         </TabsContent>
-                        <TabsContent value="upcoming" className="mt-4">
-                            <EventList events={upcomingEvents} isLive={false} />
+                        <TabsContent value="upcoming" className="mt-0">
+                            <EventTable events={upcomingEvents} isLive={false} />
                         </TabsContent>
                     </Tabs>
                 )}
@@ -159,36 +161,37 @@ function SportSection({ sport }: { sport: SportData }) {
     );
 }
 
-
-function EventList({ events, isLive }: { events: ApiMatchEvent[], isLive: boolean }) {
-  const [showAll, setShowAll] = useState(false);
-  const initialLimit = 5;
-
+function EventTable({ events, isLive }: { events: ApiMatchEvent[], isLive: boolean }) {
   if (events.length === 0) {
     return <p className="text-center text-muted-foreground py-10">No hay eventos {isLive ? 'en vivo' : 'próximos'} disponibles.</p>
   }
   
-  const displayedEvents = showAll ? events : events.slice(0, initialLimit);
-
   return (
-    <div className="space-y-4">
-      {displayedEvents.map((event) => (
-        <EventCard key={event.id} event={event} isLive={isLive} />
-      ))}
-      {events.length > initialLimit && !showAll && (
-        <Button 
-          variant="outline" 
-          className="w-full"
-          onClick={() => setShowAll(true)}
-        >
-          Ver más ({events.length - initialLimit})
-        </Button>
-      )}
+    <div className='overflow-x-auto'>
+        <Table className='min-w-[600px]'>
+            <TableHeader>
+                <TableRow className='hover:bg-transparent'>
+                    <TableHead className='w-1/4'>Evento</TableHead>
+                    <TableHead className='w-[70px]'></TableHead>
+                    <TableHead className='text-center'>1</TableHead>
+                    <TableHead className='text-center'>X</TableHead>
+                    <TableHead className='text-center'>2</TableHead>
+                    <TableHead className='w-[60px] text-center'>Más</TableHead>
+                </TableRow>
+            </TableHeader>
+             <TableBody>
+                <TooltipProvider>
+                    {events.map((event) => (
+                        <EventRow key={event.id} event={event} isLive={isLive} />
+                    ))}
+                </TooltipProvider>
+            </TableBody>
+        </Table>
     </div>
   );
 }
 
-function EventCard({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) {
+function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) {
   const { addBet, bets } = useBetSlip();
 
   const bookmaker = event.bookmakers?.find(b => b.markets.some(m => m.key === 'h2h'));
@@ -215,9 +218,9 @@ function EventCard({ event, isLive }: { event: ApiMatchEvent, isLive: boolean })
     if (odd === 0) return;
 
     const bet: Bet = {
-      id: `${event.id}_${market}`,
+      id: `${event.id}_h2h`, // Use a consistent market key for replacement
       event: `${event.home_team} vs ${event.away_team}`,
-      market: market,
+      market: 'h2h',
       selection,
       odd,
     };
@@ -225,7 +228,8 @@ function EventCard({ event, isLive }: { event: ApiMatchEvent, isLive: boolean })
   };
 
   const getButtonVariant = (market: '1' | 'X' | '2') => {
-    return bets.some(b => b.id === `${event.id}_${market}`) ? 'secondary' : 'outline';
+      const selection = market === '1' ? event.home_team : market === '2' ? event.away_team : 'Empate';
+      return bets.some(b => b.id === `${event.id}_h2h` && b.selection === selection) ? 'secondary' : 'outline';
   }
   
   const hasOdds = homeOdd > 0 || awayOdd > 0 || drawOdd > 0;
@@ -237,37 +241,62 @@ function EventCard({ event, isLive }: { event: ApiMatchEvent, isLive: boolean })
 
 
   return (
-    <Card className="bg-card">
-       <div className="flex items-center justify-between p-3 border-b">
-         <Link href={`/match/${event.id}`} className="hover:text-primary transition-colors">
-            <p className="font-headline text-base font-medium">
-            {event.home_team} vs {event.away_team}
-            </p>
-        </Link>
-        <Badge variant={isLive ? 'destructive' : 'secondary'}>
-            {isLive ? 'En Vivo' : `${isToday ? '' : formattedDate + ' - '}${formattedTime}`}
-        </Badge>
-      </div>
-      {hasOdds ? (
-        <CardContent className="grid grid-cols-3 gap-2 p-3">
-            <Button variant={getButtonVariant('1')} className="flex-col h-auto" onClick={() => handleAddBet('1')} disabled={homeOdd === 0}>
-            <span>{event.home_team}</span>
-            <span className="font-bold text-primary">{homeOdd.toFixed(2)}</span>
-            </Button>
-            <Button variant={getButtonVariant('X')} className="flex-col h-auto" onClick={() => handleAddBet('X')} disabled={drawOdd === 0}>
-            <span>Empate</span>
-            <span className="font-bold text-primary">{drawOdd.toFixed(2)}</span>
-            </Button>
-            <Button variant={getButtonVariant('2')} className="flex-col h-auto" onClick={() => handleAddBet('2')} disabled={awayOdd === 0}>
-            <span>{event.away_team}</span>
-            <span className="font-bold text-primary">{awayOdd.toFixed(2)}</span>
-            </Button>
-        </CardContent>
-      ) : (
-        <CardContent className="p-3 text-center text-sm text-muted-foreground">
-            No hay cuotas disponibles para este evento.
-        </CardContent>
-      )}
-    </Card>
+    <TableRow className='text-sm'>
+        <TableCell>
+            <div className='flex flex-col'>
+                <span className='font-medium'>{event.home_team}</span>
+                <span className='font-medium'>{event.away_team}</span>
+            </div>
+        </TableCell>
+        <TableCell className='text-xs text-muted-foreground text-center'>
+            {isLive ? (
+                <div className='flex flex-col items-center'>
+                    <Badge variant='destructive' className='animate-pulse'>EN VIVO</Badge>
+                </div>
+            ) : (
+                <>
+                <div>{isToday ? 'Hoy' : formattedDate}</div>
+                <div>{formattedTime}</div>
+                </>
+            )}
+        </TableCell>
+        {hasOdds ? (
+            <>
+            <TableCell className='p-1'>
+                 <Button variant={getButtonVariant('1')} size="sm" className="w-full" onClick={() => handleAddBet('1')} disabled={homeOdd === 0}>
+                    <span className="font-bold">{homeOdd.toFixed(2)}</span>
+                </Button>
+            </TableCell>
+            <TableCell className='p-1'>
+                 <Button variant={getButtonVariant('X')} size="sm" className="w-full" onClick={() => handleAddBet('X')} disabled={drawOdd === 0}>
+                    <span className="font-bold">{drawOdd.toFixed(2)}</span>
+                </Button>
+            </TableCell>
+            <TableCell className='p-1'>
+                 <Button variant={getButtonVariant('2')} size="sm" className="w-full" onClick={() => handleAddBet('2')} disabled={awayOdd === 0}>
+                    <span className="font-bold">{awayOdd.toFixed(2)}</span>
+                </Button>
+            </TableCell>
+            </>
+        ) : (
+            <TableCell colSpan={3} className='text-center text-muted-foreground text-xs'>
+                Cuotas no disponibles
+            </TableCell>
+        )}
+        <TableCell className='text-center'>
+             <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/match/${event.id}`}>
+                            <BarChartHorizontal className="h-5 w-5" />
+                        </Link>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>Ver más mercados</p>
+                </TooltipContent>
+            </Tooltip>
+        </TableCell>
+    </TableRow>
   );
 }

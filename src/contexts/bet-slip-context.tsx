@@ -4,9 +4,9 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Bet {
-  id: string;
+  id: string; // Composite ID, e.g., eventId_marketKey
   event: string;
-  market: '1' | 'X' | '2';
+  market: string; // e.g., h2h, totals, etc.
   selection: string;
   odd: number;
 }
@@ -26,24 +26,40 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
 
   const addBet = (newBet: Bet) => {
     setBets((prevBets) => {
+      // An event can only have one bet from a specific market (e.g., only one 'h2h' winner).
+      // The bet ID should be a composite of eventId and marketKey to enforce this.
       const existingBetIndex = prevBets.findIndex(
-        (bet) => bet.id.split('_')[0] === newBet.id.split('_')[0]
+        (bet) => bet.id === newBet.id
       );
 
       let updatedBets;
       if (existingBetIndex !== -1) {
-        // Replace bet for the same event
-        updatedBets = [...prevBets];
-        updatedBets[existingBetIndex] = newBet;
+        // If the same selection is clicked again, remove it (deselect)
+        if (prevBets[existingBetIndex].selection === newBet.selection) {
+          updatedBets = prevBets.filter((bet) => bet.id !== newBet.id);
+           toast({
+            variant: 'destructive',
+            title: 'Apuesta eliminada',
+            description: `${newBet.selection}`,
+          });
+        } else {
+          // If a different selection for the same market is clicked, replace it
+          updatedBets = [...prevBets];
+          updatedBets[existingBetIndex] = newBet;
+          toast({
+            title: 'Apuesta actualizada',
+            description: `${newBet.selection} @ ${newBet.odd.toFixed(2)}`,
+          });
+        }
       } else {
         // Add new bet
         updatedBets = [...prevBets, newBet];
+         toast({
+          title: 'Apuesta añadida',
+          description: `${newBet.selection} @ ${newBet.odd.toFixed(2)}`,
+        });
       }
       return updatedBets;
-    });
-    toast({
-      title: 'Apuesta añadida',
-      description: `${newBet.selection} @ ${newBet.odd}`,
     });
   };
 
