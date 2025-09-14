@@ -7,8 +7,9 @@ import { getPenaltyGameAssets } from "./actions";
 const assetsToManage = [
     { key: 'background', title: 'Imagen de Fondo/Portería', description: 'La imagen principal de la portería y el campo.' },
     { key: 'ball', title: 'Imagen del Balón', description: 'La pelota que se patea.' },
-    { key: 'keeper_standing', title: 'Portero (sin atajar)', description: 'El portero en su posición inicial.' },
-    { key: 'keeper_flying', title: 'Portero (atajando)', description: 'La imagen del portero cuando se lanza a atajar.' },
+    { key: 'keeper_standing', title: 'Portero (parado inicial)', description: 'El portero en su posición inicial antes del disparo.' },
+    { key: 'keeper_flying', title: 'Portero (volando y atajando)', description: 'Imagen del portero cuando ataja el balón.' },
+    { key: 'keeper_miss', title: 'Portero (volando sin atajar)', description: 'Imagen del portero cuando se lanza pero no ataja (gol).' },
 ]
 
 export default async function AdminGameAssetsPage() {
@@ -24,7 +25,7 @@ export default async function AdminGameAssetsPage() {
                        Gestiona las imágenes utilizadas en el juego de penales. Sube archivos PNG con fondo transparente para mejores resultados.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-6 md:grid-cols-2">
+                <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {assetsToManage.map(asset => (
                         <AssetUploadForm 
                             key={asset.key}

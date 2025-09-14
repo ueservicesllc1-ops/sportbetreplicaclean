@@ -37,6 +37,7 @@ const defaultAssets: Record<string, string | number> = {
     ball: 'https://i.postimg.cc/XvB9255v/soccer-ball.png',
     keeper_standing: 'https://i.postimg.cc/T1bSCYkF/goalkeeper.png',
     keeper_flying: 'https://i.postimg.cc/T1bSCYkF/goalkeeper.png',
+    keeper_miss: 'https://i.postimg.cc/T1bSCYkF/goalkeeper.png',
     keeperTop: 30,
     keeperLeft: 50,
     keeperScale: 1.2,
@@ -53,6 +54,9 @@ export default function PenaltyShootoutPage() {
     
     const [gameAssets, setGameAssets] = useState<Record<string, string | number>>(defaultAssets);
     const [assetsLoading, setAssetsLoading] = useState(true);
+
+    const [keeperImage, setKeeperImage] = useState(gameAssets.keeper_standing as string);
+
 
     // Dev Controls State
     const [keeperTop, setKeeperTop] = useState(defaultAssets.keeperTop as number);
@@ -83,8 +87,9 @@ export default function PenaltyShootoutPage() {
     useEffect(() => {
         if (gameState === 'betting') {
             setKeeperStyle({ top: `${keeperTop}%`, left: `${keeperLeft}%`, transform: `translateX(-50%) scale(${keeperScale})` });
+            setKeeperImage(gameAssets.keeper_standing as string);
         }
-    }, [keeperTop, keeperLeft, keeperScale, gameState]);
+    }, [keeperTop, keeperLeft, keeperScale, gameState, gameAssets.keeper_standing]);
     
 
      useEffect(() => {
@@ -93,6 +98,7 @@ export default function PenaltyShootoutPage() {
             const assets = await getPenaltyGameAssets();
             const mergedAssets = { ...defaultAssets, ...assets };
             setGameAssets(mergedAssets);
+            setKeeperImage(mergedAssets.keeper_standing as string);
 
             // Set initial positions from fetched data
             setKeeperTop(mergedAssets.keeperTop as number);
@@ -140,10 +146,16 @@ export default function PenaltyShootoutPage() {
             
             let rotationAngle = 0;
             switch(keeperTargetZoneId) {
-                case 1: rotationAngle = -20; break; // Top Left
-                case 2: rotationAngle = 20; break;  // Top Right
-                case 4: rotationAngle = -90; break; // Bottom Left
-                case 5: rotationAngle = 90; break;  // Bottom Right
+                case 1: rotationAngle = -20; break;
+                case 2: rotationAngle = 20; break;
+                case 4: rotationAngle = -90; break;
+                case 5: rotationAngle = 90; break;
+            }
+
+            if (isGoal) {
+                setKeeperImage(gameAssets.keeper_miss as string);
+            } else {
+                setKeeperImage(gameAssets.keeper_flying as string);
             }
 
             setKeeperStyle(prev => ({
@@ -187,8 +199,6 @@ export default function PenaltyShootoutPage() {
             setGameState('betting');
         }
     };
-
-    const keeperImage = gameState === 'shooting' ? (gameAssets.keeper_flying as string) : (gameAssets.keeper_standing as string);
 
 
     const getBallStyle = () => {
