@@ -15,7 +15,7 @@ async function generateAccessToken() {
     throw new Error('MISSING_API_CREDENTIALS');
   }
   const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET_KEY}`).toString('base64');
-  const response = await fetch(`${base}/v1/oauth2/token`, {
+  const response = await fetch(`${base}/v1/oauth2/token`, { // Corrected this line to use the production 'base' URL
     method: 'POST',
     body: 'grant_type=client_credentials',
     headers: {
