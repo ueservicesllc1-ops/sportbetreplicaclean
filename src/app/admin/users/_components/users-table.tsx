@@ -51,12 +51,11 @@ function RoleBadge({ role }: { role: UserRole }) {
 
 export function UsersTable({ initialUsers }: { initialUsers: UserProfile[]}) {
   const [users, setUsers] = useState<UserProfile[]>(initialUsers);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { userProfile, isSuperAdmin } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    setLoading(true);
      const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const usersData: UserProfile[] = [];
@@ -122,7 +121,7 @@ export function UsersTable({ initialUsers }: { initialUsers: UserProfile[]}) {
                     <TableCell>
                         <RoleBadge role={user.role} />
                     </TableCell>
-                    <TableCell className="text-right font-mono">${user.balance.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono">${(user.balance || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-center">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

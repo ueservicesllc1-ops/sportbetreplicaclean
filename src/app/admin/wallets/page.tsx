@@ -14,6 +14,9 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { collection, onSnapshot, orderBy, query, limit } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
 
 interface UserSearchResult {
     uid: string;
@@ -30,8 +33,26 @@ interface Transaction {
     createdAt: { seconds: number };
 }
 
-function TransactionsHistory({ initialTransactions }: { initialTransactions: Transaction[] }) {
-    const [transactions, setTransactions] = useState(initialTransactions);
+function TransactionsHistory() {
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const transactionsRef = collection(db, 'wallet_transactions');
+        const q = query(transactionsRef, orderBy('createdAt', 'desc'), limit(10));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const txs: Transaction[] = [];
+            snapshot.forEach(doc => {
+                txs.push({ id: doc.id, ...doc.data() } as Transaction);
+            });
+            setTransactions(txs);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
 
     return (
         <Card>
@@ -51,7 +72,14 @@ function TransactionsHistory({ initialTransactions }: { initialTransactions: Tra
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {transactions.length === 0 && (
+                            {loading && (
+                                 <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            {!loading && transactions.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={4} className="text-center text-muted-foreground">
                                         No hay transacciones.
@@ -64,7 +92,7 @@ function TransactionsHistory({ initialTransactions }: { initialTransactions: Tra
                                     <TableCell className="text-right text-green-500 font-bold">+${tx.amount.toFixed(2)}</TableCell>
                                     <TableCell className="truncate max-w-[150px]">{tx.adminEmail}</TableCell>
                                     <TableCell className="text-xs text-muted-foreground">
-                                        {new Date(tx.createdAt.seconds * 1000).toLocaleString()}
+                                        {tx.createdAt ? new Date(tx.createdAt.seconds * 1000).toLocaleString() : 'Justo ahora'}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -83,7 +111,6 @@ export default function AdminWalletsPage() {
     const [amount, setAmount] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const { toast } = useToast();
     const { userProfile, isSuperAdmin, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -91,15 +118,8 @@ export default function AdminWalletsPage() {
     useEffect(() => {
         if (!authLoading && !isSuperAdmin) {
             router.replace('/admin');
-        } else if(isSuperAdmin) {
-            fetchTransactions();
         }
     }, [isSuperAdmin, authLoading, router]);
-
-    const fetchTransactions = async () => {
-        const latestTransactions = await getLatestTransactions();
-        setTransactions(latestTransactions as Transaction[]);
-    }
 
     const handleSearch = async () => {
         if (!searchTerm) return;
@@ -130,10 +150,10 @@ export default function AdminWalletsPage() {
                 adminEmail: userProfile.email || 'N/A'
             });
             toast({ title: 'Éxito', description: result.message });
-            // Refresh user data & transactions
+            // The transaction history updates via onSnapshot.
+            // We just need to update the selected user's balance locally for immediate UI feedback.
             setSelectedUser(prev => prev ? { ...prev, balance: prev.balance + parseFloat(amount) } : null);
             setAmount('');
-            fetchTransactions();
         } catch (error: any) {
             toast({ variant: 'destructive', title: 'Error', description: error.message });
         } finally {
@@ -245,9 +265,8 @@ export default function AdminWalletsPage() {
                 </div>
                 
                 {/* Right Column: History */}
-                <TransactionsHistory initialTransactions={transactions} />
+                <TransactionsHistory />
             </div>
         </div>
     );
 }
-
