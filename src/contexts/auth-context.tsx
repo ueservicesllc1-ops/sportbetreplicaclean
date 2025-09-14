@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { AuthFormValues } from '@/components/auth/auth-form';
 import { doc, getDoc, setDoc, serverTimestamp, onSnapshot, updateDoc } from 'firebase/firestore';
 
-type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
+export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 export type UserRole = 'user' | 'admin' | 'superadmin';
 
 
@@ -60,7 +60,7 @@ function generateShortId(): string {
     return `${numbers}${letter}`;
 }
 
-const SUPER_ADMINS = ['dev@sportbet.com', 'ypueservicesllc1@gmail.com', 'ueservicesllc1@gmail.com'];
+const SUPER_ADMINS = ['dev@sportbet.com', 'ypueservicesllc1@gmail.com'];
 
 
 export function AuthProvider({ children }: { children: ReactNode }) {
