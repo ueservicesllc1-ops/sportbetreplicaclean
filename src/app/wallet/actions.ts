@@ -44,18 +44,15 @@ export async function updateUserVerification(prevState: any, formData: FormData)
             metadata: { contentType: idPhoto.type },
         });
         
-        // Generate a signed URL for the file. This URL will be valid for a long time.
-        const [signedUrl] = await file.getSignedUrl({
-            action: 'read',
-            expires: '01-01-2100', // Set a far-future expiration date
-        });
+        // Because storage rules allow public read, we can construct the URL directly.
+        const publicUrl = `https://storage.googleapis.com/${bucketName}/${filePath}`;
         
         const userDocRef = doc(db, 'users', uid);
 
         await updateDoc(userDocRef, {
             realName: realName,
             idNumber: idNumber,
-            idPhotoUrl: signedUrl,
+            idPhotoUrl: publicUrl,
             verificationStatus: 'pending'
         });
         
