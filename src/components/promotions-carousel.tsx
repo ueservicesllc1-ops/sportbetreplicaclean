@@ -48,7 +48,7 @@ export function PromotionsCarousel() {
   if (loading) {
       return (
         <div className="container mx-auto px-2 md:px-4 py-4">
-            <Skeleton className="aspect-[5/2] w-full rounded-lg" />
+            <Skeleton className="aspect-[16/5] w-full rounded-lg" />
         </div>
       )
   }
@@ -71,7 +71,7 @@ export function PromotionsCarousel() {
         {banners.map((promo) => (
           <CarouselItem key={promo.id}>
             <div className="p-0">
-              <div className="relative flex aspect-[5/2] items-center justify-center p-0">
+              <div className="relative flex aspect-[16/5] items-center justify-center p-0">
                   <Image
                     src={promo.imageUrl}
                     alt={'Promotional Banner'}
