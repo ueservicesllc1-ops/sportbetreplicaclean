@@ -30,10 +30,10 @@ const goalZones = [
 ];
 
 const multiplierOptions = [
-    { multiplier: 2, chance: 0.60 }, // 60% chance
-    { multiplier: 3, chance: 0.40 }, // 40% chance
-    { multiplier: 4, chance: 0.30 }, // 30% chance
-    { multiplier: 5, chance: 0.20 }, // 20% chance
+    { multiplier: 2, chance: 0.40, displayChance: 0.50 }, // Real: 40%, Display: 50%
+    { multiplier: 3, chance: 0.35, displayChance: 0.40 }, // Real: 35%, Display: 40%
+    { multiplier: 4, chance: 0.30, displayChance: 0.30 }, // 30% chance
+    { multiplier: 5, chance: 0.20, displayChance: 0.20 }, // 20% chance
 ];
 
 
@@ -74,8 +74,7 @@ export default function PenaltyShootoutPage() {
     const { user, isAdmin } = useAuth();
     const { toast } = useToast();
 
-    const [saveState, saveAction] = useActionState(updateGameAssetPositions, { success: false, message: '' });
-    const isSaving = status === 'pending';
+    const [saveState, saveAction, isSaving] = useActionState(updateGameAssetPositions, { success: false, message: '' });
 
     useEffect(() => {
         if (saveState.message) {
@@ -415,7 +414,7 @@ export default function PenaltyShootoutPage() {
                                         className="h-auto py-2 flex-col"
                                     >
                                         <span className="font-bold">{opt.multiplier}x</span>
-                                        <span className="text-xs text-muted-foreground">{opt.chance * 100}%</span>
+                                        <span className="text-xs text-muted-foreground">{opt.displayChance * 100}%</span>
                                     </Button>
                                 ))}
                             </div>
