@@ -24,7 +24,7 @@ const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
 function DepositArea() {
     const { toast } = useToast();
     const [amount, setAmount] = useState("10.00");
-    const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'test';
+    const PAYPAL_CLIENT_ID = "AZDxjDScFpQtjWTOUtWKbyN_bDt4OgqaF4eYXlewfBP4-8aqX3PiV8e1GWU6liB2CUXlkA59kJXE7M6R";
 
     const showConfirmationToast = () => {
         toast({
