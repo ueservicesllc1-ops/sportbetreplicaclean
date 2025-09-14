@@ -4,7 +4,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Landmark, CreditCard, ShieldCheck, ShieldAlert, Bitcoin, Copy } from 'lucide-react';
+import { Loader2, Landmark, ShieldCheck, ShieldAlert, Bitcoin, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
@@ -14,7 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import Link from 'next/link';
+import { PayPalButtonsWrapper } from './paypal-button';
 
 const WELCOME_BONUS = 100;
 const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
@@ -22,6 +22,7 @@ const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
 
 function DepositArea() {
     const { toast } = useToast();
+    const [amount, setAmount] = useState('10.00');
     
     const showConfirmationToast = () => {
         toast({
@@ -47,14 +48,25 @@ function DepositArea() {
          <div className="space-y-4">
             <h3 className="font-semibold text-lg">Depositar Fondos</h3>
 
-            <Button asChild className="w-full justify-start gap-2">
-                <Link href="https://www.paypal.com/ncp/payment/48XSRX2BKGNCE" target="_blank" onClick={showConfirmationToast}>
-                    <CreditCard /> Recarga con tarjeta
-                </Link>
-            </Button>
-            
+             <div className="space-y-2">
+                <p className="text-sm font-medium">Monto a Depositar</p>
+                <div className="flex gap-2">
+                    <Input 
+                        type="number" 
+                        value={amount} 
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="10.00"
+                        className='text-base font-bold'
+                    />
+                </div>
+            </div>
+
+            <PayPalButtonsWrapper amount={amount} />
+
             <Separator />
+
             <div className='space-y-4'>
+                <p className='text-sm text-muted-foreground text-center'>O utiliza otros métodos:</p>
                 <Button variant="outline" className="w-full justify-start gap-2" onClick={handleBankTransfer}>
                     <Landmark /> Transferencia Bancaria
                 </Button>
