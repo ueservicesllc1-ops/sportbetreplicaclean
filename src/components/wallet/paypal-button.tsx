@@ -9,10 +9,6 @@ import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { cn } from '@/lib/utils';
 
-const PAYPAL_SCRIPT_ID = "paypal-sdk-script";
-// The Client ID is now sourced from the backend during order creation.
-const PAYPAL_CLIENT_ID_FOR_SCRIPT = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
-
 interface PaypalButtonProps {
   amount: number;
   onPaymentSuccess: () => void;
@@ -35,16 +31,14 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
 
     useEffect(() => {
         const addPaypalScript = () => {
-            if (document.getElementById(PAYPAL_SCRIPT_ID)) {
-                if (window.paypal) {
-                    setScriptLoaded(true);
-                }
+            if (window.paypal) {
+                setScriptLoaded(true);
                 return;
             }
             
             const script = document.createElement("script");
-            script.id = PAYPAL_SCRIPT_ID;
-            script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID_FOR_SCRIPT}&currency=USD&intent=capture`;
+            // The Client ID is now part of the script URL as requested
+            script.src = `https://www.paypal.com/sdk/js?client-id=AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m&currency=USD&intent=capture`;
             script.async = true;
 
             script.onload = () => {
@@ -74,7 +68,6 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
                         setError(null);
                         if (amount <= 0) {
                             const errMessage = 'El monto a depositar debe ser mayor a cero.';
-                            toast({ variant: 'destructive', title: 'Monto Inválido', description: errMessage });
                             setError(errMessage);
                             throw new Error(errMessage);
                         }
@@ -87,7 +80,7 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
                             throw new Error(errorDetail.description);
                         } catch (err: any) {
                              console.error("Create Order Error:", err);
-                             setError(err.message || 'Error desconocido al crear la orden.');
+                             setError('Hubo un problema al crear la orden de pago. Inténtalo de nuevo.');
                              throw err;
                         }
                     },
@@ -113,8 +106,7 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
                                 throw new Error(result.message);
                             }
                         } catch (err: any) {
-                            const errMessage = err.message || 'Ocurrió un error inesperado al procesar el pago.';
-                            toast({ variant: 'destructive', title: 'Error en la Captura del Pago', description: errMessage });
+                            const errMessage = 'No se pudo completar el pago. Por favor, verifica tus fondos de PayPal o intenta más tarde.';
                             setError(errMessage);
                         } finally {
                             setIsProcessing(false);
@@ -122,7 +114,7 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
                     },
                     onError: (err: any) => {
                         console.error("PayPal Buttons Error:", err);
-                        setError('Ocurrió un error con la interfaz de PayPal.');
+                        setError('Ocurrió un error con la interfaz de PayPal. Refresca la página y vuelve a intentarlo.');
                     }
                 }).render(paypalButtonsRef.current);
             } catch (err) {
@@ -143,8 +135,8 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
             )}
             
             {error && (
-                <Alert variant="destructive" className="mb-4">
-                    <AlertTitle>Error</AlertTitle>
+                <Alert variant="default" className="mb-4 bg-secondary">
+                    <AlertTitle>Error de Pago</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
