@@ -16,6 +16,7 @@ export default function Home() {
         <Header />
         <MainNav />
         <SecondaryNav />
+        <PromotionsCarousel />
         <div className="container mx-auto flex-1 px-2 md:px-4">
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
             {/* Left Sidebar */}
@@ -26,7 +27,6 @@ export default function Home() {
             {/* Main Content */}
             <main className="col-span-1 py-4 lg:col-span-3">
               <div className='space-y-4'>
-                <PromotionsCarousel />
                 <Sportsbook />
               </div>
             </main>

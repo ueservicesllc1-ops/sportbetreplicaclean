@@ -47,7 +47,7 @@ export function PromotionsCarousel() {
 
   if (loading) {
       return (
-        <div className="p-1">
+        <div className="container mx-auto px-2 md:px-4 py-4">
             <Skeleton className="aspect-[3/1] w-full rounded-lg" />
         </div>
       )
@@ -70,9 +70,8 @@ export function PromotionsCarousel() {
       <CarouselContent>
         {banners.map((promo) => (
           <CarouselItem key={promo.id}>
-            <div className="p-1">
-              <Card className="overflow-hidden">
-                <CardContent className="relative flex aspect-[3/1] items-center justify-center p-0">
+            <div className="p-0">
+              <div className="relative flex aspect-[3/1] items-center justify-center p-0">
                   <Image
                     src={promo.imageUrl}
                     alt={'Promotional Banner'}
@@ -80,14 +79,15 @@ export function PromotionsCarousel() {
                     className="object-cover"
                     priority={true}
                   />
-                </CardContent>
-              </Card>
+              </div>
             </div>
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="ml-16 hidden sm:flex" />
-      <CarouselNext className="mr-16 hidden sm:flex" />
+      <div className='hidden sm:block container mx-auto relative'>
+        <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2" />
+        <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2" />
+      </div>
     </Carousel>
   );
 }
