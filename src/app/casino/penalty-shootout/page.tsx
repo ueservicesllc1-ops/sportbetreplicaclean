@@ -25,11 +25,11 @@ const GOAL_MULTIPLIER = 3;
 const GOAL_CHANCE = 0.60; // 60% chance to score
 
 const goalZones = [
-    { id: 1, name: 'Superior Izquierda', position: { top: '15%', left: '20%' } },
-    { id: 2, name: 'Superior Derecha', position: { top: '15%', left: '80%' } },
+    { id: 1, name: 'Superior Izquierda', position: { top: '30%', left: '20%' } },
+    { id: 2, name: 'Superior Derecha', position: { top: '30%', left: '80%' } },
     { id: 3, name: 'Centro', position: { top: '50%', left: '50%' } },
-    { id: 4, name: 'Inferior Izquierda', position: { top: '85%', left: '20%' } },
-    { id: 5, name: 'Inferior Derecha', position: { top: '85%', left: '80%' } },
+    { id: 4, name: 'Inferior Izquierda', position: { top: '70%', left: '20%' } },
+    { id: 5, name: 'Inferior Derecha', position: { top: '70%', left: '80%' } },
 ];
 
 const defaultAssets = {
