@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from "react";
@@ -15,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile, VerificationStatus } from "@/contexts/auth-context";
 import { processVerification } from "./actions";
-import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 
 interface VerificationRequest extends UserProfile {
@@ -165,7 +163,7 @@ export default function AdminVerificationsPage() {
                                                 </Button>
                                             </div>
                                         </TableCell>
-                                        <DialogContent className="max-w-xl">
+                                        <DialogContent className="max-w-xl" aria-describedby={undefined}>
                                              <DialogHeader>
                                                 <DialogTitle>Documento de {req.realName}</DialogTitle>
                                                 <DialogDescription>
@@ -173,8 +171,8 @@ export default function AdminVerificationsPage() {
                                                 </DialogDescription>
                                              </DialogHeader>
                                              {req.idPhotoUrl && (
-                                                <div className="relative w-full aspect-video mt-4">
-                                                    <Image src={req.idPhotoUrl} alt={`ID de ${req.realName}`} fill style={{ objectFit: "contain" }} />
+                                                <div className="mt-4">
+                                                    <img src={req.idPhotoUrl} alt={`ID de ${req.realName}`} className="w-full h-auto rounded-lg" style={{ objectFit: "contain" }} />
                                                 </div>
                                              )}
                                         </DialogContent>
