@@ -29,8 +29,8 @@ export async function updateUserVerification(prevState: any, formData: FormData)
     }
 
     try {
-        const admin = getFirebaseAdmin();
-        const bucket = admin.storage().bucket(); // Get default bucket from config
+        const admin = await getFirebaseAdmin();
+        const bucket = admin.storage().bucket(); // Gets the default bucket from firebase-admin config.
         const filePath = `user-documents/${uid}/${Date.now()}-${idPhoto.name}`;
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await idPhoto.arrayBuffer());

@@ -16,6 +16,7 @@ import type { UserProfile, VerificationStatus } from "@/contexts/auth-context";
 import { processVerification } from "./actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription as AlertDescriptionComponent } from "@/components/ui/alert";
+import Image from "next/image";
 
 
 interface VerificationRequest extends UserProfile {
@@ -174,7 +175,7 @@ export default function AdminVerificationsPage() {
                                                 </DialogDescription>
                                              </DialogHeader>
                                              {req.idPhotoUrl && (
-                                                <div className="mt-4">
+                                                <div className="mt-4 relative h-96">
                                                     {imageError ? (
                                                         <Alert variant="destructive">
                                                             <ShieldAlert className="h-4 w-4" />
@@ -184,12 +185,13 @@ export default function AdminVerificationsPage() {
                                                             </AlertDescriptionComponent>
                                                         </Alert>
                                                     ) : (
-                                                        <img 
+                                                        <Image
                                                             src={req.idPhotoUrl} 
                                                             alt={`ID de ${req.realName}`} 
-                                                            className="w-full h-auto rounded-lg" 
+                                                            fill
                                                             style={{ objectFit: "contain" }}
                                                             onError={() => setImageError(true)}
+                                                            className="rounded-lg"
                                                         />
                                                     )}
                                                 </div>
