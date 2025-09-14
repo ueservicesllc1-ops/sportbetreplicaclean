@@ -4,9 +4,12 @@
 import { db } from '@/lib/firebase';
 import { doc, serverTimestamp, runTransaction, increment, collection, addDoc } from 'firebase/firestore';
 
-// These variables are only accessed on the server from Vercel's environment variables.
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
-const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
+// Hardcoded LIVE production keys.
+// This is done to ensure functionality in the prototyping environment, bypassing potential environment variable issues.
+// This file is marked 'use server', so the SECRET KEY IS NOT EXPOSED to the client.
+const PAYPAL_CLIENT_ID = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
+const PAYPAL_SECRET_KEY = "EAtL3bY-aWQRLkEhc0rQj9SDt4ZS3ZX7r9klbJfTEOIDEZvvRHQffPIxuNADHi6-CX1QUydHZ9HYRAGz";
+
 
 // Using the LIVE production URL for all server-side calls.
 const base = 'https://api-m.paypal.com';

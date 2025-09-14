@@ -9,8 +9,9 @@ import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { cn } from '@/lib/utils';
 
-const PAYPAL_CLIENT_ID = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
 const PAYPAL_SCRIPT_ID = "paypal-sdk-script";
+// The Client ID is now sourced from the backend during order creation.
+const PAYPAL_CLIENT_ID_FOR_SCRIPT = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
 
 interface PaypalButtonProps {
   amount: number;
@@ -33,16 +34,17 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
     const paypalButtonsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Function to load the PayPal script
         const addPaypalScript = () => {
-            if (window.paypal) {
-                setScriptLoaded(true);
+            if (document.getElementById(PAYPAL_SCRIPT_ID)) {
+                if (window.paypal) {
+                    setScriptLoaded(true);
+                }
                 return;
             }
             
             const script = document.createElement("script");
             script.id = PAYPAL_SCRIPT_ID;
-            script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&intent=capture`;
+            script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID_FOR_SCRIPT}&currency=USD&intent=capture`;
             script.async = true;
 
             script.onload = () => {
@@ -58,13 +60,6 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
 
         addPaypalScript();
 
-        // Cleanup function to remove script if component unmounts
-        return () => {
-            const script = document.getElementById(PAYPAL_SCRIPT_ID);
-            if (script) {
-                // document.body.removeChild(script);
-            }
-        };
     }, []);
 
 
