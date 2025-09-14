@@ -27,17 +27,32 @@ declare global {
 function DepositArea() {
     const { toast } = useToast();
 
+    const showConfirmationToast = () => {
+        toast({
+            title: 'Información de Depósito',
+            description: 'Tu saldo se actualizará una vez que el depósito sea comprobado.',
+        });
+    };
+
     const copyToClipboard = () => {
         navigator.clipboard.writeText(CRYPTO_WALLET_ADDRESS);
         toast({
             title: '¡Copiado!',
             description: 'La dirección de la billetera ha sido copiada a tu portapapeles.',
         });
-    }
+        showConfirmationToast();
+    };
 
     const openPayPal = () => {
       const url = "https://www.paypal.com/ncp/payment/48XSRX2BKGNCE";
       window.open(url, '_blank');
+      showConfirmationToast();
+    };
+    
+    const handleBankTransfer = () => {
+        // In a real scenario, this would open a modal with bank details.
+        // For now, we just show the toast.
+        showConfirmationToast();
     }
 
     return (
@@ -50,7 +65,7 @@ function DepositArea() {
                     <CreditCard /> Recarga con tarjeta
                 </Button>
                  <Separator />
-                <Button variant="outline" className="w-full justify-start gap-2">
+                <Button variant="outline" className="w-full justify-start gap-2" onClick={handleBankTransfer}>
                     <Landmark /> Transferencia Bancaria
                 </Button>
                 <Dialog>
