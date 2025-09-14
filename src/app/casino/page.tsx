@@ -45,7 +45,7 @@ export default async function CasinoLobbyPage() {
                                 src={game.imageUrl}
                                 alt={`Imagen del juego ${game.name}`}
                                 fill
-                                className="object-contain transition-transform group-hover:scale-110"
+                                className="object-cover transition-transform group-hover:scale-110"
                             />
                         </div>
                         <CardHeader className="p-4">
