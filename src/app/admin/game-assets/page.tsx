@@ -12,11 +12,7 @@ const assetsToManage = [
 ]
 
 export default async function AdminGameAssetsPage() {
-    const currentAssetsData = await getPenaltyGameAssets();
-    
-    // The `lastUpdated` field is a Firestore Timestamp, which is not a plain object.
-    // We need to remove it before passing the object to a Client Component.
-    const { lastUpdated, ...currentAssets } = currentAssetsData;
+    const currentAssets = await getPenaltyGameAssets();
 
     return (
         <div className="space-y-6">
@@ -35,7 +31,7 @@ export default async function AdminGameAssetsPage() {
                             assetKey={asset.key}
                             title={asset.title}
                             description={asset.description}
-                            currentImageUrl={currentAssets[asset.key] || null}
+                            currentImageUrl={currentAssets[asset.key] as string || null}
                         />
                     ))}
                 </CardContent>
@@ -43,3 +39,5 @@ export default async function AdminGameAssetsPage() {
         </div>
     )
 }
+
+    

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getFirebaseAdmin } from '@/lib/firebase-admin';
@@ -8,12 +9,15 @@ import { revalidatePath } from 'next/cache';
 const ASSET_COLLECTION = 'game_assets';
 const PENALTY_SHOOTOUT_DOC = 'penalty_shootout';
 
-export async function getPenaltyGameAssets(): Promise<Record<string, string>> {
+export async function getPenaltyGameAssets(): Promise<Record<string, string | number>> {
     try {
         const docRef = doc(db, ASSET_COLLECTION, PENALTY_SHOOTOUT_DOC);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            return docSnap.data() as Record<string, string>;
+            const data = docSnap.data();
+            // We need to remove it before passing the object to a Client Component.
+            const { lastUpdated, ...assets } = data;
+            return assets;
         }
         return {};
     } catch (error) {
@@ -70,3 +74,5 @@ export async function updateGameAsset(prevState: any, formData: FormData): Promi
     return { success: false, message: `No se pudo actualizar la imagen: ${errorMessage}` };
   }
 }
+
+    

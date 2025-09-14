@@ -2,7 +2,12 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { doc, runTransaction, increment, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, runTransaction, increment, addDoc, collection, serverTimestamp, setDoc } from 'firebase/firestore';
+import { revalidatePath } from 'next/cache';
+
+
+const ASSET_COLLECTION = 'game_assets';
+const PENALTY_SHOOTOUT_DOC = 'penalty_shootout';
 
 export async function placePenaltyBet(userId: string, betAmount: number): Promise<void> {
     if (!userId) {
@@ -78,3 +83,35 @@ export async function resolvePenaltyBet(userId: string, winnings: number): Promi
         throw new Error('No se pudieron acreditar tus ganancias.');
     }
 }
+
+
+export async function updateGameAssetPositions(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; }> {
+    try {
+        const positions = {
+            keeperTop: parseFloat(formData.get('keeperTop') as string),
+            keeperLeft: parseFloat(formData.get('keeperLeft') as string),
+            keeperScale: parseFloat(formData.get('keeperScale') as string),
+            ballTop: parseFloat(formData.get('ballTop') as string),
+            ballLeft: parseFloat(formData.get('ballLeft') as string),
+            ballScale: parseFloat(formData.get('ballScale') as string),
+        };
+
+        const docRef = doc(db, ASSET_COLLECTION, PENALTY_SHOOTOUT_DOC);
+
+        await setDoc(docRef, {
+            ...positions,
+            lastUpdated: serverTimestamp()
+        }, { merge: true });
+
+        revalidatePath('/casino/penalty-shootout');
+        
+        return { success: true, message: 'Las posiciones de los recursos se han guardado.' };
+
+    } catch (error) {
+        console.error('Error updating game asset positions:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido.';
+        return { success: false, message: `No se pudo guardar la configuración: ${errorMessage}` };
+    }
+}
+
+    
