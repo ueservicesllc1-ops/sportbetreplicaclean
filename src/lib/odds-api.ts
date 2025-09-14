@@ -1,3 +1,4 @@
+
 'use server'
 
 const API_KEY = process.env.THE_ODDS_API_KEY;
