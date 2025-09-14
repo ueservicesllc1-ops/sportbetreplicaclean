@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placePenaltyBet, resolvePenaltyBet } from './actions';
-import { Loader2, ArrowLeft, Shield, Target } from 'lucide-react';
+import { Loader2, ArrowLeft, Target } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { SoccerBallIcon } from '@/components/icons/soccer-ball-icon';
@@ -21,11 +22,11 @@ const GOAL_MULTIPLIER = 3;
 const GOAL_CHANCE = 0.60; // 60% chance to score
 
 const goalZones = [
-    { id: 1, name: 'Superior Izquierda' },
-    { id: 2, name: 'Superior Derecha' },
-    { id: 3, name: 'Centro' },
-    { id: 4, name: 'Inferior Izquierda' },
-    { id: 5, name: 'Inferior Derecha' },
+    { id: 1, name: 'Superior Izquierda', position: { top: '15%', left: '20%' } },
+    { id: 2, name: 'Superior Derecha', position: { top: '15%', left: '80%' } },
+    { id: 3, name: 'Centro', position: { top: '30%', left: '50%' } },
+    { id: 4, name: 'Inferior Izquierda', position: { top: '55%', left: '20%' } },
+    { id: 5, name: 'Inferior Derecha', position: { top: '55%', left: '80%' } },
 ];
 
 export default function PenaltyShootoutPage() {
@@ -34,7 +35,11 @@ export default function PenaltyShootoutPage() {
     const [gameState, setGameState] = useState<GameState>('betting');
     const [shotResult, setShotResult] = useState<ShotResult | null>(null);
     const [ballPosition, setBallPosition] = useState({ x: '50%', y: '85%' });
-    const [keeperPosition, setKeeperPosition] = useState<number | null>(null);
+    const [keeperStyle, setKeeperStyle] = useState({
+        top: '35%',
+        left: '50%',
+        transform: 'translateX(-50%) scale(1)',
+    });
 
     const { user } = useAuth();
     const { toast } = useToast();
@@ -73,8 +78,18 @@ export default function PenaltyShootoutPage() {
 
             // Determine result and keeper movement
             const isGoal = Math.random() < GOAL_CHANCE;
-            const keeperTargetZone = isGoal ? goalZones.find(z => z.id !== selectedZone)!.id : selectedZone;
-            setKeeperPosition(keeperTargetZone);
+            const keeperTargetZone = isGoal 
+                ? goalZones.find(z => z.id !== selectedZone)!.id 
+                : selectedZone;
+            
+            const keeperTargetPosition = goalZones.find(z => z.id === keeperTargetZone)!.position;
+            
+            setKeeperStyle({
+                top: keeperTargetPosition.top,
+                left: keeperTargetPosition.left,
+                transform: 'translateX(-50%) translateY(-50%) scale(1.2)'
+            });
+
 
             setTimeout(async () => {
                 if (isGoal) {
@@ -100,7 +115,11 @@ export default function PenaltyShootoutPage() {
                 setTimeout(() => {
                     setGameState('betting');
                     setBallPosition({ x: '50%', y: '85%' });
-                    setKeeperPosition(null);
+                    setKeeperStyle({
+                        top: '35%',
+                        left: '50%',
+                        transform: 'translateX(-50%) scale(1)',
+                    });
                     setSelectedZone(null);
                 }, 3000);
 
@@ -136,17 +155,18 @@ export default function PenaltyShootoutPage() {
                         <div className="absolute top-[10%] left-[10%] w-[80%] h-[70%] bg-repeat bg-center" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
                         
                         {/* Goalkeeper */}
-                        <Shield
-                            className={cn(
-                                "absolute h-24 w-24 text-primary-foreground transition-all duration-500 ease-out",
-                                `zone-keeper-${keeperPosition}`
-                            )} 
-                            style={{
-                                top: keeperPosition === 3 ? '40%' : keeperPosition ? '20%' : '35%',
-                                left: keeperPosition ? undefined : '50%',
-                                transform: keeperPosition ? undefined : 'translateX(-50%)'
-                            }}
-                        />
+                         <div
+                            className="absolute w-28 h-28 transition-all duration-300 ease-out"
+                            style={keeperStyle}
+                         >
+                            <Image
+                                src="https://i.postimg.cc/T1bSCYkF/goalkeeper.png"
+                                alt="Goalkeeper"
+                                width={112}
+                                height={112}
+                                className="drop-shadow-lg"
+                            />
+                         </div>
 
                         {/* Ball */}
                         <SoccerBallIcon 
@@ -242,3 +262,4 @@ export default function PenaltyShootoutPage() {
     );
 }
 
+    
