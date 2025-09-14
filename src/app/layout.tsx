@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth-context';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'SportBet Replica',
@@ -30,15 +31,16 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap"
           rel="stylesheet"
         />
-        <script 
-          src="https://www.paypal.com/sdk/js?client-id=BAAExruK8cItNiwKuvePmimHr0cyBLKPF8iJMrEaRU4a5Wnze3zTukViknzWV2Y_NKHEXj-8P-ortO2JqQ&components=hosted-buttons&enable-funding=venmo&currency=USD">
-        </script>
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
           {children}
           <Toaster />
         </AuthProvider>
+        <Script 
+          src="https://www.paypal.com/sdk/js?client-id=BAAExruK8cItNiwKuvePmimHr0cyBLKPF8iJMrEaRU4a5Wnze3zTukViknzWV2Y_NKHEXj-8P-ortO2JqQ&components=hosted-buttons&enable-funding=venmo&currency=USD"
+          strategy="beforeInteractive"
+        />
       </body>
     </html>
   );
