@@ -26,6 +26,75 @@ import { useFormStatus } from 'react-dom';
 
 const WELCOME_BONUS = 100;
 
+const initialNotificationState = {
+  success: false,
+  message: '',
+};
+
+function SubmitNotificationButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+      Notificar Depósito
+    </Button>
+  );
+}
+
+function DepositNotificationForm({ depositType }: { depositType: 'transferencia bancaria' | 'depósito cripto' }) {
+    const { user } = useAuth();
+    const [state, formAction] = useActionState(submitDepositNotification, initialNotificationState);
+    const formRef = useRef<HTMLFormElement>(null);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if(state.message){
+            if(state.success){
+                toast({ title: "Notificación Enviada", description: state.message });
+                formRef.current?.reset();
+            } else {
+                toast({ variant: 'destructive', title: "Error", description: state.message });
+            }
+        }
+    }, [state, toast]);
+
+    return (
+        <div className='mt-4 pt-4 border-t'>
+            <h4 className='text-base font-semibold mb-2'>Paso 2: Notificar tu depósito</h4>
+            <p className='text-xs text-muted-foreground mb-4'>
+                Después de realizar la {depositType}, completa este formulario con los datos de la transacción para que podamos acreditar tu saldo.
+            </p>
+             <form ref={formRef} action={formAction} className="space-y-4">
+                <input type="hidden" name="userId" value={user?.uid} />
+                <input type="hidden" name="userEmail" value={user?.email || ''} />
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="amount">Monto Depositado</Label>
+                        <Input id="amount" name="amount" type="number" step="0.01" placeholder="Ej: 50.00" required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="reference">Nº de Referencia / Hash</Label>
+                        <Input id="reference" name="reference" placeholder="ID de la transacción" required />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="notes">Notas (Opcional)</Label>
+                    <Textarea id="notes" name="notes" placeholder="Ej: Depósito desde cuenta de Pichincha." />
+                </div>
+
+                 {!state.success && state.message && (
+                    <Alert variant="destructive" className='text-xs'>
+                        <AlertDescription>{state.message}</AlertDescription>
+                    </Alert>
+                )}
+
+                <SubmitNotificationButton />
+            </form>
+        </div>
+    );
+}
+
 function BankTransferArea() {
     const { toast } = useToast();
     const [settings, setSettings] = useState<BankingInfo | null>(null);
@@ -110,14 +179,15 @@ function BankTransferArea() {
                 ))}
             </div>
 
-             <DialogContent>
+             <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Datos para la Transferencia Bancaria</DialogTitle>
                     <DialogDescription>
-                        Usa esta información para realizar tu depósito. Una vez hecho, envía el comprobante al email o WhatsApp indicado.
+                        Usa esta información para realizar tu depósito.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-3 py-4">
+                     <h4 className='text-base font-semibold'>Paso 1: Realizar transferencia</h4>
                     {destinationBankDetails.map((item) => item.value && (
                         <div key={item.label} className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">{item.label}:</span>
@@ -139,13 +209,7 @@ function BankTransferArea() {
                         </div>
                     ))}
                 </div>
-                 <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>¡Importante!</AlertTitle>
-                    <AlertDescription>
-                        La acreditación del saldo es manual y puede tardar unas horas después de que recibamos tu comprobante.
-                    </AlertDescription>
-                </Alert>
+                <DepositNotificationForm depositType="transferencia bancaria" />
              </DialogContent>
         </div>
     )
@@ -176,12 +240,13 @@ function CryptoDepositArea() {
                     </div>
                 </Button>
             </DialogTrigger>
-             <DialogContent>
+             <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Depositar con Criptomonedas</DialogTitle>
                     <DialogDescription>Transfiere fondos a la siguiente dirección de billetera.</DialogDescription>
                 </DialogHeader>
                  <div className="space-y-4 py-4">
+                     <h4 className='text-base font-semibold'>Paso 1: Realizar depósito</h4>
                      <div className="p-3 rounded-md bg-secondary/50 space-y-2">
                         <Label className='text-xs'>Dirección de Billetera (ERC-20)</Label>
                         <div className="flex items-center gap-2">
@@ -195,10 +260,11 @@ function CryptoDepositArea() {
                         <AlertTriangle className="h-4 w-4" />
                         <AlertTitle>¡Atención!</AlertTitle>
                         <AlertDescription>
-                            Esta dirección solo acepta depósitos en la red Ethereum (ERC-20). Enviar tokens de otras redes resultará en la pérdida de fondos. La acreditación es manual.
+                            Esta dirección solo acepta depósitos en la red Ethereum (ERC-20). Enviar tokens de otras redes resultará en la pérdida de fondos.
                         </AlertDescription>
                     </Alert>
                 </div>
+                 <DepositNotificationForm depositType="depósito cripto" />
             </DialogContent>
         </Dialog>
     );
@@ -209,7 +275,6 @@ function DepositArea() {
     const [amount, setAmount] = useState('10.00');
 
     const handlePaymentSuccess = () => {
-        // Maybe clear the amount or show a success message within the component
         setAmount('10.00');
     }
 
@@ -308,79 +373,6 @@ function WithdrawalArea() {
     )
 }
 
-const initialNotificationState = {
-  success: false,
-  message: '',
-};
-
-function SubmitNotificationButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-      Notificar Depósito
-    </Button>
-  );
-}
-
-function DepositNotificationForm() {
-    const { user, userProfile } = useAuth();
-    const [state, formAction] = useActionState(submitDepositNotification, initialNotificationState);
-    const formRef = useRef<HTMLFormElement>(null);
-    const { toast } = useToast();
-
-    useEffect(() => {
-        if(state.message){
-            if(state.success){
-                toast({ title: "Notificación Enviada", description: state.message });
-                formRef.current?.reset();
-            } else {
-                toast({ variant: 'destructive', title: "Error", description: state.message });
-            }
-        }
-    }, [state, toast]);
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Notificar Depósito Manual</CardTitle>
-                <CardDescription>
-                    Si ya hiciste una transferencia o depósito cripto, usa este formulario para informarnos.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                 <form ref={formRef} action={formAction} className="space-y-4">
-                    <input type="hidden" name="userId" value={user?.uid} />
-                    <input type="hidden" name="userEmail" value={user?.email || ''} />
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="amount">Monto Depositado</Label>
-                            <Input id="amount" name="amount" type="number" step="0.01" placeholder="Ej: 50.00" required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="reference">Nº de Referencia</Label>
-                            <Input id="reference" name="reference" placeholder="ID de la transacción" required />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="notes">Notas (Opcional)</Label>
-                        <Textarea id="notes" name="notes" placeholder="Ej: Depósito desde cuenta de Pichincha." />
-                    </div>
-
-                     {!state.success && state.message && (
-                        <Alert variant="destructive" className='text-xs'>
-                            <AlertDescription>{state.message}</AlertDescription>
-                        </Alert>
-                    )}
-
-                    <SubmitNotificationButton />
-                </form>
-            </CardContent>
-        </Card>
-    );
-}
-
 
 export function WalletSheet() {
   const { user, userProfile, loading: authLoading } = useAuth();
@@ -442,8 +434,6 @@ export function WalletSheet() {
                     </div>
                     <WithdrawalArea />
                 </div>
-                <Separator />
-                <DepositNotificationForm />
                 </>
 
             )}
@@ -477,3 +467,4 @@ export function WalletSheet() {
     </Dialog>
   );
 }
+
