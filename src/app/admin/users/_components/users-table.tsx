@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Loader2 } from 'lucide-react';
-import type { UserProfile, UserRole } from '@/contexts/auth-context';
+import { Loader2, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
+import type { UserProfile, UserRole, VerificationStatus } from '@/contexts/auth-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +47,19 @@ function RoleBadge({ role }: { role: UserRole }) {
             {text}
         </Badge>
     );
+}
+
+function VerificationStatusBadge({ status }: { status: VerificationStatus }) {
+  switch (status) {
+    case 'verified':
+      return <Badge className='bg-green-600 hover:bg-green-700'><ShieldCheck className="mr-1 h-3 w-3" /> Verificado</Badge>;
+    case 'pending':
+      return <Badge variant="secondary"><ShieldAlert className="mr-1 h-3 w-3" /> Pendiente</Badge>;
+    case 'rejected':
+        return <Badge variant="destructive"><ShieldX className="mr-1 h-3 w-3" /> Rechazado</Badge>;
+    default:
+      return <Badge variant="outline">No Verificado</Badge>;
+  }
 }
 
 export function UsersTable({ initialUsers }: { initialUsers: UserProfile[]}) {
@@ -95,8 +108,8 @@ export function UsersTable({ initialUsers }: { initialUsers: UserProfile[]}) {
             <TableHeader>
                 <TableRow>
                 <TableHead>Usuario</TableHead>
-                <TableHead>ID Corto</TableHead>
                 <TableHead>Rol</TableHead>
+                <TableHead>Verificación</TableHead>
                 <TableHead className="text-right">Saldo</TableHead>
                 <TableHead className="text-center">Acciones</TableHead>
                 </TableRow>
@@ -116,10 +129,10 @@ export function UsersTable({ initialUsers }: { initialUsers: UserProfile[]}) {
                         </div>
                     </TableCell>
                     <TableCell>
-                        <Badge>{user.shortId || 'N/A'}</Badge>
+                        <RoleBadge role={user.role} />
                     </TableCell>
                     <TableCell>
-                        <RoleBadge role={user.role} />
+                        <VerificationStatusBadge status={user.verificationStatus} />
                     </TableCell>
                     <TableCell className="text-right font-mono">${(user.balance || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-center">

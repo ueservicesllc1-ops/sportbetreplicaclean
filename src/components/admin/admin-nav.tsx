@@ -4,20 +4,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Users, Wallet, Image as ImageIcon, ArrowDownUp } from "lucide-react";
+import { Bell, Home, Users, Wallet, Image as ImageIcon, ArrowDownUp, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "../ui/badge";
 import { Logo } from "../logo";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { useAuth } from "@/contexts/auth-context";
+import { useEffect, useState } from "react";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export function AdminNav() {
     const pathname = usePathname();
-    const { user, isSuperAdmin } = useAuth();
+    const { user, isAdmin, isSuperAdmin } = useAuth();
+    const [pendingVerifications, setPendingVerifications] = useState(0);
+
+    useEffect(() => {
+        if (!isAdmin) return;
+
+        const q = query(collection(db, 'users'), where('verificationStatus', '==', 'pending'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setPendingVerifications(snapshot.size);
+        });
+
+        return () => unsubscribe();
+    }, [isAdmin]);
     
     const navItems = [
         { href: "/admin", label: "Dashboard", icon: Home, requiredRole: 'admin' },
         { href: "/admin/users", label: "Usuarios", icon: Users, requiredRole: 'admin' },
+        { href: "/admin/verifications", label: "Verificaciones", icon: ShieldCheck, requiredRole: 'admin', badge: pendingVerifications > 0 ? pendingVerifications : null },
         { href: "/admin/wallets", label: "Billeteras", icon: Wallet, requiredRole: 'superadmin' },
         { href: "/admin/withdrawals", label: "Retiros", icon: ArrowDownUp, requiredRole: 'superadmin' },
         { href: "/admin/banners", label: "Banners", icon: ImageIcon, requiredRole: 'admin' },
@@ -54,6 +70,11 @@ export function AdminNav() {
                             >
                                 <item.icon className="h-4 w-4" />
                                 {item.label}
+                                {item.badge && (
+                                    <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
+                                        {item.badge}
+                                    </Badge>
+                                )}
                             </Link>
                         ))}
                     </nav>
