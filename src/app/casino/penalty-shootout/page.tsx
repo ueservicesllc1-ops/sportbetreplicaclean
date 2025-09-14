@@ -568,10 +568,6 @@ export default function PenaltyShootoutPage() {
                         <strong>Paso 3: Elige la Zona</strong><br/>
                         Selecciona a qué parte de la portería quieres disparar. La probabilidad de éxito no cambia según la zona, solo depende del riesgo que elegiste en el paso anterior.
                     </p>
-                     <p>
-                        <strong>Paso 4: Potencia tu Disparo</strong><br/>
-                        Mantén presionado el botón "Mantén para Patear" para cargar potencia. Si la barra de potencia supera el 50%, tienes un 20% de riesgo de que el tiro se vaya fuera y pierdas automáticamente.
-                    </p>
                     <div className="p-3 bg-secondary rounded-md">
                         <h4 className="font-semibold text-foreground mb-2">Reglas Clave</h4>
                         <ul className="list-disc list-inside space-y-1">
@@ -585,4 +581,3 @@ export default function PenaltyShootoutPage() {
     );
 }
 
-    
