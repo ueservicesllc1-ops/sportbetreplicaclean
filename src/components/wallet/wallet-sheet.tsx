@@ -19,6 +19,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import Image from 'next/image';
 import { getBankingSettings, type BankingInfo } from '@/app/admin/banking/actions';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 
 const WELCOME_BONUS = 100;
@@ -66,6 +67,11 @@ function BankTransferArea() {
             </div>
         );
     }
+
+    const cleanPhoneNumber = (phone?: string) => {
+        if (!phone) return '';
+        return phone.replace(/[^0-9]/g, '');
+    }
     
     const destinationBankDetails = [
         { label: "Banco", value: settings.bankName },
@@ -74,7 +80,7 @@ function BankTransferArea() {
         { label: "Tipo de Cuenta", value: settings.accountType },
         { label: "Número de Cuenta", value: settings.accountNumber },
         { label: "Email Comprobante", value: settings.email },
-        { label: "WhatsApp Comprobante", value: settings.whatsapp, icon: MessageSquare },
+        { label: "WhatsApp Comprobante", value: settings.whatsapp, isWhatsapp: true, icon: MessageSquare },
     ];
 
     const availableBanks = [
@@ -113,9 +119,17 @@ function BankTransferArea() {
                     {destinationBankDetails.map((item) => item.value && (
                         <div key={item.label} className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">{item.label}:</span>
-                            <div className="flex items-center gap-2">
-                                {item.icon && <item.icon className="h-4 w-4 text-green-500 mr-1" />}
-                                <span className="font-semibold">{item.value}</span>
+                             <div className="flex items-center gap-2">
+                                {item.isWhatsapp ? (
+                                    <>
+                                        <MessageSquare className="h-4 w-4 text-green-500 mr-1" />
+                                        <Link href={`https://wa.me/${cleanPhoneNumber(item.value)}`} target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">
+                                            {item.value}
+                                        </Link>
+                                    </>
+                                ) : (
+                                    <span className="font-semibold">{item.value}</span>
+                                )}
                                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopy(item.value!)}>
                                     <Copy className="h-4 w-4" />
                                 </Button>
