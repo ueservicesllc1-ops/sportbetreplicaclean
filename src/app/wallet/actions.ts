@@ -30,27 +30,26 @@ export async function updateUserVerification(prevState: any, formData: FormData)
 
     try {
         const admin = await getFirebaseAdmin();
-        const bucket = admin.storage().bucket(); // Gets the default bucket from firebase-admin config.
+        const bucket = admin.storage().bucket();
         const filePath = `user-documents/${uid}/${Date.now()}-${idPhoto.name}`;
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await idPhoto.arrayBuffer());
 
+        // Save the file and make it publicly readable
         await file.save(fileBuffer, {
             metadata: { contentType: idPhoto.type },
+            public: true,
         });
-        
-        // Generate a signed URL to access the file.
-        const [signedUrl] = await file.getSignedUrl({
-            action: 'read',
-            expires: '01-01-2100' // Set a very long expiration date
-        });
+
+        // Construct the public URL in the correct Firebase format
+        const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`;
         
         const userDocRef = doc(db, 'users', uid);
 
         await updateDoc(userDocRef, {
             realName: realName,
             idNumber: idNumber,
-            idPhotoUrl: signedUrl,
+            idPhotoUrl: publicUrl,
             verificationStatus: 'pending'
         });
         
