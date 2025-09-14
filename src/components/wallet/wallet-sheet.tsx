@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
@@ -161,33 +159,45 @@ function CryptoDepositArea() {
     }
 
     return (
-        <div className="space-y-4 rounded-lg border p-4">
-            <div className="flex items-start gap-3">
-                <Bitcoin className="h-6 w-6 text-primary flex-shrink-0" />
-                <div>
-                    <h3 className="font-semibold text-lg">Depositar con Criptomonedas</h3>
-                    <p className="text-sm text-muted-foreground">
-                        Transfiere fondos a la siguiente dirección de billetera.
-                    </p>
+        <Dialog>
+             <DialogTrigger asChild>
+                <Button variant="outline" className="w-full h-16">
+                     <div className="flex items-center gap-3">
+                        <Bitcoin className="h-6 w-6 text-primary flex-shrink-0" />
+                        <div>
+                            <h3 className="font-semibold text-left">Depositar con Cripto</h3>
+                            <p className="text-xs text-muted-foreground text-left">
+                                Usando la red ERC-20.
+                            </p>
+                        </div>
+                    </div>
+                </Button>
+            </DialogTrigger>
+             <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Depositar con Criptomonedas</DialogTitle>
+                    <DialogDescription>Transfiere fondos a la siguiente dirección de billetera.</DialogDescription>
+                </DialogHeader>
+                 <div className="space-y-4 py-4">
+                     <div className="p-3 rounded-md bg-secondary/50 space-y-2">
+                        <Label className='text-xs'>Dirección de Billetera (ERC-20)</Label>
+                        <div className="flex items-center gap-2">
+                            <p className="font-mono text-sm break-all flex-grow">{walletAddress}</p>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={() => handleCopy(walletAddress)}>
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                    <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>¡Atención!</AlertTitle>
+                        <AlertDescription>
+                            Esta dirección solo acepta depósitos en la red Ethereum (ERC-20). Enviar tokens de otras redes resultará en la pérdida de fondos. La acreditación es manual.
+                        </AlertDescription>
+                    </Alert>
                 </div>
-            </div>
-             <div className="p-3 rounded-md bg-secondary/50 space-y-2">
-                <Label className='text-xs'>Dirección de Billetera (ERC-20)</Label>
-                <div className="flex items-center gap-2">
-                    <p className="font-mono text-sm break-all flex-grow">{walletAddress}</p>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={() => handleCopy(walletAddress)}>
-                        <Copy className="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
-            <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>¡Atención!</AlertTitle>
-                <AlertDescription>
-                    Esta dirección solo acepta depósitos en la red Ethereum (ERC-20). Enviar tokens de otras redes resultará en la pérdida de fondos. La acreditación es manual.
-                </AlertDescription>
-            </Alert>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }
 

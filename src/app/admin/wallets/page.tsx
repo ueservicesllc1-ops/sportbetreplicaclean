@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect } from "react";
@@ -207,8 +205,8 @@ export default function AdminWalletsPage() {
                 
                  <Card>
                     <CardHeader>
-                        <CardTitle>Buscar Usuario</CardTitle>
-                        <CardDescription>Busca por email o ID de usuario (ej. 1234A) para recargar su saldo.</CardDescription>
+                        <CardTitle>Recarga Manual de Saldo</CardTitle>
+                        <CardDescription>Busca un usuario por su email o ID para añadirle fondos manualmente tras verificar un depósito (transferencia, cripto, etc.).</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="flex gap-2">
@@ -238,7 +236,7 @@ export default function AdminWalletsPage() {
                                             <DialogTrigger asChild>
                                                 <Button variant="outline" size="sm" onClick={() => setSelectedUser(user)}>
                                                     <Coins className="mr-2 h-4 w-4" />
-                                                    Añadir Fondos
+                                                    Recargar Saldo
                                                 </Button>
                                             </DialogTrigger>
                                         </div>
@@ -258,10 +256,10 @@ export default function AdminWalletsPage() {
 
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Añadir Fondos</DialogTitle>
+                        <DialogTitle>Recargar Saldo Manualmente</DialogTitle>
                         <DialogDescription>
                             {selectedUser ? 
-                                `Estás añadiendo fondos a ${selectedUser.email}.` :
+                                `Estás a punto de recargar el saldo de ${selectedUser.email}.` :
                                 "Selecciona un usuario para añadirle fondos."
                             }
                         </DialogDescription>
@@ -274,7 +272,7 @@ export default function AdminWalletsPage() {
                                     <p className="font-bold text-lg text-primary">${selectedUser.balance.toFixed(2)}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="amount">Monto a Añadir</Label>
+                                    <Label htmlFor="amount">Monto a Acreditar</Label>
                                     <Input 
                                         id="amount"
                                         type="number"
@@ -293,7 +291,7 @@ export default function AdminWalletsPage() {
                                 <DialogClose asChild>
                                      <Button onClick={handleAddFunds} disabled={submitting || !amount || parseFloat(amount) <= 0}>
                                         {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        Confirmar y Añadir Fondos
+                                        Confirmar Recarga
                                     </Button>
                                 </DialogClose>
                             </DialogFooter>
@@ -304,5 +302,3 @@ export default function AdminWalletsPage() {
         </Dialog>
     );
 }
-
-    

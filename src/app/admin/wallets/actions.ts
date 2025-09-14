@@ -108,7 +108,7 @@ export async function addFundsToUser(params: AddFundsParams) {
             createdAt: serverTimestamp()
         });
 
-        return { success: true, message: `Se añadieron $${amount} al usuario.` };
+        return { success: true, message: `Se añadieron $${amount.toFixed(2)} al saldo de ${userEmail}.` };
     } catch (error) {
         console.error("Error adding funds:", error);
         throw new Error("No se pudieron añadir los fondos al usuario.");
