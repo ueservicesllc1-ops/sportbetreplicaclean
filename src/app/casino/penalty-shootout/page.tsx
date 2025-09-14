@@ -214,7 +214,7 @@ export default function PenaltyShootoutPage() {
                                 {/* Ball */}
                                 <div className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
                                      style={getBallStyle()} >
-                                    <Image src={gameAssets.ball || defaultAssets.ball} alt="Balón de fútbol" width={32} height={32} />
+                                    <Image src={gameAssets.ball || defaultAssets.ball} alt="Balón de fútbol" fill className="object-contain" />
                                 </div>
                             </>
                         )}
