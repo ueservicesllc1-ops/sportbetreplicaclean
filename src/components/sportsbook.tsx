@@ -172,8 +172,10 @@ function EventTable({ events, isLive }: { events: ApiMatchEvent[], isLive: boole
         <Table className='min-w-[600px]'>
             <TableHeader>
                 <TableRow className='hover:bg-transparent'>
-                    <TableHead className='w-3/5'>Evento</TableHead>
-                    <TableHead className='text-center w-[120px]'>Cuotas</TableHead>
+                    <TableHead className='w-2/5'>Evento</TableHead>
+                    <TableHead className='text-center'>1</TableHead>
+                    <TableHead className='text-center'>X</TableHead>
+                    <TableHead className='text-center'>2</TableHead>
                     <TableHead className='w-[60px] text-center'>Más</TableHead>
                 </TableRow>
             </TableHeader>
@@ -209,8 +211,24 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
   const awayOdd = getOdd(event.away_team);
   const drawOdd = getDrawOdd();
 
-  const handleAddBet = (market: '1' | 'X' | '2', teamName: string) => {
-    const odd = market === '1' ? homeOdd : market === '2' ? awayOdd : drawOdd;
+  const handleAddBet = (market: '1' | 'X' | '2') => {
+    let selection: string;
+    let odd: number;
+    
+    switch (market) {
+        case '1':
+            selection = event.home_team;
+            odd = homeOdd;
+            break;
+        case '2':
+            selection = event.away_team;
+            odd = awayOdd;
+            break;
+        case 'X':
+            selection = 'Empate';
+            odd = drawOdd;
+            break;
+    }
     
     if (odd === 0) return;
 
@@ -218,14 +236,14 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
       id: `${event.id}_h2h`, // Use a consistent market key for replacement
       event: `${event.home_team} vs ${event.away_team}`,
       market: 'h2h',
-      selection: teamName,
+      selection: selection,
       odd,
     };
     addBet(bet);
   };
 
-  const getButtonVariant = (teamName: string) => {
-      return bets.some(b => b.id === `${event.id}_h2h` && b.selection === teamName) ? 'secondary' : 'outline';
+  const getButtonVariant = (selectionName: string) => {
+      return bets.some(b => b.id === `${event.id}_h2h` && b.selection === selectionName) ? 'secondary' : 'outline';
   }
   
   const hasOdds = homeOdd > 0 || awayOdd > 0 || drawOdd > 0;
@@ -237,15 +255,10 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
 
 
   return (
-    <>
-    {/* Home Team Row */}
     <TableRow className='text-sm'>
         <TableCell>
-            <div className='flex items-center gap-2'>
-                <span className="font-bold text-muted-foreground w-4">1</span>
-                <p className='font-medium'>{event.home_team}</p>
-            </div>
-            <div className='text-xs text-muted-foreground mt-1 pl-6'>
+            <p className='font-medium'>{event.home_team} vs {event.away_team}</p>
+            <div className='text-xs text-muted-foreground mt-1'>
                 {isLive ? (
                     <Badge variant='destructive' className='animate-pulse'>EN VIVO</Badge>
                 ) : (
@@ -255,17 +268,29 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
         </TableCell>
         
         {hasOdds ? (
-            <TableCell className='p-1'>
-                 <Button variant={getButtonVariant(event.home_team)} size="sm" className="w-full justify-center px-3" onClick={() => handleAddBet('1', event.home_team)} disabled={homeOdd === 0}>
-                    <span className="font-bold">{homeOdd.toFixed(2)}</span>
-                </Button>
-            </TableCell>
+            <>
+                <TableCell className='p-1 text-center'>
+                    <Button variant={getButtonVariant(event.home_team)} size="sm" className="w-full max-w-[80px] justify-center px-2" onClick={() => handleAddBet('1')} disabled={homeOdd === 0}>
+                        <span className="font-bold">{homeOdd.toFixed(2)}</span>
+                    </Button>
+                </TableCell>
+                <TableCell className='p-1 text-center'>
+                    <Button variant={getButtonVariant('Empate')} size="sm" className="w-full max-w-[80px] justify-center px-2" onClick={() => handleAddBet('X')} disabled={drawOdd === 0}>
+                        <span className="font-bold">{drawOdd.toFixed(2)}</span>
+                    </Button>
+                </TableCell>
+                <TableCell className='p-1 text-center'>
+                    <Button variant={getButtonVariant(event.away_team)} size="sm" className="w-full max-w-[80px] justify-center px-2" onClick={() => handleAddBet('2')} disabled={awayOdd === 0}>
+                        <span className="font-bold">{awayOdd.toFixed(2)}</span>
+                    </Button>
+                </TableCell>
+            </>
         ) : (
-            <TableCell className='text-center text-muted-foreground text-xs'>
-                No disponible
+            <TableCell colSpan={3} className='text-center text-muted-foreground text-xs'>
+                Cuotas no disponibles
             </TableCell>
         )}
-        <TableCell className='text-center align-middle row-span-3'>
+        <TableCell className='text-center'>
              <Tooltip>
                 <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" asChild>
@@ -280,38 +305,5 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
             </Tooltip>
         </TableCell>
     </TableRow>
-    {/* Away Team Row */}
-    <TableRow className='text-sm'>
-         <TableCell>
-            <div className='flex items-center gap-2'>
-                <span className="font-bold text-muted-foreground w-4">2</span>
-                <p className='font-medium'>{event.away_team}</p>
-            </div>
-        </TableCell>
-        {hasOdds ? (
-             <TableCell className='p-1'>
-                 <Button variant={getButtonVariant(event.away_team)} size="sm" className="w-full justify-center px-3" onClick={() => handleAddBet('2', event.away_team)} disabled={awayOdd === 0}>
-                    <span className="font-bold">{awayOdd.toFixed(2)}</span>
-                </Button>
-            </TableCell>
-        ) : <TableCell />}
-    </TableRow>
-    {/* Draw Row */}
-    <TableRow className='text-sm border-b-4 border-card'>
-        <TableCell>
-            <div className='flex items-center gap-2'>
-                <span className="font-bold text-muted-foreground w-4">X</span>
-                <p className='font-medium'>Empate</p>
-            </div>
-        </TableCell>
-        {hasOdds && drawOdd > 0 ? (
-            <TableCell className='p-1'>
-                 <Button variant={getButtonVariant('Empate')} size="sm" className="w-full justify-center px-3" onClick={() => handleAddBet('X', 'Empate')} disabled={drawOdd === 0}>
-                    <span className="font-bold">{drawOdd.toFixed(2)}</span>
-                </Button>
-            </TableCell>
-        ) : <TableCell />}
-    </TableRow>
-    </>
   );
 }
