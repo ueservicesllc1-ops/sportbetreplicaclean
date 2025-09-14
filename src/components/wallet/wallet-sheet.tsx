@@ -14,10 +14,41 @@ import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const WELCOME_BONUS = 100;
 const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
-const PAYPAL_LINK = 'https://www.paypal.com/ncp/payment/48XSRX2BKGNCE';
+const PAYPAL_ACTION_URL = 'https://www.paypal.com/ncp/payment/48XSRX2BKGNCE';
+
+// Custom PayPal button component to safely render the form
+function PayPalButton() {
+    return (
+        <form action={PAYPAL_ACTION_URL} method="post" target="_blank" className="inline-grid justify-items-center items-center gap-2 w-full">
+            <input 
+                type="submit" 
+                value="Comprar ahora" 
+                className="text-center border-none rounded-md min-w-[11.625rem] px-8 h-[2.625rem] font-bold bg-[#FFD140] text-black font-sans text-base leading-5 cursor-pointer w-full"
+            />
+            <Image 
+                src="https://www.paypalobjects.com/images/Debit_Credit_APM.svg" 
+                alt="Accepted cards"
+                width={150}
+                height={24}
+            />
+            <div className="text-xs flex items-center gap-1">
+                Con la tecnología de 
+                <Image 
+                    src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" 
+                    alt="paypal"
+                    width={58}
+                    height={14}
+                    className="h-[0.875rem] w-auto align-middle"
+                />
+            </div>
+        </form>
+    );
+}
+
 
 function DepositArea() {
     const [depositAmount, setDepositAmount] = useState<number | string>('');
@@ -54,12 +85,9 @@ function DepositArea() {
                 />
             </div>
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
-            <div className='space-y-2'>
-                 <Button asChild variant="outline" className="w-full justify-start gap-2">
-                    <Link href={PAYPAL_LINK} target="_blank">
-                        <CreditCard /> Pagar con PayPal / Tarjeta
-                    </Link>
-                </Button>
+            <div className='space-y-4'>
+                 <PayPalButton />
+                 <Separator />
                 <Button variant="outline" className="w-full justify-start gap-2">
                     <Landmark /> Transferencia Bancaria
                 </Button>
@@ -99,9 +127,6 @@ function DepositArea() {
                     </DialogContent>
                 </Dialog>
             </div>
-            <Button className="w-full" onClick={handleDeposit} disabled={!depositAmount || Number(depositAmount) <= 0}>
-                Depositar ${depositAmount || '0'}
-            </Button>
         </div>
     )
 }
