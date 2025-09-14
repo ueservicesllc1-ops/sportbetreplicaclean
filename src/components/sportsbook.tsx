@@ -364,3 +364,4 @@ function EventRow({ event, isLive, sportTitle }: { event: ApiMatchEvent, isLive:
     </TableRow>
   );
 }
+
