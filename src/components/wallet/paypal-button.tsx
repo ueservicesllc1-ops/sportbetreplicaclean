@@ -8,7 +8,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'YOUR_CLIENT_ID_HERE';
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
+const PAYPAL_SECRET_KEY = process.env.NEXT_PUBLIC_PAYPAL_SECRET_KEY || '';
 
 interface PayPalWrapperProps {
     amount: string;
@@ -41,7 +42,7 @@ export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID === 'YOUR_CLIENT_ID_HERE') {
+  if (!PAYPAL_CLIENT_ID) {
     return <p className="text-sm text-destructive">La API de PayPal no está configurada.</p>;
   }
 
@@ -53,7 +54,7 @@ export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
     setError(null);
     setIsProcessing(true);
     try {
-      const order = await createOrder(amount);
+      const order = await createOrder(amount, PAYPAL_CLIENT_ID, PAYPAL_SECRET_KEY);
       return order.id;
     } catch (err: any) {
       setError('No se pudo iniciar el pago. Intenta de nuevo.');
@@ -70,7 +71,7 @@ export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
         return;
     }
     try {
-      const captureData = await captureOrder(data.orderID, user.uid);
+      const captureData = await captureOrder(data.orderID, user.uid, PAYPAL_CLIENT_ID, PAYPAL_SECRET_KEY);
       if (captureData.status === 'COMPLETED') {
         toast({
           title: '¡Pago completado!',

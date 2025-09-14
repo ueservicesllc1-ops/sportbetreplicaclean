@@ -4,14 +4,13 @@
 import { db } from '@/lib/firebase';
 import { doc, increment, runTransaction, serverTimestamp } from 'firebase/firestore';
 
-const { PAYPAL_CLIENT_ID, PAYPAL_SECRET_KEY } = process.env;
 const base = 'https://api-m.sandbox.paypal.com';
 
-async function generateAccessToken() {
-  if (!PAYPAL_CLIENT_ID || !PAYPAL_SECRET_KEY) {
+async function generateAccessToken(clientId: string, clientSecret: string) {
+  if (!clientId || !clientSecret) {
     throw new Error('MISSING_API_CREDENTIALS');
   }
-  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET_KEY}`).toString('base64');
+  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   const response = await fetch(`${base}/v1/oauth2/token`, {
     method: 'POST',
     body: 'grant_type=client_credentials',
@@ -24,8 +23,8 @@ async function generateAccessToken() {
   return data.access_token;
 }
 
-export async function createOrder(amount: string) {
-  const accessToken = await generateAccessToken();
+export async function createOrder(amount: string, clientId: string, clientSecret: string) {
+  const accessToken = await generateAccessToken(clientId, clientSecret);
   const url = `${base}/v2/checkout/orders`;
   
   const payload = {
@@ -53,8 +52,8 @@ export async function createOrder(amount: string) {
   return data;
 }
 
-export async function captureOrder(orderID: string, userId: string) {
-  const accessToken = await generateAccessToken();
+export async function captureOrder(orderID: string, userId: string, clientId: string, clientSecret: string) {
+  const accessToken = await generateAccessToken(clientId, clientSecret);
   const url = `${base}/v2/checkout/orders/${orderID}/capture`;
 
   const response = await fetch(url, {
@@ -95,3 +94,4 @@ export async function captureOrder(orderID: string, userId: string) {
 
   return data;
 }
+
