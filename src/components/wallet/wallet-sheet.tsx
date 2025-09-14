@@ -14,8 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { PayPalScriptProvider } from '@paypal/react-paypal-js';
-import { PayPalButtonsWrapper } from './paypal-button';
+import { PayPalDeposit } from './paypal-button';
 
 const WELCOME_BONUS = 100;
 const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
@@ -23,9 +22,7 @@ const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
 
 function DepositArea() {
     const { toast } = useToast();
-    const [amount, setAmount] = useState("10.00");
-    const PAYPAL_CLIENT_ID = "AZDxjDScFpQtjWTOUtWKbyN_bDt4OgqaF4eYXlewfBP4-8aqX3PiV8e1GWU6liB2CUXlkA59kJXE7M6R";
-
+    
     const showConfirmationToast = () => {
         toast({
             title: 'Información de Depósito',
@@ -50,21 +47,7 @@ function DepositArea() {
          <div className="space-y-4">
             <h3 className="font-semibold text-lg">Depositar Fondos</h3>
             
-            <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Introduce un monto para depositar:</p>
-                <Input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="bg-white text-black"
-                    placeholder='10.00'
-                />
-            </div>
-            
-             <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
-                <PayPalButtonsWrapper amount={amount} />
-             </PayPalScriptProvider>
-
+            <PayPalDeposit />
 
             <Separator />
             <div className='space-y-4'>
