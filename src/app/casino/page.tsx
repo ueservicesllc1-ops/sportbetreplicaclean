@@ -113,12 +113,12 @@ export default function CasinoPage() {
             
             // Determine crash point for the upcoming round
             const r = Math.random();
-            if (r < 0.5) { 
-              crashPoint.current = 1 + Math.random() * 2;
-            } else if (r < 0.9) {
-              crashPoint.current = 3 + Math.random() * 7;
-            } else { 
-              crashPoint.current = 10 + Math.random() * 40;
+            if (r < 0.7) { // 70% chance for low multiplier (1.01x to 2.00x)
+              crashPoint.current = 1.01 + Math.random(); // 1.01 to 2.009...
+            } else if (r < 0.95) { // 25% chance for medium multiplier (2.00x to 10.00x)
+              crashPoint.current = 2 + Math.random() * 8;
+            } else { // 5% chance for high multiplier (10.00x to 200.00x)
+              crashPoint.current = 10 + Math.random() * 190;
             }
 
             setGameState('playing');
@@ -130,17 +130,18 @@ export default function CasinoPage() {
     } else if (gameState === 'playing') {
       setMultiplier(1.00);
 
-      intervalRef.current = setInterval(() => {
+      const gameInterval = setInterval(() => {
         setMultiplier((prevMultiplier) => {
           // Use a function to get the latest hasPlacedBet state
-          if (hasPlacedBet && prevMultiplier >= crashPoint.current) {
+          if (prevMultiplier >= crashPoint.current) {
             setGameState('crashed');
             return prevMultiplier;
           }
           const increment = 0.01 + (prevMultiplier / 200);
           return prevMultiplier + increment;
         });
-      }, 50); 
+      }, 50);
+      intervalRef.current = gameInterval;
     } else if (gameState === 'crashed' || gameState === 'cashout') {
         if(intervalRef.current) clearInterval(intervalRef.current);
         
@@ -160,11 +161,13 @@ export default function CasinoPage() {
   }, [gameState]);
 
   useEffect(() => {
-    // This effect ensures the game loop uses the latest state for hasPlacedBet
+    // This effect ensures the game loop uses the latest state for hasPlacedBet inside intervals
     if (gameState === 'playing' && hasPlacedBet) {
-      // The logic inside the `setInterval` in the main `useEffect` will now see the updated `hasPlacedBet`.
+      if (multiplier >= crashPoint.current) {
+        setGameState('crashed');
+      }
     }
-  }, [hasPlacedBet, gameState]);
+  }, [hasPlacedBet, gameState, multiplier]);
 
 
   const handlePlaceBet = async () => {
@@ -254,7 +257,7 @@ export default function CasinoPage() {
                 size="lg" 
                 className="w-full h-12 bg-green-600 text-white hover:bg-green-700 text-lg"
                 onClick={handlePlaceBet}
-                disabled={isSubmitting}
+                disabled={isSubmitting || hasPlacedBet}
             >
                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                Apostar para la próxima ronda
@@ -347,10 +350,10 @@ export default function CasinoPage() {
                         onChange={(e) => setBetAmount(e.target.value)}
                         placeholder="1.00"
                         className='text-base font-bold'
-                        disabled={gameState !== 'betting'}
+                        disabled={gameState !== 'betting' || hasPlacedBet}
                       />
-                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState !== 'betting'}>½</Button>
-                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting'}>2x</Button>
+                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState !== 'betting' || hasPlacedBet}>½</Button>
+                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting' || hasPlacedBet}>2x</Button>
                     </div>
                   </div>
                   {renderButton()}
