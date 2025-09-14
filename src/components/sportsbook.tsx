@@ -151,10 +151,10 @@ function SportSection({ sport }: { sport: SportData }) {
                             <TabsTrigger value="upcoming" disabled={!hasUpcomingEvents} className="rounded-none">Próximos</TabsTrigger>
                         </TabsList>
                         <TabsContent value="live" className="mt-0">
-                            <EventTable events={liveEvents} isLive={true} />
+                            <EventTable events={liveEvents} isLive={true} sportTitle={sport.title} />
                         </TabsContent>
                         <TabsContent value="upcoming" className="mt-0">
-                            <EventTable events={upcomingEvents} isLive={false} />
+                            <EventTable events={upcomingEvents} isLive={false} sportTitle={sport.title} />
                         </TabsContent>
                     </Tabs>
                 )}
@@ -163,7 +163,7 @@ function SportSection({ sport }: { sport: SportData }) {
     );
 }
 
-function EventTable({ events, isLive }: { events: ApiMatchEvent[], isLive: boolean }) {
+function EventTable({ events, isLive, sportTitle }: { events: ApiMatchEvent[], isLive: boolean, sportTitle: string }) {
   if (events.length === 0) {
     return <p className="text-center text-muted-foreground py-10">No hay eventos {isLive ? 'en vivo' : 'próximos'} disponibles.</p>
   }
@@ -173,6 +173,7 @@ function EventTable({ events, isLive }: { events: ApiMatchEvent[], isLive: boole
         <Table className='min-w-[600px]'>
             <TableHeader>
                 <TableRow className='hover:bg-transparent'>
+                    <TableHead className='w-[80px] text-center'>Hora</TableHead>
                     <TableHead className='w-2/5'>Evento</TableHead>
                     <TableHead className='text-center'>1</TableHead>
                     <TableHead className='text-center'>X</TableHead>
@@ -183,7 +184,7 @@ function EventTable({ events, isLive }: { events: ApiMatchEvent[], isLive: boole
              <TableBody>
                 <TooltipProvider>
                     {events.map((event) => (
-                        <EventRow key={event.id} event={event} isLive={isLive} />
+                        <EventRow key={event.id} event={event} isLive={isLive} sportTitle={sportTitle}/>
                     ))}
                 </TooltipProvider>
             </TableBody>
@@ -192,7 +193,7 @@ function EventTable({ events, isLive }: { events: ApiMatchEvent[], isLive: boole
   );
 }
 
-function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) {
+function EventRow({ event, isLive, sportTitle }: { event: ApiMatchEvent, isLive: boolean, sportTitle: string }) {
   const { addBet, bets } = useBetSlip();
 
   const bookmaker = event.bookmakers?.find(b => b.markets.some(m => m.key === 'h2h'));
@@ -235,7 +236,7 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
 
     const bet: Bet = {
       id: `${event.id}_h2h`, // Use a consistent market key for replacement
-      event: `1. ${event.home_team} vs 2. ${event.away_team}`,
+      event: `${event.home_team} vs ${event.away_team}`,
       market: 'h2h',
       selection: selection,
       odd,
@@ -252,19 +253,73 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
   
   const eventDate = new Date(event.commence_time);
   const formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const formattedDate = eventDate.toLocaleDateString([], { day: '2-digit', month: 'short' });
   const isToday = new Date().toDateString() === eventDate.toDateString();
 
+  // --- START: Simulated live data ---
+  const [liveData, setLiveData] = useState<{ minute: number; score: [number, number]; half: string } | null>(null);
+
+  useEffect(() => {
+    if (isLive) {
+      // Simulate initial data
+      const startMinute = Math.floor(Math.random() * 80) + 1;
+      const startScore: [number, number] = [Math.floor(Math.random() * 3), Math.floor(Math.random() * 3)];
+      
+      setLiveData({
+        minute: startMinute,
+        score: startScore,
+        half: startMinute > 45 ? '2da Mitad' : '1ra Mitad',
+      });
+
+      // Optional: simulate updates
+      const interval = setInterval(() => {
+        setLiveData(prev => {
+          if (!prev || prev.minute >= 90) {
+            clearInterval(interval);
+            return prev;
+          }
+          return { ...prev, minute: prev.minute + 1 };
+        });
+      }, 60 * 1000); // Update minute every minute
+
+      return () => clearInterval(interval);
+    }
+  }, [isLive, event.id]);
+  // --- END: Simulated live data ---
 
   return (
     <TableRow className='text-sm'>
+        <TableCell className="text-center font-medium">
+            {isLive && liveData ? (
+                 <div className='flex flex-col items-center'>
+                    <div className='flex items-center gap-1.5'>
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                        <span>{liveData.minute}'</span>
+                    </div>
+                    <span className='text-xs text-muted-foreground'>{liveData.half}</span>
+                </div>
+            ) : (
+                <div className='flex flex-col items-center'>
+                    <span>{isToday ? 'Hoy' : eventDate.toLocaleDateString([], { day: '2-digit', month: '2-digit' })}</span>
+                    <span className='text-xs text-muted-foreground'>{formattedTime}</span>
+                </div>
+            )}
+        </TableCell>
         <TableCell>
-            <p className='font-medium'>1. {event.home_team} vs 2. {event.away_team}</p>
-            <div className='text-xs text-muted-foreground mt-1'>
-                {isLive ? (
-                    <Badge variant='destructive' className='animate-pulse'>EN VIVO</Badge>
+            <div className='flex flex-col'>
+                <span className='text-xs text-muted-foreground'>{sportTitle.split(' - ')[1]}</span>
+                {isLive && liveData ? (
+                    <div className='flex items-center gap-2 font-bold'>
+                        <span>{event.home_team}</span>
+                        <span className='text-primary'>{liveData.score[0]}</span>
+                        <span>-</span>
+                        <span className='text-primary'>{liveData.score[1]}</span>
+                        <span>{event.away_team}</span>
+                    </div>
                 ) : (
-                    <span>{isToday ? 'Hoy' : formattedDate}, {formattedTime}</span>
+                    <p className='font-medium'>{event.home_team} vs {event.away_team}</p>
                 )}
             </div>
         </TableCell>
