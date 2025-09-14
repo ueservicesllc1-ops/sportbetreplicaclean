@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Loader2, ShieldAlert, Check, X, User, Hash, FileImage } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
@@ -33,6 +34,7 @@ export default function AdminVerificationsPage() {
     const [requests, setRequests] = useState<VerificationRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [imageError, setImageError] = useState(false);
     const { toast } = useToast();
     const { isAdmin, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -102,7 +104,7 @@ export default function AdminVerificationsPage() {
     const processedRequests = requests.filter(r => r.verificationStatus !== 'pending');
 
     return (
-        <Dialog>
+        <Dialog onOpenChange={() => setImageError(false)}>
             <div className="space-y-6">
                 <h1 className="text-3xl font-bold tracking-tight">Verificaciones de Identidad (KYC)</h1>
 
@@ -169,14 +171,25 @@ export default function AdminVerificationsPage() {
                                              <DialogHeader>
                                                 <DialogTitle>Documento de {req.realName}</DialogTitle>
                                                 <DialogDescription>
-                                                    URL del documento de identidad subido por el usuario.
+                                                    Documento de identidad subido por el usuario.
                                                 </DialogDescription>
                                              </DialogHeader>
-                                             {req.idPhotoUrl && (
-                                                <div className="mt-4 rounded-md bg-secondary p-4">
-                                                    <p className="text-xs text-muted-foreground break-words font-mono">
-                                                        {req.idPhotoUrl}
-                                                    </p>
+                                             {imageError && (
+                                                <Alert variant="destructive">
+                                                    <AlertTitle>Error al cargar la imagen</AlertTitle>
+                                                    <AlertDescriptionComponent>
+                                                        No se pudo cargar la imagen. Verifica que la URL sea correcta y que el archivo exista en Firebase Storage.
+                                                    </AlertDescriptionComponent>
+                                                </Alert>
+                                             )}
+                                             {req.idPhotoUrl && !imageError && (
+                                                <div className="mt-4 rounded-md overflow-hidden relative aspect-video">
+                                                   <img
+                                                        src={req.idPhotoUrl}
+                                                        alt={`Documento de ${req.realName}`}
+                                                        className="object-contain w-full h-full"
+                                                        onError={() => setImageError(true)}
+                                                    />
                                                 </div>
                                              )}
                                         </DialogContent>

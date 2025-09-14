@@ -38,11 +38,9 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         // Save the file and make it publicly readable
         await file.save(fileBuffer, {
             metadata: { contentType: idPhoto.type },
+            public: true, // Make the file public
         });
         
-        // Make the file public
-        await file.makePublic();
-
         // Get the public URL
         const publicUrl = file.publicUrl();
         
