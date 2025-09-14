@@ -40,8 +40,8 @@ export function FeaturedMatches() {
   useEffect(() => {
     async function fetchFeatured() {
       try {
-        // Fetch from a popular league, e.g., Premier League
-        const odds = await getSportsOdds('soccer_england_premier_league');
+        // Fetch from a popular league, e.g., Copa Sudamericana
+        const odds = await getSportsOdds('soccer_copa_sudamericana');
         // Get the first 5 events as featured
         setEvents(odds.slice(0, 5));
       } catch (err) {
