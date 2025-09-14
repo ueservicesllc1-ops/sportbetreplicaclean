@@ -32,7 +32,7 @@ export default function Home() {
             </main>
 
             {/* Right Sidebar - Sticky */}
-            <aside className="sticky top-20 hidden h-[calc(100vh-6rem)] lg:col-span-1 lg:block">
+            <aside className="sticky top-20 hidden lg:col-span-1 lg:block">
                 <BetSlip />
             </aside>
           </div>
