@@ -8,6 +8,7 @@ import { BetSlip } from '@/components/bet-slip';
 import { BetSlipProvider } from '@/contexts/bet-slip-context';
 import { Footer } from '@/components/layout/footer';
 import { SecondaryNav } from '@/components/layout/secondary-nav';
+import { FeaturedMatches } from '@/components/featured-matches';
 
 export default function Home() {
   return (
@@ -27,6 +28,7 @@ export default function Home() {
             <main className="col-span-1 py-4 lg:col-span-3">
               <div className='space-y-4'>
                 <PromotionsCarousel />
+                <FeaturedMatches />
                 <Sportsbook />
               </div>
             </main>
