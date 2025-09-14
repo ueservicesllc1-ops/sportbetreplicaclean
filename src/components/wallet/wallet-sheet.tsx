@@ -14,18 +14,17 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
+import { PayPalButtonsWrapper } from './paypal-button';
 
 const WELCOME_BONUS = 100;
 const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
 
-declare global {
-    interface Window {
-        paypal?: any;
-    }
-}
 
 function DepositArea() {
     const { toast } = useToast();
+    const [amount, setAmount] = useState("10.00");
+    const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'test';
 
     const showConfirmationToast = () => {
         toast({
@@ -42,16 +41,8 @@ function DepositArea() {
         });
         showConfirmationToast();
     };
-
-    const openPayPal = () => {
-      const url = "https://www.paypal.com/ncp/payment/48XSRX2BKGNCE";
-      window.open(url, '_blank');
-      showConfirmationToast();
-    };
     
     const handleBankTransfer = () => {
-        // In a real scenario, this would open a modal with bank details.
-        // For now, we just show the toast.
         showConfirmationToast();
     }
 
@@ -59,12 +50,24 @@ function DepositArea() {
          <div className="space-y-4">
             <h3 className="font-semibold text-lg">Depositar Fondos</h3>
             
-             <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
+            <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Introduce un monto para depositar:</p>
+                <Input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="bg-white text-black"
+                    placeholder='10.00'
+                />
+            </div>
+            
+             <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
+                <PayPalButtonsWrapper amount={amount} />
+             </PayPalScriptProvider>
+
+
+            <Separator />
             <div className='space-y-4'>
-                 <Button onClick={openPayPal} className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start gap-2">
-                    <CreditCard /> Recarga con tarjeta
-                </Button>
-                 <Separator />
                 <Button variant="outline" className="w-full justify-start gap-2" onClick={handleBankTransfer}>
                     <Landmark /> Transferencia Bancaria
                 </Button>
