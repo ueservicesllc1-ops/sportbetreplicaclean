@@ -18,22 +18,7 @@ import Image from 'next/image';
 
 const WELCOME_BONUS = 100;
 const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
-
-// New PayPal button component
-function PayPalHostedButton() {
-    useEffect(() => {
-        // @ts-ignore
-        if (window.paypal) {
-            // @ts-ignore
-            window.paypal.HostedButtons({
-                hostedButtonId: "628SVMMQS7M52",
-            }).render("#paypal-container-628SVMMQS7M52");
-        }
-    }, []);
-
-    return <div id="paypal-container-628SVMMQS7M52"></div>;
-}
-
+const PAYPAL_LINK = 'https://www.paypal.com/ncp/payment/48XSRX2BKGNCE';
 
 function DepositArea() {
     const [depositAmount, setDepositAmount] = useState<number | string>('');
@@ -66,7 +51,11 @@ function DepositArea() {
             </div>
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
             <div className='space-y-4'>
-                 <PayPalHostedButton />
+                 <Button asChild variant="outline" className="w-full justify-start gap-2 bg-[#FFD140] text-black hover:bg-[#FFC400] hover:text-black">
+                    <a href={PAYPAL_LINK} target='_blank' rel='noopener noreferrer'>
+                        <CreditCard /> Pagar con PayPal / Tarjeta
+                    </a>
+                 </Button>
                  <Separator />
                 <Button variant="outline" className="w-full justify-start gap-2">
                     <Landmark /> Transferencia Bancaria
