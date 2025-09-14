@@ -4,14 +4,17 @@
 import { db } from '@/lib/firebase';
 import { doc, serverTimestamp, runTransaction, increment, collection, addDoc } from 'firebase/firestore';
 
+// These variables are only accessed on the server from Vercel's environment variables.
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
 
-const base = 'https://api-m.paypal.com'; // PRODUCTION URL
+// Using the LIVE production URL for all server-side calls.
+const base = 'https://api-m.paypal.com';
 
 async function generateAccessToken() {
+  // Use the credentials from environment variables. The user must update these in Vercel.
   if (!PAYPAL_CLIENT_ID || !PAYPAL_SECRET_KEY) {
-    throw new Error('MISSING_API_CREDENTIALS');
+    throw new Error('Las credenciales de API de PayPal (Client ID o Secret) no están configuradas en el servidor.');
   }
   const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET_KEY}`).toString('base64');
   const response = await fetch(`${base}/v1/oauth2/token`, {
@@ -21,6 +24,13 @@ async function generateAccessToken() {
       Authorization: `Basic ${auth}`,
     },
   });
+  
+  if (!response.ok) {
+    const errorBody = await response.json();
+    console.error('PayPal Access Token Error:', errorBody);
+    throw new Error('No se pudo generar el token de acceso de PayPal.');
+  }
+
   const data = await response.json();
   return data.access_token;
 }
@@ -84,7 +94,7 @@ export async function captureOrder(orderID: string, userId: string): Promise<{ s
                 
                 // 2. Create a new transaction log document inside the atomic transaction
                 const transactionsRef = collection(db, 'wallet_transactions');
-                const newTransactionRef = doc(transactionsRef); // Create a reference for the new document
+                const newTransactionRef = doc(transactionsRef);
                 
                 transaction.set(newTransactionRef, {
                     type: 'deposit_paypal',
@@ -98,13 +108,13 @@ export async function captureOrder(orderID: string, userId: string): Promise<{ s
             });
 
             return { success: true };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating user balance after PayPal capture:', error);
-            // Even if the DB update fails, the capture was successful with PayPal.
             // This needs manual reconciliation. Log the error.
-            return { success: false, message: 'Pago capturado pero hubo un error al actualizar el saldo.' };
+            return { success: false, message: `Pago capturado, pero hubo un error al actualizar tu saldo. Por favor, contacta a soporte con el ID de orden: ${orderID}` };
         }
     }
 
-    return { success: false, message: data.message || 'Error al capturar el pago.' };
+    const errorMessage = data?.details?.[0]?.description || data.message || 'Error desconocido al capturar el pago.';
+    return { success: false, message: errorMessage };
 }

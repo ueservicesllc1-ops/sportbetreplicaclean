@@ -9,7 +9,9 @@ import { Loader2 } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons, type OnApproveData, type CreateOrderData } from "@paypal/react-paypal-js";
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+// Using the new LIVE Client ID directly in the component for reliability.
+// This is a public key and is safe to be exposed in client-side code.
+const PAYPAL_CLIENT_ID = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
 
 interface PaypalButtonProps {
   amount: number;
@@ -20,34 +22,39 @@ function PayPalButtonsComponent({ amount, onPaymentSuccess }: PaypalButtonProps)
     const { user } = useAuth();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleCreateOrder = async (data: CreateOrderData, actions: any) => {
+        setError(null);
         if (amount <= 0) {
-            toast({
-                variant: 'destructive',
-                title: 'Monto Inválido',
-                description: 'El monto a depositar debe ser mayor a cero.',
-            });
-            throw new Error('Invalid amount');
+            const errMessage = 'El monto a depositar debe ser mayor a cero.';
+            toast({ variant: 'destructive', title: 'Monto Inválido', description: errMessage });
+            setError(errMessage);
+            throw new Error(errMessage);
         }
         try {
             const order = await createOrder(amount);
             if (order.id) {
                 return order.id;
             }
-            const errorDetail = order.details?.[0] || { issue: 'UNKNOWN_ERROR', description: 'No se pudo crear la orden.' };
+            const errorDetail = order.details?.[0] || { issue: 'UNKNOWN_ERROR', description: 'No se pudo crear la orden en el servidor.' };
             toast({ variant: 'destructive', title: `Error de PayPal: ${errorDetail.issue}`, description: errorDetail.description });
+            setError(errorDetail.description);
             throw new Error(errorDetail.description);
-        } catch (error) {
-            console.error("Create Order Error:", error);
-            throw error;
+        } catch (err: any) {
+            console.error("Create Order Error:", err);
+            setError(err.message || 'Error desconocido al crear la orden.');
+            throw err;
         }
     };
     
     const handleOnApprove = async (data: OnApproveData, actions: any) => {
         setIsProcessing(true);
+        setError(null);
         if (!user) {
-            toast({ variant: 'destructive', title: 'Error de Autenticación', description: 'No se encontró el usuario.' });
+            const errMessage = 'No se encontró el usuario para acreditar el saldo.';
+            toast({ variant: 'destructive', title: 'Error de Autenticación', description: errMessage });
+            setError(errMessage);
             setIsProcessing(false);
             return;
         }
@@ -64,8 +71,10 @@ function PayPalButtonsComponent({ amount, onPaymentSuccess }: PaypalButtonProps)
             } else {
                 throw new Error(result.message);
             }
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Error en la Captura', description: error.message });
+        } catch (err: any) {
+            const errMessage = err.message || 'Ocurrió un error inesperado al procesar el pago.';
+            toast({ variant: 'destructive', title: 'Error en la Captura del Pago', description: errMessage });
+            setError(errMessage);
         } finally {
             setIsProcessing(false);
         }
@@ -73,28 +82,32 @@ function PayPalButtonsComponent({ amount, onPaymentSuccess }: PaypalButtonProps)
 
     const handleOnError = (err: any) => {
         console.error("PayPal Buttons Error:", err);
-        toast({
-            variant: 'destructive',
-            title: 'Error en el Pago',
-            description: 'Ocurrió un error inesperado con PayPal. Por favor, intenta de nuevo.',
-        });
+        const errMessage = 'Ocurrió un error con la interfaz de PayPal. Por favor, revisa la consola para más detalles o intenta de nuevo.';
+        toast({ variant: 'destructive', title: 'Error en el Pago', description: errMessage });
+        setError(errMessage);
     };
 
     return (
-        <div className="relative min-h-[100px]">
+        <div className="relative min-h-[120px]">
             {isProcessing && (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm space-y-2">
                     <Loader2 className="h-6 w-6 animate-spin" />
                     <p className="text-sm text-muted-foreground">Procesando pago...</p>
                 </div>
             )}
+             {error && (
+                <Alert variant="destructive" className="mb-4">
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
             <PayPalButtons
-                style={{ layout: "vertical", color: 'black' }}
+                style={{ layout: "vertical", color: 'black', shape: 'rect', label: 'pay' }}
                 createOrder={handleCreateOrder}
                 onApprove={handleOnApprove}
                 onError={handleOnError}
                 disabled={isProcessing || amount <= 0}
-                forceReRender={[amount]} // Force re-render when amount changes
+                forceReRender={[amount]} 
             />
         </div>
     );
@@ -107,7 +120,7 @@ export function PaypalButton(props: PaypalButtonProps) {
              <Alert variant="destructive">
                 <AlertTitle>Error de Configuración de PayPal</AlertTitle>
                 <AlertDescription>
-                    La variable de entorno NEXT_PUBLIC_PAYPAL_CLIENT_ID no está configurada.
+                    El Client ID de PayPal no está configurado en el componente.
                 </AlertDescription>
             </Alert>
         );
