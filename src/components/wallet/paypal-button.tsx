@@ -7,11 +7,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
-import { Button } from '../ui/button';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-// This is now hardcoded in the server-side library, so we just need a valid string here to initialize the provider.
-const DUMMY_CLIENT_ID = "sb"; 
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
 interface PayPalButtonsComponentProps {
     amount: number;
@@ -48,7 +46,6 @@ const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsCompo
             }
         } catch (error: any) {
             console.error('Frontend createOrder error:', error);
-            // Toast is shown inside the createOrder call
             throw error;
         }
     };
@@ -97,15 +94,13 @@ const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsCompo
                     <p className="text-sm text-muted-foreground">Procesando pago...</p>
                 </div>
             )}
-            <PayPalScriptProvider options={{ clientId: DUMMY_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
-                <PayPalButtons
-                    style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
-                    createOrder={handleCreateOrder}
-                    onApprove={onApprove}
-                    onError={onError}
-                    disabled={isProcessing}
-                />
-            </PayPalScriptProvider>
+            <PayPalButtons
+                style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
+                createOrder={handleCreateOrder}
+                onApprove={onApprove}
+                onError={onError}
+                disabled={isProcessing}
+            />
         </div>
     );
 };
@@ -116,7 +111,20 @@ interface PaypalButtonProps {
 }
 
 export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
+    if (!PAYPAL_CLIENT_ID) {
+        return (
+            <Alert variant="destructive">
+                <AlertTitle>Error de Configuración de PayPal</AlertTitle>
+                <AlertDescription>
+                    La variable `NEXT_PUBLIC_PAYPAL_CLIENT_ID` no está disponible. Por favor, verifica que la variable de entorno esté configurada correctamente en Vercel y que el proyecto se haya redesplegado.
+                </AlertDescription>
+            </Alert>
+        );
+    }
+
     return (
-        <PayPalButtonsComponent key={amount} amount={amount} onPaymentSuccess={onPaymentSuccess} />
+        <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
+            <PayPalButtonsComponent key={amount} amount={amount} onPaymentSuccess={onPaymentSuccess} />
+        </PayPalScriptProvider>
     );
 }
