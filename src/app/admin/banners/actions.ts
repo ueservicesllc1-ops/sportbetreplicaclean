@@ -1,17 +1,12 @@
 
 'use server';
 
-import admin from '@/lib/firebase-admin';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
 import { db } from '@/lib/firebase';
 import { addDoc, collection, deleteDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
-interface FormState {
-  success: boolean;
-  message: string;
-}
-
-export async function addBanner(prevState: FormState, formData: FormData): Promise<FormState> {
+export async function addBanner(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; }> {
   const imageUrl = formData.get('imageUrl') as string | null;
 
   if (!imageUrl || !imageUrl.trim().startsWith('http')) {
@@ -60,6 +55,7 @@ export async function deleteBanner(bannerId: string) {
              const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
             if (bucketName) {
                 try {
+                    const admin = getFirebaseAdmin();
                     const bucket = admin.storage().bucket(bucketName);
                     const file = bucket.file(imagePath);
                     await file.delete();

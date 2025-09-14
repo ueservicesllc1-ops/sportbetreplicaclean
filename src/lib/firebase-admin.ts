@@ -1,13 +1,12 @@
 
-'use server';
-
 import * as admin from 'firebase-admin';
 
-// Check if the app is already initialized to prevent errors
-if (!admin.apps.length) {
+// This function ensures that Firebase Admin is initialized only once.
+export function getFirebaseAdmin() {
+  if (!admin.apps.length) {
     admin.initializeApp({
         storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     });
+  }
+  return admin;
 }
-
-export default admin;
