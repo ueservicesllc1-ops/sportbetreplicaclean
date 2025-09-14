@@ -1,12 +1,11 @@
 
 'use server';
 
-import { db, auth } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { doc, runTransaction, increment, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
-export async function placeCasinoBet(betAmount: number): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) {
+export async function placeCasinoBet(userId: string, betAmount: number): Promise<void> {
+    if (!userId) {
         throw new Error('Debes iniciar sesión para realizar una apuesta.');
     }
 
@@ -14,7 +13,7 @@ export async function placeCasinoBet(betAmount: number): Promise<void> {
         throw new Error('El monto de la apuesta debe ser mayor que cero.');
     }
 
-    const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef = doc(db, 'users', userId);
     const transactionsRef = collection(db, 'game_transactions');
 
     try {
@@ -34,7 +33,7 @@ export async function placeCasinoBet(betAmount: number): Promise<void> {
 
             // Log the transaction for auditing
             transaction.set(doc(transactionsRef), {
-                userId: user.uid,
+                userId: userId,
                 game: 'Speedrun',
                 type: 'debit',
                 amount: betAmount,
@@ -51,9 +50,8 @@ export async function placeCasinoBet(betAmount: number): Promise<void> {
     }
 }
 
-export async function resolveCasinoBet(winnings: number): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) {
+export async function resolveCasinoBet(userId: string, winnings: number): Promise<void> {
+    if (!userId) {
         throw new Error('Usuario no autenticado.');
     }
 
@@ -62,7 +60,7 @@ export async function resolveCasinoBet(winnings: number): Promise<void> {
         return;
     }
 
-    const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef = doc(db, 'users', userId);
     const transactionsRef = collection(db, 'game_transactions');
 
     try {
@@ -71,7 +69,7 @@ export async function resolveCasinoBet(winnings: number): Promise<void> {
 
             // Log the transaction
              transaction.set(doc(transactionsRef), {
-                userId: user.uid,
+                userId: userId,
                 game: 'Speedrun',
                 type: 'credit',
                 amount: winnings,

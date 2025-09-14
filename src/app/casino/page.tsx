@@ -183,7 +183,7 @@ export default function CasinoPage() {
 
     setIsSubmitting(true);
     try {
-        await placeCasinoBet(amount);
+        await placeCasinoBet(user.uid, amount);
         toast({ title: 'Apuesta Realizada', description: `Has apostado $${amount.toFixed(2)}.` });
         setHasPlacedBet(true);
         setGameState('waiting');
@@ -195,14 +195,14 @@ export default function CasinoPage() {
   };
 
   const handleCashOut = async () => {
-      if(gameState !== 'playing' || !hasPlacedBet) return;
+      if(gameState !== 'playing' || !hasPlacedBet || !user) return;
       
       const currentWinnings = parseFloat(betAmount) * multiplier;
       setWinnings(currentWinnings);
       setIsSubmitting(true);
 
       try {
-          await resolveCasinoBet(currentWinnings);
+          await resolveCasinoBet(user.uid, currentWinnings);
           toast({
               title: '¡Ganaste!',
               description: `Has retirado $${currentWinnings.toFixed(2)}.`,
@@ -376,5 +376,3 @@ export default function CasinoPage() {
     </div>
   );
 }
-
-    
