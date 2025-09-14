@@ -17,10 +17,12 @@ export default function Home() {
         <MainNav />
         <SecondaryNav />
         <div className="container mx-auto flex-1 px-2 md:px-4">
-          <div className="relative grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
             {/* Left Sidebar */}
             <aside className="hidden lg:col-span-1 lg:block">
-                <SportsSidebar />
+                <div className="sticky top-20">
+                    <SportsSidebar />
+                </div>
             </aside>
             
             {/* Main Content */}
