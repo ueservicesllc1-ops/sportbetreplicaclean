@@ -33,7 +33,6 @@ export default function AdminVerificationsPage() {
     const [requests, setRequests] = useState<VerificationRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
-    const [imageError, setImageError] = useState(false);
     const { toast } = useToast();
     const { isAdmin, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -103,7 +102,7 @@ export default function AdminVerificationsPage() {
     const processedRequests = requests.filter(r => r.verificationStatus !== 'pending');
 
     return (
-        <Dialog onOpenChange={() => setImageError(false)}>
+        <Dialog>
             <div className="space-y-6">
                 <h1 className="text-3xl font-bold tracking-tight">Verificaciones de Identidad (KYC)</h1>
 
@@ -170,27 +169,14 @@ export default function AdminVerificationsPage() {
                                              <DialogHeader>
                                                 <DialogTitle>Documento de {req.realName}</DialogTitle>
                                                 <DialogDescription>
-                                                    Visualización del documento de identidad subido por el usuario para su verificación.
+                                                    URL del documento de identidad subido por el usuario.
                                                 </DialogDescription>
                                              </DialogHeader>
                                              {req.idPhotoUrl && (
-                                                <div className="mt-4 relative h-96">
-                                                    {imageError ? (
-                                                        <Alert variant="destructive">
-                                                            <ShieldAlert className="h-4 w-4" />
-                                                            <AlertTitle>Error al cargar la imagen</AlertTitle>
-                                                            <AlertDescriptionComponent>
-                                                                No se pudo cargar la imagen. Verifica que la URL sea correcta y que el archivo exista en Firebase Storage.
-                                                            </AlertDescriptionComponent>
-                                                        </Alert>
-                                                    ) : (
-                                                        <img
-                                                            src={req.idPhotoUrl} 
-                                                            alt={`ID de ${req.realName}`}
-                                                            onError={() => setImageError(true)}
-                                                            className="rounded-lg w-full h-full object-contain"
-                                                        />
-                                                    )}
+                                                <div className="mt-4 rounded-md bg-secondary p-4">
+                                                    <p className="text-xs text-muted-foreground break-words font-mono">
+                                                        {req.idPhotoUrl}
+                                                    </p>
                                                 </div>
                                              )}
                                         </DialogContent>
