@@ -13,9 +13,11 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import Link from 'next/link';
 
 const WELCOME_BONUS = 100;
 const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
+const PAYPAL_LINK = 'https://www.paypal.com/ncp/payment/48XSRX2BKGNCE';
 
 function DepositArea() {
     const [depositAmount, setDepositAmount] = useState<number | string>('');
@@ -53,8 +55,10 @@ function DepositArea() {
             </div>
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
             <div className='space-y-2'>
-                 <Button variant="outline" className="w-full justify-start gap-2">
-                    <CreditCard /> Tarjeta de Crédito/Débito
+                 <Button asChild variant="outline" className="w-full justify-start gap-2">
+                    <Link href={PAYPAL_LINK} target="_blank">
+                        <CreditCard /> Pagar con PayPal / Tarjeta
+                    </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2">
                     <Landmark /> Transferencia Bancaria
@@ -254,5 +258,3 @@ export function WalletSheet() {
 
   );
 }
-
-    
