@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { PaypalButton } from './paypal-button';
+import { ScrollArea } from '../ui/scroll-area';
 
 const WELCOME_BONUS = 100;
 
@@ -145,6 +146,7 @@ export function WalletSheet() {
   const { balance, verificationStatus } = userProfile;
 
   return (
+    <ScrollArea className="h-full pr-4">
       <div className="space-y-6">
         <Card className="text-center bg-secondary/50">
             <CardHeader className='p-2'>
@@ -201,6 +203,6 @@ export function WalletSheet() {
             </CardContent>
         </Card>
       </div>
-
+    </ScrollArea>
   );
 }
