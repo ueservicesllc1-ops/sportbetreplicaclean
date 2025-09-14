@@ -29,7 +29,6 @@ function PayPalButtonsComponent({ amount, createOrderHandler, onApproveHandler, 
             createOrder={async (data) => createOrderHandler(data)}
             onApprove={async (data) => onApproveHandler(data)}
             onError={onErrorHandler}
-            fundingSource="paypal" // Prioritize PayPal but allow guest
         />
     );
 }
@@ -96,7 +95,7 @@ export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
   }
 
   return (
-    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture', 'disable-funding': 'credit,card' }}>
+    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
         <div className="relative">
              {isProcessing && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80">
