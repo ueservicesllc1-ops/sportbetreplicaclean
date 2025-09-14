@@ -20,6 +20,7 @@ import Image from 'next/image';
 import { getBankingSettings, type BankingInfo } from '@/app/admin/banking/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { Label } from '../ui/label';
 
 
 const WELCOME_BONUS = 100;
