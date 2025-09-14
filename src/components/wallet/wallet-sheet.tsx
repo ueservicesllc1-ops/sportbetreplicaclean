@@ -4,7 +4,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Landmark, CreditCard, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Loader2, Landmark, CreditCard, ShieldCheck, ShieldAlert, Bitcoin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
@@ -48,6 +48,9 @@ function DepositArea() {
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2">
                     <Landmark /> Transferencia Bancaria
+                </Button>
+                 <Button variant="outline" className="w-full justify-start gap-2">
+                    <Bitcoin /> Criptomonedas
                 </Button>
             </div>
             <Button className="w-full" onClick={handleDeposit} disabled={!depositAmount || Number(depositAmount) <= 0}>
@@ -152,10 +155,10 @@ export function WalletSheet() {
   return (
       <div className="space-y-6">
         <Card className="text-center bg-secondary/50">
-            <CardHeader className='p-4'>
-                <CardTitle className="text-base font-medium text-muted-foreground">Saldo Total</CardTitle>
+            <CardHeader className='p-2'>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Total</CardTitle>
             </CardHeader>
-            <CardContent className='p-4 pt-0'>
+            <CardContent className='p-2 pt-0'>
                 <p className="text-3xl font-bold tracking-tight text-primary">
                     ${balance !== null ? balance.toFixed(2) : '0.00'}
                 </p>
