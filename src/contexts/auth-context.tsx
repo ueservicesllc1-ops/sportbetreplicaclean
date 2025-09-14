@@ -24,13 +24,16 @@ import type { AuthFormValues } from '@/components/auth/auth-form';
 import { doc, getDoc, setDoc, serverTimestamp, onSnapshot, updateDoc } from 'firebase/firestore';
 
 type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
+export type UserRole = 'user' | 'admin' | 'superadmin';
 
-interface UserProfile {
+
+export interface UserProfile {
     uid: string;
     email: string | null;
     balance: number;
     shortId: string;
     verificationStatus: VerificationStatus;
+    role: UserRole;
     realName?: string;
     idNumber?: string;
     idPhotoUrl?: string;
@@ -40,7 +43,8 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
-  isAdmin: boolean;
+  isAdmin: boolean; // True if 'admin' or 'superadmin'
+  isSuperAdmin: boolean;
   signUp: (values: AuthFormValues) => Promise<void>;
   signIn: (values: AuthFormValues) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -61,30 +65,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        setIsAdmin(true); // Asumiendo que cualquier usuario logueado puede ser admin por ahora
-        await createUserWallet(user); // Asegura que el documento del usuario exista
+        // We will set admin status based on the profile data from firestore
+        await createUserProfile(user); 
 
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
-                setUserProfile(doc.data() as UserProfile);
+                const profile = doc.data() as UserProfile;
+                setUserProfile(profile);
+                setIsAdmin(profile.role === 'admin' || profile.role === 'superadmin');
+                setIsSuperAdmin(profile.role === 'superadmin');
+            } else {
+                 setUserProfile(null);
+                 setIsAdmin(false);
+                 setIsSuperAdmin(false);
             }
-            setLoading(false); // Ponemos loading a false una vez que tenemos el perfil (o no existe)
+            setLoading(false);
         });
 
-        return () => {
-            unsubscribeProfile();
-        };
+        return () => unsubscribeProfile();
 
       } else {
-        setIsAdmin(false);
         setUserProfile(null);
+        setIsAdmin(false);
+        setIsSuperAdmin(false);
         setLoading(false);
       }
     });
@@ -92,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const createUserWallet = async (user: User) => {
+  const createUserProfile = async (user: User) => {
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
     if (!userDoc.exists()) {
@@ -105,24 +116,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             createdAt: serverTimestamp(),
             shortId: shortId,
             verificationStatus: 'unverified',
+            role: 'user', // Default role for new users
             realName: '',
             idNumber: '',
             idPhotoUrl: '',
         });
         toast({ title: '¡Bienvenido!', description: `Te hemos dado $100 para empezar. Tu ID de usuario es ${shortId}` });
       } catch (error) {
-        console.error("Error creating user wallet:", error);
+        console.error("Error creating user profile:", error);
       }
     } else {
-        // Esto es para usuarios que existían antes de las nuevas características
         const data = userDoc.data();
-        const updates: any = {};
-        if (!data.shortId) {
-            updates.shortId = generateShortId();
-        }
-        if (!data.verificationStatus) {
-            updates.verificationStatus = 'unverified';
-        }
+        const updates: Partial<UserProfile> = {};
+        if (!data.shortId) updates.shortId = generateShortId();
+        if (!data.verificationStatus) updates.verificationStatus = 'unverified';
+        if (!data.role) updates.role = 'user'; // Assign default role if missing
+
         if (Object.keys(updates).length > 0) {
             await updateDoc(userDocRef, updates);
         }
@@ -132,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (values: AuthFormValues) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      await createUserWallet(userCredential.user);
+      await createUserProfile(userCredential.user);
       toast({ title: '¡Registro exitoso!', description: 'Bienvenido.' });
     } catch (error: any) {
       console.error('Error signing up:', error);
@@ -148,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (values: AuthFormValues) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      await createUserWallet(userCredential.user);
+      await createUserProfile(userCredential.user);
       toast({ title: '¡Inicio de sesión exitoso!', description: 'Bienvenido de vuelta.' });
     } catch (error: any) {
       console.error('Error signing in:', error);
@@ -165,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
-      await createUserWallet(userCredential.user);
+      await createUserProfile(userCredential.user);
       toast({ title: '¡Inicio de sesión exitoso!', description: 'Bienvenido.' });
     } catch (error: any) {
       console.error('Error signing in with Google:', error);
@@ -197,6 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userProfile,
     loading,
     isAdmin,
+    isSuperAdmin,
     signUp,
     signIn,
     signInWithGoogle,

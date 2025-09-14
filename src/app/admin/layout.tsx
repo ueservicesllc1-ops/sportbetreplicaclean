@@ -1,10 +1,12 @@
 
+
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Loader2 } from 'lucide-react';
 import { AdminNav } from '@/components/admin/admin-nav';
+import { useEffect } from 'react';
 
 export default function AdminLayout({
   children,
@@ -13,6 +15,13 @@ export default function AdminLayout({
 }) {
   const { user, isAdmin, loading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && (!user || !isAdmin)) {
+      router.replace('/');
+    }
+  }, [user, isAdmin, loading, router]);
+
 
   if (loading) {
     return (
@@ -23,7 +32,7 @@ export default function AdminLayout({
   }
 
   if (!user || !isAdmin) {
-    router.replace('/');
+    // Return null to prevent rendering children while redirecting
     return null;
   }
 

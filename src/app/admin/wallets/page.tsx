@@ -1,14 +1,18 @@
 
+
 'use client';
 
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, ShieldAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addFundsToUser, searchUsers } from "./actions";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface UserSearchResult {
     uid: string;
@@ -25,6 +29,14 @@ export default function AdminWalletsPage() {
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const { toast } = useToast();
+    const { isSuperAdmin, loading: authLoading } = useAuth();
+    const router = useRouter();
+    
+    useEffect(() => {
+        if (!authLoading && !isSuperAdmin) {
+            router.replace('/admin');
+        }
+    }, [isSuperAdmin, authLoading, router]);
 
     const handleSearch = async () => {
         if (!searchTerm) return;
@@ -58,7 +70,26 @@ export default function AdminWalletsPage() {
             setSubmitting(false);
         }
     }
+    
+    if (authLoading) {
+        return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
+    }
 
+    if (!isSuperAdmin) {
+        return (
+             <Card className="text-center">
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-center gap-2">
+                        <ShieldAlert className="h-6 w-6" />
+                        Acceso Denegado
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">No tienes permisos para acceder a esta sección.</p>
+                </CardContent>
+            </Card>
+        )
+    }
 
     return (
         <div className="space-y-6">

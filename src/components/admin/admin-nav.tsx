@@ -13,14 +13,22 @@ import { useAuth } from "@/contexts/auth-context";
 
 export function AdminNav() {
     const pathname = usePathname();
-    const { user } = useAuth();
+    const { user, isSuperAdmin } = useAuth();
     
     const navItems = [
-        { href: "/admin", label: "Dashboard", icon: Home },
-        { href: "/admin/users", label: "Usuarios", icon: Users },
-        { href: "/admin/wallets", label: "Billeteras", icon: Wallet },
-        { href: "/admin/banners", label: "Banners", icon: ImageIcon },
-    ]
+        { href: "/admin", label: "Dashboard", icon: Home, requiredRole: 'admin' },
+        { href: "/admin/users", label: "Usuarios", icon: Users, requiredRole: 'admin' },
+        { href: "/admin/wallets", label: "Billeteras", icon: Wallet, requiredRole: 'superadmin' },
+        { href: "/admin/banners", label: "Banners", icon: ImageIcon, requiredRole: 'admin' },
+    ];
+
+    const canSeeWallets = isSuperAdmin;
+    const filteredNavItems = navItems.filter(item => {
+        if (item.requiredRole === 'superadmin') {
+            return canSeeWallets;
+        }
+        return true;
+    });
 
     return (
         <div className="hidden border-r bg-muted/40 md:block">
@@ -37,11 +45,11 @@ export function AdminNav() {
                 </div>
                 <div className="flex-1">
                     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                        {navItems.map(item => (
+                        {filteredNavItems.map(item => (
                              <Link
                                 key={item.label}
                                 href={item.href}
-                                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${pathname.startsWith(item.href) ? 'bg-muted text-primary' : ''}`}
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${pathname === item.href ? 'bg-muted text-primary' : ''}`}
                             >
                                 <item.icon className="h-4 w-4" />
                                 {item.label}
