@@ -3,12 +3,12 @@
 
 import { db } from '@/lib/firebase';
 import { doc, serverTimestamp, runTransaction, increment, collection } from 'firebase/firestore';
-import {type NextRequest, NextResponse} from 'next/server';
 
 // Forzar reconstrucción para Vercel
 
-export const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-export const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
+// These variables are only accessed on the server, so no NEXT_PUBLIC_ prefix is needed.
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
 
 const base = 'https://api-m.sandbox.paypal.com';
 
@@ -52,8 +52,7 @@ export async function createOrder(amount: number) {
     body: JSON.stringify(payload),
   });
 
-  const jsonResponse = await response.json();
-  return jsonResponse;
+  return response.json();
 }
 
 export async function captureOrder(orderID: string, userId: string): Promise<{ success: boolean, message?: string }> {

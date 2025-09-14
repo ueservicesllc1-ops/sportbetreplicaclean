@@ -1,20 +1,21 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PayPalScriptProvider, PayPalButtons, type OnApproveData, type CreateOrderData } from '@paypal/react-paypal-js';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
-import { createOrder, captureOrder, PAYPAL_CLIENT_ID } from '@/lib/paypal';
+import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 
-interface PayPalButtonWrapperProps {
+
+interface PayPalButtonsComponentProps {
     amount: number;
     onPaymentSuccess: () => void;
 }
 
-const PayPalButtonWrapper = ({ amount, onPaymentSuccess }: PayPalButtonWrapperProps) => {
+const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsComponentProps) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -94,7 +95,6 @@ const PayPalButtonWrapper = ({ amount, onPaymentSuccess }: PayPalButtonWrapperPr
                 </div>
             )}
             <PayPalButtons
-                key={amount} // Force re-render when amount changes
                 style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
                 createOrder={handleCreateOrder}
                 onApprove={onApprove}
@@ -110,7 +110,8 @@ interface PaypalButtonProps {
 }
 
 export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
-    const paypalClientId = PAYPAL_CLIENT_ID;
+    // Client components must read NEXT_PUBLIC_ variables directly from process.env
+    const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
     if (!paypalClientId) {
         return (
@@ -122,7 +123,8 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
     
     return (
         <PayPalScriptProvider options={{ clientId: paypalClientId, currency: 'USD', intent: 'capture' }}>
-            <PayPalButtonWrapper amount={amount} onPaymentSuccess={onPaymentSuccess} />
+            {/* The key prop forces the component to re-mount when the amount changes, ensuring the new amount is used */}
+            <PayPalButtonsComponent key={amount} amount={amount} onPaymentSuccess={onPaymentSuccess} />
         </PayPalScriptProvider>
     );
 }
