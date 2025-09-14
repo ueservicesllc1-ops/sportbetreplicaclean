@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore';
 
 interface UserSearchResult {
     uid: string;
@@ -54,21 +54,60 @@ export async function searchUsers(searchTerm: string): Promise<UserSearchResult[
     }
 }
 
+interface AddFundsParams {
+    userId: string;
+    userEmail: string;
+    amount: number;
+    adminId: string;
+    adminEmail: string;
+}
 
-export async function addFundsToUser(userId: string, amount: number) {
-    if (!userId || !amount || amount <= 0) {
+export async function addFundsToUser(params: AddFundsParams) {
+    const { userId, userEmail, amount, adminId, adminEmail } = params;
+
+    if (!userId || !amount || amount <= 0 || !adminId || !adminEmail) {
         throw new Error("Información inválida para añadir fondos.");
     }
 
     const userDocRef = doc(db, 'users', userId);
+    const transactionsRef = collection(db, 'wallet_transactions');
 
     try {
         await updateDoc(userDocRef, {
             balance: increment(amount)
         });
+
+        await addDoc(transactionsRef, {
+            type: 'admin_credit',
+            userId,
+            userEmail,
+            amount,
+            adminId,
+            adminEmail,
+            createdAt: serverTimestamp()
+        });
+
         return { success: true, message: `Se añadieron $${amount} al usuario.` };
     } catch (error) {
         console.error("Error adding funds:", error);
         throw new Error("No se pudieron añadir los fondos al usuario.");
     }
+}
+
+
+export async function getLatestTransactions() {
+  const transactionsRef = collection(db, 'wallet_transactions');
+  const q = query(transactionsRef, orderBy('createdAt', 'desc'), limit(10));
+  
+  try {
+    const snapshot = await getDocs(q);
+    const transactions: any[] = [];
+    snapshot.forEach(doc => {
+      transactions.push({ id: doc.id, ...doc.data() });
+    });
+    return transactions;
+  } catch (error) {
+    console.error("Error getting transactions:", error);
+    return [];
+  }
 }
