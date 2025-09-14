@@ -75,4 +75,3 @@ export function PayPalButtonsWrapper({ amount }: { amount: string }) {
         />
     );
 }
-
