@@ -3,30 +3,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dices } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
-const casinoGames = [
-    {
-        name: "Speedrun",
-        description: "El juego de crash donde retiras antes de que el motor explote.",
-        href: "/casino/speedrun",
-        imageUrl: "https://iili.io/KT1Ttt4.jpg"
-    },
-    {
-        name: "Ruleta de la Suerte",
-        description: "Apuesta a tu color favorito y gira la rueda para ganar.",
-        href: "/casino/ruleta",
-        imageUrl: "https://iili.io/KTE7gRa.png"
-    },
-    {
-        name: "Tanda de Penales",
-        description: "Elige tu esquina y patea para ganar. ¡Gol o atajada!",
-        href: "/casino/penalty-shootout",
-        imageUrl: "https://i.postimg.cc/8PLdM9d3/penalty-shootout.jpg"
-    }
-]
+import { getLobbyAssets } from "../admin/game-assets/actions";
 
 
-export default function CasinoLobbyPage() {
+export default async function CasinoLobbyPage() {
+    const lobbyAssets = await getLobbyAssets();
+
+    const casinoGames = [
+        {
+            name: "Speedrun",
+            description: "El juego de crash donde retiras antes de que el motor explote.",
+            href: "/casino/speedrun",
+            imageUrl: lobbyAssets['speedrun'] || "https://iili.io/KT1Ttt4.jpg"
+        },
+        {
+            name: "Ruleta de la Suerte",
+            description: "Apuesta a tu color favorito y gira la rueda para ganar.",
+            href: "/casino/ruleta",
+            imageUrl: lobbyAssets['ruleta'] || "https://iili.io/KTE7gRa.png"
+        },
+        {
+            name: "Tanda de Penales",
+            description: "Elige tu esquina y patea para ganar. ¡Gol o atajada!",
+            href: "/casino/penalty-shootout",
+            imageUrl: lobbyAssets['penalty_shootout'] || "https://i.postimg.cc/8PLdM9d3/penalty-shootout.jpg"
+        }
+    ]
+
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-4">
@@ -57,5 +60,4 @@ export default function CasinoLobbyPage() {
         </div>
     )
 }
-
     

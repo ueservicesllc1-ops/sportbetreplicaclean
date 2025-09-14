@@ -1,7 +1,8 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { AssetUploadForm } from "./_components/asset-upload-form";
-import { getPenaltyGameAssets } from "./actions";
+import { getPenaltyGameAssets, getLobbyAssets } from "./actions";
+import { LobbyAssetsForm } from "./_components/lobby-assets-form";
 
 
 const assetsToManage = [
@@ -14,10 +15,14 @@ const assetsToManage = [
 
 export default async function AdminGameAssetsPage() {
     const currentAssets = await getPenaltyGameAssets();
+    const lobbyAssets = await getLobbyAssets();
 
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold tracking-tight">Recursos de Juegos</h1>
+
+            <LobbyAssetsForm currentImages={lobbyAssets} />
+            
             <Card>
                 <CardHeader>
                     <CardTitle>Juego: Tanda de Penales</CardTitle>
