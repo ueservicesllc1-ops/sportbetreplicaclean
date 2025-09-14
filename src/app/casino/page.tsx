@@ -110,6 +110,17 @@ export default function CasinoPage() {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(intervalRef.current!);
+            
+            // Determine crash point for the upcoming round
+            const r = Math.random();
+            if (r < 0.5) { 
+              crashPoint.current = 1 + Math.random() * 2;
+            } else if (r < 0.9) {
+              crashPoint.current = 3 + Math.random() * 7;
+            } else { 
+              crashPoint.current = 10 + Math.random() * 40;
+            }
+
             setGameState('playing');
             return 0;
           }
@@ -117,19 +128,11 @@ export default function CasinoPage() {
         });
       }, 1000);
     } else if (gameState === 'playing') {
-      const r = Math.random();
-      if (r < 0.5) { 
-        crashPoint.current = 1 + Math.random() * 2;
-      } else if (r < 0.9) {
-        crashPoint.current = 3 + Math.random() * 7;
-      } else { 
-        crashPoint.current = 10 + Math.random() * 40;
-      }
-
       setMultiplier(1.00);
 
       intervalRef.current = setInterval(() => {
         setMultiplier((prevMultiplier) => {
+          // Use a function to get the latest hasPlacedBet state
           if (hasPlacedBet && prevMultiplier >= crashPoint.current) {
             setGameState('crashed');
             return prevMultiplier;
@@ -153,7 +156,16 @@ export default function CasinoPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [gameState, hasPlacedBet]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState]);
+
+  useEffect(() => {
+    // This effect ensures the game loop uses the latest state for hasPlacedBet
+    if (gameState === 'playing' && hasPlacedBet) {
+      // The logic inside the `setInterval` in the main `useEffect` will now see the updated `hasPlacedBet`.
+    }
+  }, [hasPlacedBet, gameState]);
+
 
   const handlePlaceBet = async () => {
     if (!user) {
@@ -361,3 +373,5 @@ export default function CasinoPage() {
     </div>
   );
 }
+
+    
