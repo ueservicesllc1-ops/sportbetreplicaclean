@@ -8,9 +8,6 @@ import { useAuth } from '@/contexts/auth-context';
 import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
-const PAYPAL_SECRET_KEY = process.env.NEXT_PUBLIC_PAYPAL_SECRET_KEY || '';
-
 interface PayPalWrapperProps {
     amount: string;
 }
@@ -32,6 +29,7 @@ function PayPalButtonsComponent({ amount, createOrderHandler, onApproveHandler, 
             createOrder={async (data) => createOrderHandler(data)}
             onApprove={async (data) => onApproveHandler(data)}
             onError={onErrorHandler}
+            fundingSource="paypal" // Prioritize PayPal but allow guest
         />
     );
 }
@@ -41,6 +39,8 @@ export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
 
   if (!PAYPAL_CLIENT_ID) {
     return <p className="text-sm text-destructive">La API de PayPal no está configurada.</p>;
@@ -54,7 +54,7 @@ export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
     setError(null);
     setIsProcessing(true);
     try {
-      const order = await createOrder(amount, PAYPAL_CLIENT_ID, PAYPAL_SECRET_KEY);
+      const order = await createOrder(amount);
       return order.id;
     } catch (err: any) {
       setError('No se pudo iniciar el pago. Intenta de nuevo.');
@@ -71,7 +71,7 @@ export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
         return;
     }
     try {
-      const captureData = await captureOrder(data.orderID, user.uid, PAYPAL_CLIENT_ID, PAYPAL_SECRET_KEY);
+      const captureData = await captureOrder(data.orderID, user.uid);
       if (captureData.status === 'COMPLETED') {
         toast({
           title: '¡Pago completado!',
@@ -96,7 +96,7 @@ export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
   }
 
   return (
-    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
+    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture', 'disable-funding': 'credit,card' }}>
         <div className="relative">
              {isProcessing && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80">
