@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { AssetUploadForm } from "./_components/asset-upload-form";
 import { getPenaltyGameAssets } from "./actions";
@@ -11,8 +12,12 @@ const assetsToManage = [
 ]
 
 export default async function AdminGameAssetsPage() {
-    const currentAssets = await getPenaltyGameAssets();
+    const currentAssetsData = await getPenaltyGameAssets();
     
+    // The `lastUpdated` field is a Firestore Timestamp, which is not a plain object.
+    // We need to remove it before passing the object to a Client Component.
+    const { lastUpdated, ...currentAssets } = currentAssetsData;
+
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold tracking-tight">Recursos de Juegos</h1>
