@@ -18,6 +18,68 @@ import { ScrollArea } from '../ui/scroll-area';
 
 const WELCOME_BONUS = 100;
 
+function BankTransferArea() {
+    const { toast } = useToast();
+    const bankDetails = {
+        "Banco": "Banco Pichincha",
+        "Titular": "Wingo Sports S.A.S.",
+        "RUC": "179XXXXXXXXX1",
+        "Tipo de Cuenta": "Corriente",
+        "Número de Cuenta": "1234567890",
+        "Email para comprobantes": "pagos@wingo.ec"
+    };
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast({ title: "Copiado", description: "El dato ha sido copiado al portapapeles." });
+    }
+
+    return (
+         <div className="space-y-4 rounded-lg border p-4">
+            <h3 className="font-semibold text-lg">Depositar por Transferencia</h3>
+             <p className="text-sm text-muted-foreground">
+               Realiza una transferencia bancaria directa a nuestra cuenta y reporta tu pago para recibir tu saldo.
+             </p>
+
+            <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                    <Landmark className="mr-2 h-4 w-4" />
+                    Ver Datos Bancarios
+                </Button>
+            </DialogTrigger>
+             <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Datos para la Transferencia Bancaria</DialogTitle>
+                    <DialogDescription>
+                        Usa esta información para realizar tu depósito. Una vez hecho, envía el comprobante al email indicado.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 py-4">
+                    {Object.entries(bankDetails).map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{key}:</span>
+                            <div className="flex items-center gap-2">
+                                <span className="font-semibold">{value}</span>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopy(value)}>
+                                    <Copy className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                 <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>¡Importante!</AlertTitle>
+                    <AlertDescription>
+                        La acreditación del saldo es manual y puede tardar unas horas después de que recibamos tu comprobante por correo.
+                    </AlertDescription>
+                </Alert>
+             </DialogContent>
+        </div>
+    )
+}
+
+
 function DepositArea() {
     const [amount, setAmount] = useState('10.00');
 
@@ -146,63 +208,68 @@ export function WalletSheet() {
   const { balance, verificationStatus } = userProfile;
 
   return (
-    <ScrollArea className="h-full pr-4">
-      <div className="space-y-6">
-        <Card className="text-center bg-secondary/50">
-            <CardHeader className='p-2'>
-                <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Total</CardTitle>
-            </CardHeader>
-            <CardContent className='p-2 pt-0'>
-                <p className="text-3xl font-bold tracking-tight text-primary">
-                    ${balance !== null ? balance.toFixed(2) : '0.00'}
-                </p>
-            </CardContent>
-        </Card>
-        
-        <Separator />
+    <Dialog>
+        <ScrollArea className="h-full pr-4">
+        <div className="space-y-6">
+            <Card className="text-center bg-secondary/50">
+                <CardHeader className='p-2'>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Total</CardTitle>
+                </CardHeader>
+                <CardContent className='p-2 pt-0'>
+                    <p className="text-3xl font-bold tracking-tight text-primary">
+                        ${balance !== null ? balance.toFixed(2) : '0.00'}
+                    </p>
+                </CardContent>
+            </Card>
+            
+            <Separator />
 
-        {verificationStatus === 'unverified' && <KycForm />}
-        {verificationStatus === 'pending' && (
-            <Alert>
-                <ShieldAlert className="h-4 w-4" />
-                <AlertTitle>Verificación en Proceso</AlertTitle>
-                <AlertDescription>
-                    Tus documentos han sido enviados y están siendo revisados. Este proceso puede tardar hasta 24 horas. Te notificaremos cuando tu cuenta haya sido verificada.
-                </AlertDescription>
-            </Alert>
-        )}
-        {verificationStatus === 'verified' && (
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                <DepositArea />
-                <WithdrawalArea />
-            </div>
-        )}
-        {verificationStatus === 'rejected' && (
-            <div className='space-y-4'>
-                <Alert variant="destructive">
-                    <AlertTitle>Verificación Rechazada</AlertTitle>
+            {verificationStatus === 'unverified' && <KycForm />}
+            {verificationStatus === 'pending' && (
+                <Alert>
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Verificación en Proceso</AlertTitle>
                     <AlertDescription>
-                        Hubo un problema al verificar tus documentos. Por favor, corrige los datos y vuelve a enviarlos.
+                        Tus documentos han sido enviados y están siendo revisados. Este proceso puede tardar hasta 24 horas. Te notificaremos cuando tu cuenta haya sido verificada.
                     </AlertDescription>
                 </Alert>
-                <KycForm />
-            </div>
-        )}
+            )}
+            {verificationStatus === 'verified' && (
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className="space-y-4">
+                        <DepositArea />
+                        <BankTransferArea />
+                    </div>
+                    <WithdrawalArea />
+                </div>
+            )}
+            {verificationStatus === 'rejected' && (
+                <div className='space-y-4'>
+                    <Alert variant="destructive">
+                        <AlertTitle>Verificación Rechazada</AlertTitle>
+                        <AlertDescription>
+                            Hubo un problema al verificar tus documentos. Por favor, corrige los datos y vuelve a enviarlos.
+                        </AlertDescription>
+                    </Alert>
+                    <KycForm />
+                </div>
+            )}
 
 
-        <Separator />
+            <Separator />
 
-        <Card>
-            <CardHeader>
-            <CardTitle className='text-base'>Historial de Transacciones</CardTitle>
-            </CardHeader>
-            <CardContent>
-            <p className="text-muted-foreground text-center text-sm py-4">
-                Aquí se mostrarán tus depósitos, retiros y apuestas. (Funcionalidad futura)
-            </p>
-            </CardContent>
-        </Card>
-      </div>
-    </ScrollArea>
+            <Card>
+                <CardHeader>
+                <CardTitle className='text-base'>Historial de Transacciones</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <p className="text-muted-foreground text-center text-sm py-4">
+                    Aquí se mostrarán tus depósitos, retiros y apuestas. (Funcionalidad futura)
+                </p>
+                </CardContent>
+            </Card>
+        </div>
+        </ScrollArea>
+    </Dialog>
   );
 }
