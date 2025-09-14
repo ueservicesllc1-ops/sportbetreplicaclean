@@ -17,7 +17,7 @@ export default function WalletLayout({
         <Header />
         <MainNav />
         <SecondaryNav />
-        <main className="container mx-auto flex-grow px-2 py-4 md:px-4">
+        <main className="mx-auto w-full max-w-screen-2xl flex-grow px-2 py-4 md:px-4">
           {children}
         </main>
         <Footer />

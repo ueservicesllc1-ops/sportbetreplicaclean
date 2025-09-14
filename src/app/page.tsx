@@ -16,7 +16,7 @@ export default function Home() {
         <Header />
         <MainNav />
         <SecondaryNav />
-        <div className="container mx-auto flex-1 px-2 md:px-4">
+        <div className="mx-auto w-full max-w-screen-2xl flex-1 px-2 md:px-4">
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
             {/* Left Sidebar */}
             <aside className="sticky top-20 hidden lg:col-span-1 lg:block">
