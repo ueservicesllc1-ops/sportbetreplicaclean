@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { PayPalScriptProvider, PayPalButtons, type OnApproveData, type CreateOrderData } from '@paypal/react-paypal-js';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
-import { createOrder, captureOrder } from '@/lib/paypal';
+import { createOrder, captureOrder, PAYPAL_CLIENT_ID } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 
@@ -110,7 +110,7 @@ interface PaypalButtonProps {
 }
 
 export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
-    const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+    const paypalClientId = PAYPAL_CLIENT_ID;
 
     if (!paypalClientId) {
         return (
@@ -126,4 +126,3 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
         </PayPalScriptProvider>
     );
 }
-

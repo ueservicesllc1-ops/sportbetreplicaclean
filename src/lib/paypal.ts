@@ -7,8 +7,9 @@ import {type NextRequest, NextResponse} from 'next/server';
 
 // Forzar reconstrucción para Vercel
 
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
+export const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+export const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
+
 const base = 'https://api-m.sandbox.paypal.com';
 
 async function generateAccessToken() {
@@ -51,7 +52,8 @@ export async function createOrder(amount: number) {
     body: JSON.stringify(payload),
   });
 
-  return response.json();
+  const jsonResponse = await response.json();
+  return jsonResponse;
 }
 
 export async function captureOrder(orderID: string, userId: string): Promise<{ success: boolean, message?: string }> {
