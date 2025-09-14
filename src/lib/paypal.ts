@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { doc, serverTimestamp, runTransaction, increment, collection } from 'firebase/firestore';
+import { doc, serverTimestamp, runTransaction, increment, collection, addDoc } from 'firebase/firestore';
 
 // These variables are only accessed on the server, so no NEXT_PUBLIC_ prefix is needed.
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
@@ -69,22 +69,25 @@ export async function captureOrder(orderID: string, userId: string): Promise<{ s
 
     if (data.status === 'COMPLETED') {
         const amount = parseFloat(data.purchase_units[0].payments.captures[0].amount.value);
-        
         const userDocRef = doc(db, 'users', userId);
-        const transactionsRef = doc(collection(db, 'wallet_transactions'));
 
         try {
-            await runTransaction(db, async (transaction) => {
+             await runTransaction(db, async (transaction) => {
                 const userDoc = await transaction.get(userDocRef);
                 if (!userDoc.exists()) {
                     throw new Error('Usuario no encontrado.');
                 }
-                
+
+                // 1. Update user balance
                 transaction.update(userDocRef, {
                     balance: increment(amount)
                 });
                 
-                transaction.set(transactionsRef, {
+                // 2. Create a new transaction log document inside the atomic transaction
+                const transactionsRef = collection(db, 'wallet_transactions');
+                const newTransactionRef = doc(transactionsRef); // Create a reference for the new document
+                
+                transaction.set(newTransactionRef, {
                     type: 'deposit_paypal',
                     userId,
                     userEmail: userDoc.data().email,
@@ -94,6 +97,7 @@ export async function captureOrder(orderID: string, userId: string): Promise<{ s
                     createdAt: serverTimestamp()
                 });
             });
+
             return { success: true };
         } catch (error) {
             console.error('Error updating user balance after PayPal capture:', error);
