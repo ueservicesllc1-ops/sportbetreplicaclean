@@ -47,7 +47,6 @@ export default async function CasinoLobbyPage() {
                                 fill
                                 className="object-cover transition-transform group-hover:scale-110"
                             />
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         </div>
                         <CardHeader>
                             <CardTitle>{game.name}</CardTitle>
