@@ -152,13 +152,13 @@ export function WalletSheet() {
   return (
       <div className="space-y-6">
         <Card className="text-center bg-secondary/50">
-            <CardHeader>
-            <CardTitle className="text-lg font-medium text-muted-foreground">Saldo Total</CardTitle>
+            <CardHeader className='p-4'>
+                <CardTitle className="text-base font-medium text-muted-foreground">Saldo Total</CardTitle>
             </CardHeader>
-            <CardContent>
-            <p className="text-4xl font-bold tracking-tight text-primary">
-                ${balance !== null ? balance.toFixed(2) : '0.00'}
-            </p>
+            <CardContent className='p-4 pt-0'>
+                <p className="text-3xl font-bold tracking-tight text-primary">
+                    ${balance !== null ? balance.toFixed(2) : '0.00'}
+                </p>
             </CardContent>
         </Card>
         
