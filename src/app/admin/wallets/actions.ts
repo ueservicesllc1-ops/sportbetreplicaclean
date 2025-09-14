@@ -3,6 +3,8 @@
 
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore';
+import { headers } from 'next/headers';
+
 
 interface UserSearchResult {
     uid: string;
@@ -72,6 +74,9 @@ export async function addFundsToUser(params: AddFundsParams) {
     const userDocRef = doc(db, 'users', userId);
     const transactionsRef = collection(db, 'wallet_transactions');
 
+    // Get admin IP address from headers
+    const ip = headers().get('x-forwarded-for') ?? '127.0.0.1';
+
     try {
         await updateDoc(userDocRef, {
             balance: increment(amount)
@@ -84,6 +89,7 @@ export async function addFundsToUser(params: AddFundsParams) {
             amount,
             adminId,
             adminEmail,
+            adminIp: ip,
             createdAt: serverTimestamp()
         });
 

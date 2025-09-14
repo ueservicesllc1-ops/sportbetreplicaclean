@@ -3,10 +3,10 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, ShieldAlert, Coins } from "lucide-react";
+import { Loader2, Search, ShieldAlert, Coins, Fingerprint } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addFundsToUser, searchUsers } from "./actions";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +32,7 @@ interface Transaction {
     userEmail: string;
     amount: number;
     adminEmail: string;
+    adminIp?: string;
     createdAt: { seconds: number };
 }
 
@@ -41,7 +42,7 @@ function TransactionsHistory() {
 
     useEffect(() => {
         const transactionsRef = collection(db, 'wallet_transactions');
-        const q = query(transactionsRef, orderBy('createdAt', 'desc'), limit(10));
+        const q = query(transactionsRef, orderBy('createdAt', 'desc'), limit(15));
         
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const txs: Transaction[] = [];
@@ -60,30 +61,33 @@ function TransactionsHistory() {
         <Card>
             <CardHeader>
                 <CardTitle>Historial de Recargas</CardTitle>
-                <CardDescription>Últimas 10 recargas de saldo realizadas por administradores.</CardDescription>
+                <CardDescription>Últimas 15 recargas de saldo realizadas por administradores.</CardDescription>
             </CardHeader>
             <CardContent>
-                <ScrollArea className="h-[300px]">
+                <ScrollArea className="h-[400px]">
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Usuario</TableHead>
                                 <TableHead className="text-right">Monto</TableHead>
                                 <TableHead>Admin</TableHead>
+                                <TableHead>ID Transacción</TableHead>
                                 <TableHead>Fecha</TableHead>
+                                <TableHead>Hora</TableHead>
+                                <TableHead>Ubicación (IP)</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading && (
                                  <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center">
+                                    <TableCell colSpan={7} className="h-24 text-center">
                                         <Loader2 className="mx-auto h-6 w-6 animate-spin" />
                                     </TableCell>
                                 </TableRow>
                             )}
                             {!loading && transactions.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                                         No hay transacciones.
                                     </TableCell>
                                 </TableRow>
@@ -93,8 +97,18 @@ function TransactionsHistory() {
                                     <TableCell className="font-medium truncate max-w-[150px]">{tx.userEmail}</TableCell>
                                     <TableCell className="text-right text-green-500 font-bold">+${tx.amount.toFixed(2)}</TableCell>
                                     <TableCell className="truncate max-w-[150px]">{tx.adminEmail}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground font-mono">{tx.id}</TableCell>
                                     <TableCell className="text-xs text-muted-foreground">
-                                        {tx.createdAt ? new Date(tx.createdAt.seconds * 1000).toLocaleString() : 'Justo ahora'}
+                                        {tx.createdAt ? new Date(tx.createdAt.seconds * 1000).toLocaleDateString() : '-'}
+                                    </TableCell>
+                                     <TableCell className="text-xs text-muted-foreground">
+                                        {tx.createdAt ? new Date(tx.createdAt.seconds * 1000).toLocaleTimeString() : '-'}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground font-mono">
+                                        <div className="flex items-center gap-2">
+                                            <Fingerprint className="h-4 w-4" />
+                                            <span>{tx.adminIp || 'No disponible'}</span>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -191,32 +205,30 @@ export default function AdminWalletsPage() {
             <div className="space-y-6">
                 <h1 className="text-3xl font-bold tracking-tight">Gestión de Billeteras</h1>
                 
-                <div className="grid lg:grid-cols-2 gap-6">
-                    {/* Left Column: Search and List */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Buscar Usuario</CardTitle>
-                            <CardDescription>Busca por email o ID de usuario (ej. 1234A).</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex gap-2">
-                                <Input 
-                                    placeholder="email@ejemplo.com o 1234A"
-                                    value={searchTerm}
-                                    onChange={e => setSearchTerm(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                                />
-                                <Button onClick={handleSearch} disabled={loading}>
-                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                                </Button>
-                            </div>
-                        </CardContent>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Buscar Usuario</CardTitle>
+                        <CardDescription>Busca por email o ID de usuario (ej. 1234A) para recargar su saldo.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex gap-2">
+                            <Input 
+                                placeholder="email@ejemplo.com o 1234A"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                            />
+                            <Button onClick={handleSearch} disabled={loading}>
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                            </Button>
+                        </div>
+                    </CardContent>
+                    {searchResults.length > 0 && (
                         <CardContent>
                             <h3 className="text-sm font-medium mb-2">Resultados:</h3>
-                            <ScrollArea className="h-64">
+                            <ScrollArea className="h-40">
                                 <div className="space-y-2">
                                     {loading && <div className="text-sm text-muted-foreground p-4 text-center">Buscando...</div>}
-                                    {!loading && searchResults.length === 0 && <div className="text-sm text-muted-foreground p-4 text-center">No se encontraron usuarios.</div>}
                                     {searchResults.map(user => (
                                         <div key={user.uid} className="flex justify-between items-center p-3 rounded-md border">
                                             <div>
@@ -234,13 +246,16 @@ export default function AdminWalletsPage() {
                                 </div>
                             </ScrollArea>
                         </CardContent>
-                    </Card>
-                    
-                    {/* Right Column: History */}
-                    <TransactionsHistory />
-                </div>
+                    )}
+                     {!loading && searchTerm && searchResults.length === 0 && (
+                        <CardContent>
+                            <div className="text-sm text-muted-foreground p-4 text-center border-dashed border-2 rounded-md">No se encontraron usuarios.</div>
+                        </CardContent>
+                    )}
+                </Card>
 
-                {/* Dialog for Adding Funds */}
+                <TransactionsHistory />
+
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Añadir Fondos</DialogTitle>
@@ -290,3 +305,4 @@ export default function AdminWalletsPage() {
 }
 
     
+
