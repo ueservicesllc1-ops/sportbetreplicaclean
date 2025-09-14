@@ -11,11 +11,12 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeCasinoBet, resolveCasinoBet } from '../actions';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, ArrowLeft } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 type GameState = 'betting' | 'waiting' | 'playing' | 'crashed' | 'cashout';
 
@@ -393,10 +394,18 @@ export default function CasinoPage() {
 
   return (
     <div className="space-y-6">
-       <div className="flex items-center gap-4">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 10.5 4 4"></path><path d="m14 10.5-4 4"></path></svg>
-        <h1 className="text-3xl font-bold tracking-tight">Speedrun</h1>
-      </div>
+       <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 10.5 4 4"></path><path d="m14 10.5-4 4"></path></svg>
+                <h1 className="text-3xl font-bold tracking-tight">Speedrun</h1>
+            </div>
+            <Button asChild size="lg">
+                <Link href="/casino">
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                    Volver a Juegos
+                </Link>
+            </Button>
+       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Game Area */}

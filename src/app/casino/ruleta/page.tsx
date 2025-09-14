@@ -8,11 +8,12 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Palette } from 'lucide-react';
+import { Loader2, Palette, ArrowLeft } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Wheel, type WheelSegment } from '@/components/casino/wheel';
 import { placeWheelBet, resolveWheelBet } from './actions';
 import { Progress } from '@/components/ui/progress';
+import Link from 'next/link';
 
 
 const segments: WheelSegment[] = [
@@ -199,9 +200,17 @@ export default function RuletaPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Palette className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold tracking-tight">Ruleta de la Suerte</h1>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Palette className="h-8 w-8 text-primary" />
+                    <h1 className="text-3xl font-bold tracking-tight">Ruleta de la Suerte</h1>
+                </div>
+                 <Button asChild size="lg">
+                    <Link href="/casino">
+                        <ArrowLeft className="mr-2 h-5 w-5" />
+                        Volver a Juegos
+                    </Link>
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
