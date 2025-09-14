@@ -6,11 +6,6 @@ import { db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
-function getPublicUrl(bucketName: string, filePath: string) {
-    // URL-encode the file path
-    const encodedFilePath = encodeURIComponent(filePath);
-    return `https://storage.googleapis.com/${bucketName}/${encodedFilePath}?alt=media`;
-}
 
 export async function updateUserVerification(prevState: any, formData: FormData) {
     const uid = formData.get('uid') as string | null;
@@ -49,14 +44,18 @@ export async function updateUserVerification(prevState: any, formData: FormData)
             metadata: { contentType: idPhoto.type },
         });
         
-        const idPhotoUrl = getPublicUrl(bucketName, filePath);
+        // Generate a signed URL for the file. This URL will be valid for a long time.
+        const [signedUrl] = await file.getSignedUrl({
+            action: 'read',
+            expires: '01-01-2100', // Set a far-future expiration date
+        });
         
         const userDocRef = doc(db, 'users', uid);
 
         await updateDoc(userDocRef, {
             realName: realName,
             idNumber: idNumber,
-            idPhotoUrl: idPhotoUrl,
+            idPhotoUrl: signedUrl,
             verificationStatus: 'pending'
         });
         
