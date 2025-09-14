@@ -129,6 +129,7 @@ export default function PenaltyShootoutPage() {
             await placePenaltyBet(user.uid, amount);
 
             const isGoal = Math.random() < GOAL_CHANCE;
+            
             const keeperTargetZoneId = isGoal 
                 ? goalZones.find(z => z.id !== selectedZone)!.id 
                 : selectedZone;
@@ -187,7 +188,8 @@ export default function PenaltyShootoutPage() {
         }
     };
 
-    const keeperImage = gameState === 'shooting' ? (gameAssets.keeper_flying as string) : (gameAssets.keeper_standing as string);
+    const keeperImage = gameState === 'shooting' && shotResult ? (gameAssets.keeper_flying as string) : (gameAssets.keeper_standing as string);
+
 
     const getBallStyle = () => {
         if (gameState === 'shooting' && selectedZone) {
