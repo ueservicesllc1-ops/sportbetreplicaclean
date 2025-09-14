@@ -28,7 +28,7 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         return { success: false, message: 'La foto del ID es requerida.' };
     }
 
-    const bucketName = 'studio-3302383355-1ea39.firebasestorage.app';
+    const bucketName = 'studio-3302383355-1ea39.appspot.com';
     if (!bucketName) {
          return { success: false, message: 'La configuración del bucket de almacenamiento no está definida.' };
     }
@@ -44,15 +44,18 @@ export async function updateUserVerification(prevState: any, formData: FormData)
             metadata: { contentType: idPhoto.type },
         });
         
-        // Because storage rules allow public read, we can construct the URL directly.
-        const publicUrl = `https://storage.googleapis.com/${bucketName}/${filePath}`;
+        // Generate a signed URL to access the file. This is the correct way.
+        const [signedUrl] = await file.getSignedUrl({
+            action: 'read',
+            expires: '01-01-2100' // Set a very long expiration date
+        });
         
         const userDocRef = doc(db, 'users', uid);
 
         await updateDoc(userDocRef, {
             realName: realName,
             idNumber: idNumber,
-            idPhotoUrl: publicUrl,
+            idPhotoUrl: signedUrl,
             verificationStatus: 'pending'
         });
         
