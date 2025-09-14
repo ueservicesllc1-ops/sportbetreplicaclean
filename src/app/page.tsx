@@ -11,28 +11,30 @@ import { SecondaryNav } from '@/components/layout/secondary-nav';
 export default function Home() {
   return (
     <BetSlipProvider>
-      <div className="flex h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <MainNav />
         <SecondaryNav />
-        <div className="container mx-auto flex-1 overflow-hidden px-2 md:px-4">
-          <div className="grid h-full grid-cols-1 items-start gap-4 lg:grid-cols-5">
+        <div className="container mx-auto flex-1 px-2 md:px-4">
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
             {/* Left Sidebar */}
-            <aside className="hidden lg:col-span-1 lg:block h-full overflow-y-auto">
+            <aside className="hidden lg:col-span-1 lg:block">
                 <SportsSidebar />
             </aside>
             
             {/* Main Content */}
-            <main className="col-span-1 h-full overflow-y-auto lg:col-span-3">
-              <div className='space-y-4 py-4'>
+            <main className="col-span-1 py-4 lg:col-span-3">
+              <div className='space-y-4'>
                 <PromotionsCarousel />
                 <Sportsbook />
               </div>
             </main>
 
-            {/* Right Sidebar */}
-            <aside className="hidden lg:col-span-1 lg:block h-full overflow-y-auto">
-                <BetSlip />
+            {/* Right Sidebar - Sticky */}
+            <aside className="hidden lg:col-span-1 lg:block">
+                <div className="sticky top-20">
+                    <BetSlip />
+                </div>
             </aside>
           </div>
         </div>
