@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { createOrder, captureOrder } from '@/lib/paypal';
@@ -9,8 +9,7 @@ import { Loader2 } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons, type OnApproveData, type CreateOrderData } from "@paypal/react-paypal-js";
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-// This is your LIVE production key.
-const PAYPAL_CLIENT_ID = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
 interface PaypalButtonProps {
   amount: number;
@@ -108,7 +107,7 @@ export function PaypalButton(props: PaypalButtonProps) {
              <Alert variant="destructive">
                 <AlertTitle>Error de Configuración de PayPal</AlertTitle>
                 <AlertDescription>
-                    La constante PAYPAL_CLIENT_ID no está definida.
+                    La variable de entorno NEXT_PUBLIC_PAYPAL_CLIENT_ID no está configurada.
                 </AlertDescription>
             </Alert>
         );
@@ -120,4 +119,3 @@ export function PaypalButton(props: PaypalButtonProps) {
         </PayPalScriptProvider>
     );
 }
-

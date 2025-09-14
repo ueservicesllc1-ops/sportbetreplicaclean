@@ -4,18 +4,17 @@
 import { db } from '@/lib/firebase';
 import { doc, serverTimestamp, runTransaction, increment, collection, addDoc } from 'firebase/firestore';
 
-// These variables are only accessed on the server, so no NEXT_PUBLIC_ prefix is needed.
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
 
 const base = 'https://api-m.paypal.com'; // PRODUCTION URL
 
 async function generateAccessToken() {
-  const PAYPAL_CLIENT_ID = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
   if (!PAYPAL_CLIENT_ID || !PAYPAL_SECRET_KEY) {
     throw new Error('MISSING_API_CREDENTIALS');
   }
   const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET_KEY}`).toString('base64');
-  const response = await fetch(`${base}/v1/oauth2/token`, { // Corrected this line to use the production 'base' URL
+  const response = await fetch(`${base}/v1/oauth2/token`, {
     method: 'POST',
     body: 'grant_type=client_credentials',
     headers: {
