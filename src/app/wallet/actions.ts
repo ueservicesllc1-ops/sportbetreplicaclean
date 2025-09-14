@@ -35,21 +35,21 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await idPhoto.arrayBuffer());
 
-        // Save the file and make it publicly readable
         await file.save(fileBuffer, {
             metadata: { contentType: idPhoto.type },
-            public: true, // Make the file public
         });
         
-        // Get the public URL
-        const publicUrl = file.publicUrl();
+        const [signedUrl] = await file.getSignedUrl({
+            action: 'read',
+            expires: '01-01-2100', // Effectively permanent
+        });
         
         const userDocRef = doc(db, 'users', uid);
 
         await updateDoc(userDocRef, {
             realName: realName,
             idNumber: idNumber,
-            idPhotoUrl: publicUrl,
+            idPhotoUrl: signedUrl,
             verificationStatus: 'pending'
         });
         
