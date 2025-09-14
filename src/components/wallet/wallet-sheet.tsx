@@ -1,10 +1,9 @@
 
-
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Landmark, CreditCard, ShieldCheck, ShieldAlert, Bitcoin } from 'lucide-react';
+import { Loader2, Landmark, CreditCard, ShieldCheck, ShieldAlert, Bitcoin, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
@@ -13,16 +12,27 @@ import { KycForm } from './kyc-form';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 
 const WELCOME_BONUS = 100;
+const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
 
 function DepositArea() {
     const [depositAmount, setDepositAmount] = useState<number | string>('');
+    const { toast } = useToast();
 
     const handleDeposit = () => {
         // Placeholder for deposit logic
         alert(`Funcionalidad de depósito no implementada. Monto a depositar: $${depositAmount}`);
     };
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(CRYPTO_WALLET_ADDRESS);
+        toast({
+            title: '¡Copiado!',
+            description: 'La dirección de la billetera ha sido copiada a tu portapapeles.',
+        });
+    }
 
     return (
          <div className="space-y-4">
@@ -49,9 +59,41 @@ function DepositArea() {
                 <Button variant="outline" className="w-full justify-start gap-2">
                     <Landmark /> Transferencia Bancaria
                 </Button>
-                 <Button variant="outline" className="w-full justify-start gap-2">
-                    <Bitcoin /> Criptomonedas
-                </Button>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start gap-2">
+                            <Bitcoin /> Criptomonedas
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <Bitcoin /> Depósito con Criptomonedas
+                            </DialogTitle>
+                            <DialogDescription>
+                                Envía únicamente USDT a través de la red Ethereum (ERC20) a la siguiente dirección.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <Alert variant="destructive">
+                                <AlertTitle>¡Atención!</AlertTitle>
+                                <AlertDescription>
+                                    Enviar cualquier otra moneda o usar una red diferente (ej. TRC20, BEP20) resultará en la pérdida permanente de tus fondos.
+                                </AlertDescription>
+                            </Alert>
+                             <div className="p-3 rounded-lg bg-secondary space-y-2">
+                                <p className="text-sm font-medium text-muted-foreground">Tu dirección de depósito (USDT - ERC20):</p>
+                                <div className="flex items-center gap-2">
+                                     <p className="text-sm font-mono break-all font-semibold text-primary">{CRYPTO_WALLET_ADDRESS}</p>
+                                     <Button size="icon" variant="ghost" onClick={copyToClipboard}>
+                                        <Copy className="h-4 w-4" />
+                                     </Button>
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground text-center">Una vez realizado el depósito, por favor contacta a soporte para que sea acreditado en tu cuenta.</p>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
             <Button className="w-full" onClick={handleDeposit} disabled={!depositAmount || Number(depositAmount) <= 0}>
                 Depositar ${depositAmount || '0'}
@@ -212,3 +254,5 @@ export function WalletSheet() {
 
   );
 }
+
+    
