@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { UserProfile, VerificationStatus } from "@/contexts/auth-context";
 import { processVerification } from "./actions";
 import Image from "next/image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 
 interface VerificationRequest extends UserProfile {
     requestedAt?: Timestamp; // Assuming we might add this field later
@@ -84,19 +84,17 @@ export default function AdminVerificationsPage() {
 
     if (!isAdmin) {
         return (
-             <>
-                <Card className="text-center">
-                    <CardHeader>
-                        <CardTitle className="flex items-center justify-center gap-2">
-                            <ShieldAlert className="h-6 w-6" />
-                            Acceso Denegado
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground">No tienes permisos para acceder a esta sección.</p>
-                    </CardContent>
-                </Card>
-            </>
+             <Card className="text-center">
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-center gap-2">
+                        <ShieldAlert className="h-6 w-6" />
+                        Acceso Denegado
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">No tienes permisos para acceder a esta sección.</p>
+                </CardContent>
+            </Card>
         )
     }
 
@@ -170,10 +168,13 @@ export default function AdminVerificationsPage() {
                                         <DialogContent className="max-w-xl">
                                              <DialogHeader>
                                                 <DialogTitle>Documento de {req.realName}</DialogTitle>
+                                                <DialogDescription>
+                                                    Visualización del documento de identidad subido por el usuario para su verificación.
+                                                </DialogDescription>
                                              </DialogHeader>
                                              {req.idPhotoUrl && (
                                                 <div className="relative w-full aspect-video mt-4">
-                                                    <Image src={req.idPhotoUrl} alt={`ID de ${req.realName}`} fill objectFit="contain" />
+                                                    <Image src={req.idPhotoUrl} alt={`ID de ${req.realName}`} fill style={{ objectFit: "contain" }} />
                                                 </div>
                                              )}
                                         </DialogContent>

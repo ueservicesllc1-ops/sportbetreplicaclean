@@ -259,11 +259,12 @@ export default function AdminWalletsPage() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Añadir Fondos</DialogTitle>
-                        {selectedUser && (
-                            <DialogDescription>
-                                Estás añadiendo fondos a <span className="font-semibold text-foreground">{selectedUser.email}</span>.
-                            </DialogDescription>
-                        )}
+                        <DialogDescription>
+                            {selectedUser ? 
+                                `Estás añadiendo fondos a ${selectedUser.email}.` :
+                                "Selecciona un usuario para añadirle fondos."
+                            }
+                        </DialogDescription>
                     </DialogHeader>
                     {selectedUser && (
                         <div>
