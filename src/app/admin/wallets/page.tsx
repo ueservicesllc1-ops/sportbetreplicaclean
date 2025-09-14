@@ -1,14 +1,13 @@
 
-
 'use client';
 
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, ShieldAlert } from "lucide-react";
+import { Loader2, Search, ShieldAlert, Coins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { addFundsToUser, searchUsers, getLatestTransactions } from "./actions";
+import { addFundsToUser, searchUsers } from "./actions";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
@@ -16,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { collection, onSnapshot, orderBy, query, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 
 
 interface UserSearchResult {
@@ -150,9 +150,15 @@ export default function AdminWalletsPage() {
                 adminEmail: userProfile.email || 'N/A'
             });
             toast({ title: 'Éxito', description: result.message });
-            // The transaction history updates via onSnapshot.
-            // We just need to update the selected user's balance locally for immediate UI feedback.
-            setSelectedUser(prev => prev ? { ...prev, balance: prev.balance + parseFloat(amount) } : null);
+            
+            const updatedSearchResults = searchResults.map(user => 
+                user.uid === selectedUser.uid 
+                    ? { ...user, balance: user.balance + parseFloat(amount) }
+                    : user
+            );
+            setSearchResults(updatedSearchResults);
+            
+            setSelectedUser(null);
             setAmount('');
         } catch (error: any) {
             toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -182,12 +188,12 @@ export default function AdminWalletsPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">Gestión de Billeteras</h1>
-            
-            <div className="grid lg:grid-cols-2 gap-6">
-                {/* Left Column: Search and Add */}
-                <div className="space-y-6">
+        <Dialog onOpenChange={(open) => { if (!open) setSelectedUser(null); }}>
+            <div className="space-y-6">
+                <h1 className="text-3xl font-bold tracking-tight">Gestión de Billeteras</h1>
+                
+                <div className="grid lg:grid-cols-2 gap-6">
+                    {/* Left Column: Search and List */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Buscar Usuario</CardTitle>
@@ -208,65 +214,79 @@ export default function AdminWalletsPage() {
                         </CardContent>
                         <CardContent>
                             <h3 className="text-sm font-medium mb-2">Resultados:</h3>
-                             <ScrollArea className="h-24">
+                            <ScrollArea className="h-64">
                                 <div className="space-y-2">
-                                    {loading && <div className="text-sm text-muted-foreground">Buscando...</div>}
-                                    {!loading && searchResults.length === 0 && <div className="text-sm text-muted-foreground">No se encontraron usuarios.</div>}
+                                    {loading && <div className="text-sm text-muted-foreground p-4 text-center">Buscando...</div>}
+                                    {!loading && searchResults.length === 0 && <div className="text-sm text-muted-foreground p-4 text-center">No se encontraron usuarios.</div>}
                                     {searchResults.map(user => (
-                                        <button key={user.uid} onClick={() => setSelectedUser(user)} className={`w-full text-left p-2 rounded-md border ${selectedUser?.uid === user.uid ? 'bg-secondary ring-2 ring-primary' : 'hover:bg-secondary/50'}`}>
-                                            <p className="font-medium">{user.email}</p>
-                                            <p className="text-sm text-muted-foreground">ID: {user.shortId} - Saldo: ${user.balance.toFixed(2)}</p>
-                                        </button>
+                                        <div key={user.uid} className="flex justify-between items-center p-3 rounded-md border">
+                                            <div>
+                                                <p className="font-medium">{user.email}</p>
+                                                <p className="text-sm text-muted-foreground">ID: {user.shortId} - Saldo: ${user.balance.toFixed(2)}</p>
+                                            </div>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm" onClick={() => setSelectedUser(user)}>
+                                                    <Coins className="mr-2 h-4 w-4" />
+                                                    Añadir Fondos
+                                                </Button>
+                                            </DialogTrigger>
+                                        </div>
                                     ))}
                                 </div>
                             </ScrollArea>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Añadir Fondos</CardTitle>
-                            <CardDescription>Selecciona un usuario para añadirle fondos a su billetera.</CardDescription>
-                        </CardHeader>
-                        {selectedUser ? (
-                            <>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <p className="font-medium">{selectedUser.email}</p>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="outline">{selectedUser.shortId}</Badge>
-                                        <span className="text-sm text-muted-foreground">Saldo actual: <span className="font-bold text-primary">${selectedUser.balance.toFixed(2)}</span></span>
-                                    </div>
+                    
+                    {/* Right Column: History */}
+                    <TransactionsHistory />
+                </div>
+
+                {/* Dialog for Adding Funds */}
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Añadir Fondos</DialogTitle>
+                        {selectedUser && (
+                            <DialogDescription>
+                                Estás añadiendo fondos a <span className="font-semibold text-foreground">{selectedUser.email}</span>.
+                            </DialogDescription>
+                        )}
+                    </DialogHeader>
+                    {selectedUser && (
+                        <div>
+                            <div className="space-y-4 py-4">
+                                 <div className="flex items-center justify-between rounded-lg border p-3">
+                                    <p className="text-sm font-medium">Saldo Actual</p>
+                                    <p className="font-bold text-lg text-primary">${selectedUser.balance.toFixed(2)}</p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="amount">Monto a Añadir</Label>
                                     <Input 
+                                        id="amount"
                                         type="number"
-                                        placeholder="Monto a añadir"
+                                        placeholder="0.00"
                                         value={amount}
                                         onChange={e => setAmount(e.target.value)}
                                         disabled={submitting}
+                                        className="text-lg h-11"
                                     />
                                 </div>
-                            </CardContent>
-                            <CardFooter>
-                                <Button onClick={handleAddFunds} disabled={submitting || !amount || parseFloat(amount) <= 0}>
-                                    {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Añadir Fondos
-                                </Button>
-                            </CardFooter>
-                            </>
-                        ): (
-                            <CardContent>
-                                <p className="text-sm text-center text-muted-foreground py-10">
-                                    Por favor, busca y selecciona un usuario.
-                                </p>
-                            </CardContent>
-                        )}
-                    </Card>
-                </div>
-                
-                {/* Right Column: History */}
-                <TransactionsHistory />
+                            </div>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button variant="outline" disabled={submitting}>Cancelar</Button>
+                                </DialogClose>
+                                <DialogClose asChild>
+                                     <Button onClick={handleAddFunds} disabled={submitting || !amount || parseFloat(amount) <= 0}>
+                                        {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Confirmar y Añadir Fondos
+                                    </Button>
+                                </DialogClose>
+                            </DialogFooter>
+                        </div>
+                    )}
+                </DialogContent>
             </div>
-        </div>
+        </Dialog>
     );
-}
+
+    
