@@ -149,6 +149,47 @@ function BankTransferArea() {
     )
 }
 
+function CryptoDepositArea() {
+    const { toast } = useToast();
+    const walletAddress = "0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348";
+
+    const handleCopy = (text: string) => {
+        if (!text) return;
+        navigator.clipboard.writeText(text);
+        toast({ title: "Copiado", description: "La dirección de la billetera ha sido copiada." });
+    }
+
+    return (
+        <div className="space-y-4 rounded-lg border p-4">
+            <div className="flex items-start gap-3">
+                <Bitcoin className="h-6 w-6 text-primary flex-shrink-0" />
+                <div>
+                    <h3 className="font-semibold text-lg">Depositar con Criptomonedas</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Transfiere fondos a la siguiente dirección de billetera.
+                    </p>
+                </div>
+            </div>
+             <div className="p-3 rounded-md bg-secondary/50 space-y-2">
+                <Label className='text-xs'>Dirección de Billetera (ERC-20)</Label>
+                <div className="flex items-center gap-2">
+                    <p className="font-mono text-sm break-all flex-grow">{walletAddress}</p>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 flex-shrink-0" onClick={() => handleCopy(walletAddress)}>
+                        <Copy className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+            <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>¡Atención!</AlertTitle>
+                <AlertDescription>
+                    Esta dirección solo acepta depósitos en la red Ethereum (ERC-20). Enviar tokens de otras redes resultará en la pérdida de fondos. La acreditación es manual.
+                </AlertDescription>
+            </Alert>
+        </div>
+    );
+}
+
 
 function DepositArea() {
     const [amount, setAmount] = useState('10.00');
@@ -309,6 +350,7 @@ export function WalletSheet() {
                     <div className="space-y-4">
                         <DepositArea />
                         <BankTransferArea />
+                        <CryptoDepositArea />
                     </div>
                     <WithdrawalArea />
                 </div>
