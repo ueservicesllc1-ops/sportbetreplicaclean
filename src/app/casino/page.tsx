@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -12,11 +10,32 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeCasinoBet, resolveCasinoBet } from './actions';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type GameState = 'betting' | 'waiting' | 'playing' | 'crashed' | 'cashout';
+
+// --- FAKE PLAYER DATA AND TYPES ---
+interface Player {
+  id: string;
+  name: string;
+  betAmount: number;
+  cashOutMultiplier: number | null; // Multiplier at which they cashed out
+  winnings: number | null;
+  status: 'playing' | 'cashed-out' | 'crashed';
+  isRealPlayer?: boolean;
+}
+
+const fakeUsernames = [
+  'ElEstratega', 'SuerteLoca', 'ReyDelCashout', 'ApuestaSegura', 'Midas', 
+  'ElProfeta', 'NoRiskNoFun', 'TsunamiDeDolar', 'LaReinaDelVerde', 'CazaCuotas',
+  'ElAnalista', 'FiebreDeJuego', 'GoldenBet', 'ElMago', 'Invicto'
+];
+
+// --- COMPONENTS ---
 
 const RevolutionMeter = ({ multiplier, gameState }: { multiplier: number, gameState: GameState }) => {
     const totalBars = 20;
@@ -96,6 +115,7 @@ export default function CasinoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [autoCashOutAmount, setAutoCashOutAmount] = useState<string>('1.50');
   const [isAutoCashOutEnabled, setIsAutoCashOutEnabled] = useState<boolean>(false);
+  const [players, setPlayers] = useState<Player[]>([]);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -137,6 +157,47 @@ export default function CasinoPage() {
             setMultiplier(1.00);
             setHasPlacedBet(false);
             setWinnings(0);
+
+            // --- Generate fake players for the new round ---
+            const numPlayers = Math.floor(Math.random() * 8) + 7; // 7 to 14 players
+            const newPlayers: Player[] = [];
+            const usedNames = new Set();
+            for (let i = 0; i < numPlayers; i++) {
+                let name = fakeUsernames[Math.floor(Math.random() * fakeUsernames.length)];
+                while(usedNames.has(name)) {
+                    name = fakeUsernames[Math.floor(Math.random() * fakeUsernames.length)];
+                }
+                usedNames.add(name);
+
+                // Define cashout target: some low, some high, some never (null)
+                const r = Math.random();
+                let cashOutTarget: number | null;
+                 if (r < 0.4) cashOutTarget = 1.01 + Math.random() * 0.5; // 40% cash out between 1.01x and 1.51x
+                 else if (r < 0.7) cashOutTarget = 1.5 + Math.random() * 2.5; // 30% cash out between 1.5x and 4x
+                 else if (r < 0.9) cashOutTarget = 4 + Math.random() * 6; // 20% cash out between 4x and 10x
+                 else cashOutTarget = null; // 10% will crash
+
+                newPlayers.push({
+                    id: `fake_${i}`,
+                    name,
+                    betAmount: Math.floor(Math.random() * 50) + 1,
+                    status: 'playing',
+                    cashOutMultiplier: cashOutTarget,
+                    winnings: null,
+                });
+            }
+            if (hasPlacedBet && user) {
+                newPlayers.unshift({
+                    id: user.uid,
+                    name: user.email?.split('@')[0] || 'Tú',
+                    betAmount: parseFloat(betAmount),
+                    status: 'playing',
+                    cashOutMultiplier: isAutoCashOutEnabled ? parseFloat(autoCashOutAmount) : null,
+                    winnings: null,
+                    isRealPlayer: true
+                });
+            }
+            setPlayers(newPlayers);
         }
 
         intervalRef.current = setInterval(() => {
@@ -181,6 +242,13 @@ export default function CasinoPage() {
         const finalMultiplier = gameState === 'crashed' ? crashPoint.current : multiplier;
         history.current = [parseFloat(finalMultiplier.toFixed(2)), ...history.current.slice(0, 11)];
 
+        // Update player statuses for crashed
+        if (gameState === 'crashed') {
+            setPlayers(prevPlayers => prevPlayers.map(p => 
+                p.status === 'playing' ? {...p, status: 'crashed'} : p
+            ));
+        }
+
         setTimeout(() => {
             setGameState('betting');
             setCountdown(5);
@@ -192,6 +260,36 @@ export default function CasinoPage() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
+
+
+  // Player status update logic
+  useEffect(() => {
+    if (gameState === 'playing') {
+        setPlayers(prevPlayers => 
+            prevPlayers.map(p => {
+                if(p.status === 'playing' && p.cashOutMultiplier && multiplier >= p.cashOutMultiplier) {
+                     return {
+                        ...p,
+                        status: 'cashed-out',
+                        winnings: p.betAmount * p.cashOutMultiplier,
+                    };
+                }
+                return p;
+            })
+        );
+    }
+    if (gameState === 'cashout') {
+        setPlayers(prevPlayers =>
+            prevPlayers.map(p => p.isRealPlayer ? {
+                ...p,
+                status: 'cashed-out',
+                cashOutMultiplier: multiplier,
+                winnings: winnings
+            } : p)
+        );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [multiplier, gameState]);
 
 
   // Auto-cashout logic
@@ -418,11 +516,48 @@ export default function CasinoPage() {
           <CardTitle>Jugadores en la Ronda</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            Aquí se mostrarán los jugadores y sus apuestas en tiempo real. (Funcionalidad multijugador no implementada)
-          </p>
+            <ScrollArea className="h-96">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Jugador</TableHead>
+                            <TableHead className="text-right">Apuesta</TableHead>
+                            <TableHead className="text-right">Multiplicador</TableHead>
+                            <TableHead className="text-right">Ganancia</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {players.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                                    Esperando jugadores para la próxima ronda...
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {players.map(p => (
+                            <TableRow key={p.id} className={cn(
+                                p.isRealPlayer ? 'bg-primary/20' : '',
+                                p.status === 'cashed-out' ? 'text-blue-400' : p.status === 'crashed' ? 'text-red-500/80' : ''
+                            )}>
+                                <TableCell className="font-medium">
+                                    <div className="flex items-center gap-2">
+                                        <User className="h-4 w-4" />
+                                        <span>{p.name}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right font-mono">${p.betAmount.toFixed(2)}</TableCell>
+                                <TableCell className={cn("text-right font-mono", p.status === 'cashed-out' ? 'font-bold' : '')}>
+                                    {p.status === 'cashed-out' && p.cashOutMultiplier ? `${p.cashOutMultiplier.toFixed(2)}x` : '-'}
+                                </TableCell>
+                                <TableCell className={cn("text-right font-mono", p.status === 'cashed-out' ? 'font-bold' : '')}>
+                                    {p.status === 'cashed-out' && p.winnings ? `+$${p.winnings.toFixed(2)}` : p.status === 'crashed' ? '-$'+p.betAmount.toFixed(2) : '...'}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </ScrollArea>
         </CardContent>
       </Card>
     </div>
   );
-}
