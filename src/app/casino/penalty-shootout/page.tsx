@@ -16,10 +16,11 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
+import { Progress } from '@/components/ui/progress';
 
 
-type GameState = 'betting' | 'shooting' | 'finished';
-type ShotResult = 'goal' | 'save';
+type GameState = 'betting' | 'powering' | 'shooting' | 'finished';
+type ShotResult = 'goal' | 'save' | 'miss';
 
 const goalZones = [
     { id: 1, name: 'Sup. Izq.', position: { top: '30%', left: '22%' } },
@@ -61,6 +62,9 @@ export default function PenaltyShootoutPage() {
     const [gameAssets, setGameAssets] = useState<Record<string, string | number>>(defaultAssets);
     const [assetsLoading, setAssetsLoading] = useState(true);
     const [keeperImage, setKeeperImage] = useState(defaultAssets.keeper_standing as string);
+    const [shotPower, setShotPower] = useState(0);
+
+    const powerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 
     // Dev Controls State
@@ -118,23 +122,44 @@ export default function PenaltyShootoutPage() {
         fetchAssets();
     }, []);
 
+    const startPowering = () => {
+        if (gameState !== 'betting') return;
+        setGameState('powering');
+        powerIntervalRef.current = setInterval(() => {
+            setShotPower(prev => Math.min(100, prev + 1.5));
+        }, 20);
+    };
+
+    const releasePower = () => {
+        if (powerIntervalRef.current) clearInterval(powerIntervalRef.current);
+        if (gameState !== 'powering') return;
+        handleShoot();
+    };
+
+    useEffect(() => {
+        if (shotPower >= 100 && gameState === 'powering') {
+            if (powerIntervalRef.current) clearInterval(powerIntervalRef.current);
+            handleShoot();
+        }
+    }, [shotPower, gameState]);
+
+
     const handleShoot = async () => {
         if (!user) {
             toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para apostar.' });
+            setGameState('betting');
             return;
         }
-        if (!selectedZone) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Debes seleccionar una zona para disparar.' });
-            return;
-        }
-        if (!selectedMultiplier) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Debes seleccionar un multiplicador de riesgo.' });
+        if (!selectedZone || !selectedMultiplier) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Debes seleccionar riesgo y zona para disparar.' });
+            setGameState('betting');
             return;
         }
 
         const amount = parseFloat(betAmount);
         if (isNaN(amount) || amount <= 0) {
             toast({ variant: 'destructive', title: 'Error', description: 'Introduce un monto de apuesta válido.' });
+            setGameState('betting');
             return;
         }
         
@@ -144,79 +169,103 @@ export default function PenaltyShootoutPage() {
         try {
             await placePenaltyBet(user.uid, amount);
 
-            const shotConfig = multiplierOptions.find(opt => opt.multiplier === selectedMultiplier)!;
-            const isGoal = Math.random() < shotConfig.chance;
-            
-            const keeperTargetZoneId = isGoal 
-                ? goalZones.find(z => z.id !== selectedZone)!.id 
-                : selectedZone;
-            
-            if (!keeperTargetZoneId) return;
+            // Power mechanic: 20% chance to miss if power > 50
+            const shotGoesWide = shotPower > 50 && Math.random() < 0.2;
 
-            const keeperTargetPosition = goalZones.find(z => z.id === keeperTargetZoneId)!.position;
-            
-            let rotationAngle = 0;
-            switch(keeperTargetZoneId) {
-                case 1: rotationAngle = -20; break;
-                case 2: rotationAngle = 20; break;
-                case 4: rotationAngle = -90; break;
-                case 5: rotationAngle = 90; break;
-            }
-
-            if (isGoal) {
-                setKeeperImage(gameAssets.keeper_miss as string);
+            if (shotGoesWide) {
+                setShotResult('miss');
+                const penaltyAmount = amount * selectedMultiplier;
+                await resolvePenaltyLoss(user.uid, penaltyAmount);
+                toast({
+                    variant: 'destructive',
+                    title: '¡FUERA!',
+                    description: `Demasiada potencia. Has perdido -$${penaltyAmount.toFixed(2)}.`,
+                });
             } else {
-                setKeeperImage(gameAssets.keeper_flying as string);
+                const shotConfig = multiplierOptions.find(opt => opt.multiplier === selectedMultiplier)!;
+                const isGoal = Math.random() < shotConfig.chance;
+                
+                const keeperTargetZoneId = isGoal 
+                    ? goalZones.find(z => z.id !== selectedZone)!.id 
+                    : selectedZone;
+                
+                if (!keeperTargetZoneId) return;
+
+                const keeperTargetPosition = goalZones.find(z => z.id === keeperTargetZoneId)!.position;
+                
+                let rotationAngle = 0;
+                switch(keeperTargetZoneId) {
+                    case 1: rotationAngle = -20; break;
+                    case 2: rotationAngle = 20; break;
+                    case 4: rotationAngle = -90; break;
+                    case 5: rotationAngle = 90; break;
+                }
+
+                if (isGoal) {
+                    setKeeperImage(gameAssets.keeper_miss as string);
+                } else {
+                    setKeeperImage(gameAssets.keeper_flying as string);
+                }
+
+                setKeeperStyle(prev => ({
+                    ...prev,
+                    top: keeperTargetPosition.top,
+                    left: keeperTargetPosition.left,
+                    transform: `translateX(-50%) translateY(-50%) scale(${keeperScale * 1.1}) rotate(${rotationAngle}deg)`
+                }));
+
+                // Result determination after animation
+                setTimeout(async () => {
+                    if (isGoal) {
+                        setShotResult('goal');
+                        const winnings = amount * shotConfig.multiplier;
+                        await resolvePenaltyBet(user.uid, winnings);
+                        toast({
+                            title: '¡GOOOOL!',
+                            description: `Has ganado $${winnings.toFixed(2)}.`,
+                            className: 'bg-green-600 border-green-600 text-white'
+                        });
+                    } else {
+                        setShotResult('save');
+                        const penaltyAmount = amount * shotConfig.multiplier;
+                        await resolvePenaltyLoss(user.uid, penaltyAmount);
+                         toast({
+                            variant: 'destructive',
+                            title: '¡ATAJADO!',
+                            description: `Perdiste tu apuesta. Penalización: -$${(penaltyAmount).toFixed(2)}`,
+                        });
+                    }
+                }, 1000); // Wait for animation
             }
 
-            setKeeperStyle(prev => ({
-                ...prev,
-                top: keeperTargetPosition.top,
-                left: keeperTargetPosition.left,
-                transform: `translateX(-50%) translateY(-50%) scale(${keeperScale * 1.1}) rotate(${rotationAngle}deg)`
-            }));
-
-
-            setTimeout(async () => {
-                if (isGoal) {
-                    setShotResult('goal');
-                    const winnings = amount * shotConfig.multiplier;
-                    await resolvePenaltyBet(user.uid, winnings);
-                    toast({
-                        title: '¡GOOOOL!',
-                        description: `Has ganado $${winnings.toFixed(2)}.`,
-                        className: 'bg-green-600 border-green-600 text-white'
-                    });
-                } else {
-                    setShotResult('save');
-                    const penaltyAmount = amount * shotConfig.multiplier;
-                    await resolvePenaltyLoss(user.uid, penaltyAmount);
-                     toast({
-                        variant: 'destructive',
-                        title: '¡ATAJADO!',
-                        description: `Perdiste tu apuesta. Penalización: -$${(penaltyAmount).toFixed(2)}`,
-                    });
-                }
-                
+            // Finish the game round
+            setTimeout(() => {
                 setGameState('finished');
-                
                 setTimeout(() => {
                     setGameState('betting');
                     setSelectedZone(null);
                     setSelectedMultiplier(null);
+                    setShotPower(0);
                 }, 3000);
-
-            }, 1000); // Wait for animation
+            }, 1000);
 
         } catch (error: any) {
             toast({ variant: 'destructive', title: 'Error al apostar', description: error.message });
             setGameState('betting');
+            setShotPower(0);
         }
     };
 
 
     const getBallStyle = () => {
         if (gameState === 'shooting' && selectedZone) {
+            if (shotResult === 'miss') {
+                 return {
+                    top: '10%', // Goes over the bar
+                    left: '50%',
+                    transform: `translate(-50%, -50%) scale(${ballScale * 0.5})`,
+                };
+            }
             const targetPosition = goalZones.find(z => z.id === selectedZone)!.position;
             return {
                 top: targetPosition.top,
@@ -226,6 +275,15 @@ export default function PenaltyShootoutPage() {
         }
         return { top: `${ballTop}%`, left: `${ballLeft}%`, transform: `translate(-50%, -50%) scale(${ballScale})` };
     };
+
+    const getResultText = () => {
+        switch (shotResult) {
+            case 'goal': return '¡GOL!';
+            case 'save': return '¡ATAJADO!';
+            case 'miss': return '¡FUERA!';
+            default: return '';
+        }
+    }
 
     const selectedMultiplierData = selectedMultiplier ? multiplierOptions.find(m => m.multiplier === selectedMultiplier) : null;
 
@@ -301,7 +359,7 @@ export default function PenaltyShootoutPage() {
                                  </div>
                              </div>
                         ))}
-                         {shotResult && selectedZone && (
+                         {shotResult && selectedZone && shotResult !== 'miss' && (
                             <div className={cn("absolute w-16 h-16 -translate-x-1/2 -translate-y-1/2 rounded-full", shotResult === 'goal' ? 'bg-green-500/40' : 'bg-red-500/40')} style={goalZones.find(z => z.id === selectedZone)?.position}></div>
                          )}
 
@@ -310,7 +368,7 @@ export default function PenaltyShootoutPage() {
                         {gameState === 'finished' && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                 <h2 className={cn("text-6xl font-bold font-headline animate-in zoom-in", shotResult === 'goal' ? 'text-green-400' : 'text-red-500')}>
-                                    {shotResult === 'goal' ? '¡GOL!' : '¡ATAJADO!'}
+                                    {getResultText()}
                                 </h2>
                             </div>
                         )}
@@ -458,16 +516,27 @@ export default function PenaltyShootoutPage() {
                                 ¡Atención! Una pérdida cuesta el PREMIO POTENCIAL.
                             </div>
                         </div>
-                        
-                        <Button
-                            size="lg"
-                            className="w-full h-12 text-lg"
-                            onClick={handleShoot}
-                            disabled={gameState !== 'betting' || !selectedZone || !selectedMultiplier}
-                        >
-                            {gameState === 'shooting' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            ¡Patear!
-                        </Button>
+
+                        <div className='space-y-2'>
+                            <Label className={cn(!selectedZone && 'text-muted-foreground')}>4. Potencia tu Disparo</Label>
+                            <Progress value={shotPower} className="w-full" />
+                            <Button
+                                size="lg"
+                                className="w-full h-12 text-lg"
+                                onMouseDown={startPowering}
+                                onMouseUp={releasePower}
+                                onMouseLeave={releasePower}
+                                onTouchStart={(e) => { e.preventDefault(); startPowering(); }}
+                                onTouchEnd={(e) => { e.preventDefault(); releasePower(); }}
+                                disabled={gameState === 'shooting' || !selectedZone || !selectedMultiplier}
+                            >
+                                {gameState === 'powering' && `Potencia: ${Math.round(shotPower)}%`}
+                                {gameState === 'betting' && 'Mantén para Patear'}
+                                {gameState === 'shooting' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {gameState === 'finished' && 'Ronda Terminada'}
+                            </Button>
+                            <p className='text-xs text-muted-foreground text-center'>Si la potencia supera el 50%, hay un 20% de riesgo de que el tiro se vaya fuera.</p>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -475,3 +544,5 @@ export default function PenaltyShootoutPage() {
     );
 }
 
+
+    
