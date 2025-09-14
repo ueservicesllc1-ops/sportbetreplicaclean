@@ -184,14 +184,14 @@ export default function PenaltyShootoutPage() {
                                 {/* Goalkeeper */}
                                 {keeperImage && (
                                     <div
-                                        className="absolute w-28 h-28 transition-all duration-300 ease-out"
+                                        className="absolute w-32 h-32 transition-all duration-300 ease-out"
                                         style={keeperStyle}
                                     >
                                         <Image
                                             src={keeperImage}
                                             alt="Goalkeeper"
-                                            width={112}
-                                            height={112}
+                                            width={128}
+                                            height={128}
                                             className="drop-shadow-lg"
                                         />
                                     </div>
