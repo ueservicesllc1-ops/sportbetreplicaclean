@@ -32,7 +32,7 @@ interface Transaction {
     userEmail: string;
     amount: number;
     adminEmail: string;
-    adminIp?: string;
+    country?: string;
     createdAt: { seconds: number };
 }
 
@@ -74,7 +74,7 @@ function TransactionsHistory() {
                                 <TableHead>ID Transacción</TableHead>
                                 <TableHead>Fecha</TableHead>
                                 <TableHead>Hora</TableHead>
-                                <TableHead>Ubicación (IP)</TableHead>
+                                <TableHead>Ubicación (País)</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -107,7 +107,7 @@ function TransactionsHistory() {
                                     <TableCell className="text-xs text-muted-foreground font-mono">
                                         <div className="flex items-center gap-2">
                                             <Fingerprint className="h-4 w-4" />
-                                            <span>{tx.adminIp || 'No disponible'}</span>
+                                            <span>{tx.country || 'N/A'}</span>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -305,4 +305,3 @@ export default function AdminWalletsPage() {
 }
 
     
-

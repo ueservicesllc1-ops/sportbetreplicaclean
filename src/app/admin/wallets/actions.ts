@@ -76,6 +76,20 @@ export async function addFundsToUser(params: AddFundsParams) {
 
     // Get admin IP address from headers
     const ip = headers().get('x-forwarded-for') ?? '127.0.0.1';
+    let country = 'Unknown';
+    if (ip !== '127.0.0.1') {
+        try {
+            const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=country`);
+            if (geoResponse.ok) {
+                const geoData = await geoResponse.json();
+                country = geoData.country || 'N/A';
+            }
+        } catch (e) {
+            console.error('Failed to geolocate IP', e);
+            country = 'Geolocation failed';
+        }
+    }
+
 
     try {
         await updateDoc(userDocRef, {
@@ -90,6 +104,7 @@ export async function addFundsToUser(params: AddFundsParams) {
             adminId,
             adminEmail,
             adminIp: ip,
+            country: country,
             createdAt: serverTimestamp()
         });
 
