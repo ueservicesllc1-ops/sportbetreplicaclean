@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { UserProfile, VerificationStatus } from "@/contexts/auth-context";
 import { processVerification } from "./actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Alert, AlertTitle, AlertDescription as AlertDescriptionComponent } from "@/components/ui/alert";
+
 
 interface VerificationRequest extends UserProfile {
     requestedAt?: Timestamp; // Assuming we might add this field later
@@ -31,6 +33,7 @@ export default function AdminVerificationsPage() {
     const [requests, setRequests] = useState<VerificationRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [imageError, setImageError] = useState(false);
     const { toast } = useToast();
     const { isAdmin, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -100,7 +103,7 @@ export default function AdminVerificationsPage() {
     const processedRequests = requests.filter(r => r.verificationStatus !== 'pending');
 
     return (
-        <Dialog>
+        <Dialog onOpenChange={() => setImageError(false)}>
             <div className="space-y-6">
                 <h1 className="text-3xl font-bold tracking-tight">Verificaciones de Identidad (KYC)</h1>
 
@@ -163,7 +166,7 @@ export default function AdminVerificationsPage() {
                                                 </Button>
                                             </div>
                                         </TableCell>
-                                        <DialogContent className="max-w-xl" aria-describedby={undefined}>
+                                        <DialogContent className="max-w-xl">
                                              <DialogHeader>
                                                 <DialogTitle>Documento de {req.realName}</DialogTitle>
                                                 <DialogDescription>
@@ -172,7 +175,23 @@ export default function AdminVerificationsPage() {
                                              </DialogHeader>
                                              {req.idPhotoUrl && (
                                                 <div className="mt-4">
-                                                    <img src={req.idPhotoUrl} alt={`ID de ${req.realName}`} className="w-full h-auto rounded-lg" style={{ objectFit: "contain" }} />
+                                                    {imageError ? (
+                                                        <Alert variant="destructive">
+                                                            <ShieldAlert className="h-4 w-4" />
+                                                            <AlertTitle>Error al cargar la imagen</AlertTitle>
+                                                            <AlertDescriptionComponent>
+                                                                No se pudo cargar la imagen. Verifica que la URL sea correcta y que el archivo exista en Firebase Storage.
+                                                            </AlertDescriptionComponent>
+                                                        </Alert>
+                                                    ) : (
+                                                        <img 
+                                                            src={req.idPhotoUrl} 
+                                                            alt={`ID de ${req.realName}`} 
+                                                            className="w-full h-auto rounded-lg" 
+                                                            style={{ objectFit: "contain" }}
+                                                            onError={() => setImageError(true)}
+                                                        />
+                                                    )}
                                                 </div>
                                              )}
                                         </DialogContent>
