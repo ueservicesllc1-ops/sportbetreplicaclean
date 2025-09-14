@@ -33,7 +33,7 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         return { success: false, message: 'La foto del ID es requerida.' };
     }
 
-    const bucketName = 'studio-3302383355-1ea39.appspot.com';
+    const bucketName = 'studio-3302383355-1ea39.firebasestorage.app';
     if (!bucketName) {
          return { success: false, message: 'La configuración del bucket de almacenamiento no está definida.' };
     }

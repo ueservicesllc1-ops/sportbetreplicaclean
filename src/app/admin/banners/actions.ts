@@ -52,7 +52,7 @@ export async function deleteBanner(bannerId: string) {
 
         // Delete from storage if imagePath exists (for manually uploaded images in the future)
         if(imagePath){
-             const bucketName = 'studio-3302383355-1ea39.appspot.com';
+             const bucketName = 'studio-3302383355-1ea39.firebasestorage.app';
             if (bucketName) {
                 try {
                     const admin = getFirebaseAdmin();
