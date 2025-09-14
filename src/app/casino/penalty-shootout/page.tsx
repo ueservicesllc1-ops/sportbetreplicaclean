@@ -10,10 +10,13 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placePenaltyBet, resolvePenaltyBet } from './actions';
+import { getPenaltyGameAssets } from '@/app/admin/game-assets/actions';
 import { Loader2, ArrowLeft, Target } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { SoccerBallIcon } from '@/components/icons/soccer-ball-icon';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 type GameState = 'betting' | 'shooting' | 'finished';
 type ShotResult = 'goal' | 'save';
@@ -29,6 +32,13 @@ const goalZones = [
     { id: 5, name: 'Inferior Derecha', position: { top: '55%', left: '80%' } },
 ];
 
+const defaultAssets = {
+    background: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' width='800' height='600'%3E%3Crect width='800' height='600' fill='%234CAF50'/%3E%3Crect x='100' y='100' width='600' height='400' fill='none' stroke='white' stroke-width='8'/%3E%3C/svg%3E",
+    ball: '', // Use icon
+    keeper_standing: 'https://i.postimg.cc/T1bSCYkF/goalkeeper.png',
+    keeper_flying: 'https://i.postimg.cc/T1bSCYkF/goalkeeper.png',
+};
+
 export default function PenaltyShootoutPage() {
     const [betAmount, setBetAmount] = useState('1.00');
     const [selectedZone, setSelectedZone] = useState<number | null>(null);
@@ -40,9 +50,20 @@ export default function PenaltyShootoutPage() {
         left: '50%',
         transform: 'translateX(-50%) scale(1)',
     });
+    const [gameAssets, setGameAssets] = useState<Record<string, string>>(defaultAssets);
+    const [assetsLoading, setAssetsLoading] = useState(true);
 
     const { user } = useAuth();
     const { toast } = useToast();
+
+     useEffect(() => {
+        const fetchAssets = async () => {
+            const assets = await getPenaltyGameAssets();
+            setGameAssets(prev => ({ ...defaultAssets, ...assets }));
+            setAssetsLoading(false);
+        };
+        fetchAssets();
+    }, []);
 
     const handleShoot = async () => {
         if (!user) {
@@ -131,6 +152,8 @@ export default function PenaltyShootoutPage() {
         }
     };
 
+    const keeperImage = gameState === 'shooting' ? gameAssets.keeper_flying : gameAssets.keeper_standing;
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -150,34 +173,55 @@ export default function PenaltyShootoutPage() {
                 {/* Game Area */}
                 <div className="lg:col-span-2 flex flex-col items-center justify-center space-y-4">
                     <Card className="w-full max-w-2xl aspect-[4/3] relative overflow-hidden bg-green-600">
-                        {/* Goal posts */}
-                        <div className="absolute top-[10%] left-[10%] w-[80%] h-[70%] border-4 border-white border-b-0" />
-                        <div className="absolute top-[10%] left-[10%] w-[80%] h-[70%] bg-repeat bg-center" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+                        {assetsLoading ? (
+                             <Skeleton className="absolute inset-0" />
+                        ) : (
+                            <>
+                                 <Image
+                                    src={gameAssets.background}
+                                    alt="Campo de futbol"
+                                    fill
+                                    className="object-cover"
+                                    priority
+                                />
+                                {/* Goalkeeper */}
+                                {keeperImage && (
+                                    <div
+                                        className="absolute w-28 h-28 transition-all duration-300 ease-out"
+                                        style={keeperStyle}
+                                    >
+                                        <Image
+                                            src={keeperImage}
+                                            alt="Goalkeeper"
+                                            width={112}
+                                            height={112}
+                                            className="drop-shadow-lg"
+                                        />
+                                    </div>
+                                )}
+                                {/* Ball */}
+                                {gameAssets.ball ? (
+                                    <div className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
+                                         style={{ 
+                                            top: ballPosition.y, 
+                                            left: ballPosition.x, 
+                                            transform: `translate(-50%, -50%) scale(${gameState === 'shooting' ? 0.7 : 1})`,
+                                         }} >
+                                        <Image src={gameAssets.ball} alt="Balón de fútbol" width={32} height={32} />
+                                    </div>
+                                ) : (
+                                    <SoccerBallIcon 
+                                        className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
+                                        style={{ 
+                                            top: ballPosition.y, 
+                                            left: ballPosition.x, 
+                                            transform: `translate(-50%, -50%) scale(${gameState === 'shooting' ? 0.7 : 1})`,
+                                        }} 
+                                    />
+                                )}
+                            </>
+                        )}
                         
-                        {/* Goalkeeper */}
-                         <div
-                            className="absolute w-28 h-28 transition-all duration-300 ease-out"
-                            style={keeperStyle}
-                         >
-                            <Image
-                                src="https://i.postimg.cc/T1bSCYkF/goalkeeper.png"
-                                alt="Goalkeeper"
-                                width={112}
-                                height={112}
-                                className="drop-shadow-lg"
-                            />
-                         </div>
-
-                        {/* Ball */}
-                        <SoccerBallIcon 
-                             className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
-                             style={{ 
-                                top: ballPosition.y, 
-                                left: ballPosition.x, 
-                                transform: `translate(-50%, -50%) scale(${gameState === 'shooting' ? 0.7 : 1})`,
-                             }} 
-                        />
-
                         {/* Zones */}
                         <div className="absolute top-[10%] left-[10%] w-[80%] h-[70%] grid grid-cols-3 grid-rows-2">
                            <div id="zone-1" onClick={() => gameState === 'betting' && setSelectedZone(1)} className={cn("row-start-1 col-start-1", shotResult && selectedZone === 1 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-r border-b border-white/20")}></div>

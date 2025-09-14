@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Users, Wallet, Image as ImageIcon, ArrowDownUp, ShieldCheck } from "lucide-react";
+import { Bell, Home, Users, Wallet, Image as ImageIcon, ArrowDownUp, ShieldCheck, ImageUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "../ui/badge";
 import { Logo } from "../logo";
@@ -37,6 +37,7 @@ export function AdminNav() {
         { href: "/admin/wallets", label: "Billeteras", icon: Wallet, requiredRole: 'superadmin' },
         { href: "/admin/withdrawals", label: "Retiros", icon: ArrowDownUp, requiredRole: 'superadmin' },
         { href: "/admin/banners", label: "Banners", icon: ImageIcon, requiredRole: 'admin' },
+        { href: "/admin/game-assets", label: "Recursos Juegos", icon: ImageUp, requiredRole: 'admin' },
     ];
 
     const canSeeSuperAdminItems = isSuperAdmin;
