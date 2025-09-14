@@ -46,7 +46,7 @@ export default function PenaltyShootoutPage() {
     const [shotResult, setShotResult] = useState<ShotResult | null>(null);
     const [ballPosition, setBallPosition] = useState({ x: '50%', y: '85%' });
     const [keeperStyle, setKeeperStyle] = useState({
-        top: '38%',
+        top: '40%',
         left: '50%',
         transform: 'translateX(-50%) scale(1)',
     });
@@ -134,7 +134,7 @@ export default function PenaltyShootoutPage() {
                     setGameState('betting');
                     setBallPosition({ x: '50%', y: '85%' });
                     setKeeperStyle({
-                        top: '38%',
+                        top: '40%',
                         left: '50%',
                         transform: 'translateX(-50%) scale(1)',
                     });
@@ -225,10 +225,10 @@ export default function PenaltyShootoutPage() {
                                 key={zone.id}
                                 id={`zone-${zone.id}`}
                                 onClick={() => gameState === 'betting' && setSelectedZone(zone.id)}
-                                className="absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer flex items-center justify-center"
+                                className="absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer flex items-center justify-center"
                                 style={zone.position}
                              >
-                                 <div className={cn("w-full h-full rounded-full transition-all",
+                                 <div className={cn("w-full h-full transition-all",
                                     selectedZone === zone.id ? 'bg-transparent' : 'bg-yellow-400/20 hover:bg-yellow-400/40'
                                  )}>
                                     {selectedZone === zone.id && (
@@ -238,7 +238,7 @@ export default function PenaltyShootoutPage() {
                              </div>
                         ))}
                          {shotResult && selectedZone && (
-                            <div className={cn("absolute w-16 h-16 rounded-full -translate-x-1/2 -translate-y-1/2", shotResult === 'goal' ? 'bg-green-500/40' : 'bg-red-500/40')} style={goalZones.find(z => z.id === selectedZone)?.position}></div>
+                            <div className={cn("absolute w-16 h-16 -translate-x-1/2 -translate-y-1/2", shotResult === 'goal' ? 'bg-green-500/40' : 'bg-red-500/40')} style={goalZones.find(z => z.id === selectedZone)?.position}></div>
                          )}
 
 
@@ -321,4 +321,3 @@ export default function PenaltyShootoutPage() {
     
 
     
-
