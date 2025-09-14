@@ -13,12 +13,28 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import Link from 'next/link';
-import Image from 'next/image';
 
 const WELCOME_BONUS = 100;
 const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
-const PAYPAL_LINK = 'https://www.paypal.com/ncp/payment/48XSRX2BKGNCE';
+
+declare global {
+    interface Window {
+        paypal?: any;
+    }
+}
+
+function PayPalHostedButton() {
+    useEffect(() => {
+        if (window.paypal) {
+            window.paypal.HostedButtons({
+                hostedButtonId: "628SVMMQS7M52",
+            }).render("#paypal-container-628SVMMQS7M52");
+        }
+    }, []);
+
+    return <div id="paypal-container-628SVMMQS7M52"></div>;
+}
+
 
 function DepositArea() {
     const [depositAmount, setDepositAmount] = useState<number | string>('');
@@ -51,11 +67,7 @@ function DepositArea() {
             </div>
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
             <div className='space-y-4'>
-                 <Button asChild variant="outline" className="w-full justify-start gap-2 bg-[#FFD140] text-black hover:bg-[#FFC400] hover:text-black">
-                    <a href={PAYPAL_LINK} target='_blank' rel='noopener noreferrer'>
-                        <CreditCard /> Pagar con PayPal / Tarjeta
-                    </a>
-                 </Button>
+                 <PayPalHostedButton />
                  <Separator />
                 <Button variant="outline" className="w-full justify-start gap-2">
                     <Landmark /> Transferencia Bancaria
