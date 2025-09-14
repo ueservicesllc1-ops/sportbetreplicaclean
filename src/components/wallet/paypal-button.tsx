@@ -9,7 +9,10 @@ import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+// This public client ID is now defined directly in the client component
+// to bypass Vercel environment variable issues.
+const PAYPAL_CLIENT_ID = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
+
 
 interface PayPalButtonsComponentProps {
     amount: number;
@@ -79,11 +82,20 @@ const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsCompo
 
     const onError = (err: any) => {
         console.error("PayPal Buttons Error:", err);
-        toast({
-            variant: 'destructive',
-            title: 'Error de PayPal',
-            description: 'Ocurrió un error con los botones de pago. Por favor, intenta de nuevo.',
-        });
+        // This error can happen due to browser session issues.
+        if (err && err.message && err.message.includes('global_session_not_found')) {
+             toast({
+                variant: 'destructive',
+                title: 'Error de Sesión de PayPal',
+                description: 'Por favor, limpia las cookies de paypal.com en tu navegador e intenta de nuevo.',
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Error de PayPal',
+                description: 'Ocurrió un error con los botones de pago. Por favor, intenta de nuevo.',
+            });
+        }
     };
 
     return (
@@ -114,9 +126,9 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
     if (!PAYPAL_CLIENT_ID) {
         return (
             <Alert variant="destructive">
-                <AlertTitle>Error de Configuración de PayPal</AlertTitle>
+                <AlertTitle>Error de Configuración Interna</AlertTitle>
                 <AlertDescription>
-                    La variable `NEXT_PUBLIC_PAYPAL_CLIENT_ID` no está disponible. Por favor, verifica que la variable de entorno esté configurada correctamente en Vercel y que el proyecto se haya redesplegado.
+                    La variable PAYPAL_CLIENT_ID no está disponible.
                 </AlertDescription>
             </Alert>
         );
