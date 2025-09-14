@@ -11,12 +11,13 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placePenaltyBet, resolvePenaltyBet, updateGameAssetPositions, resolvePenaltyLoss } from './actions';
 import { getPenaltyGameAssets } from '@/app/admin/game-assets/actions';
-import { Loader2, ArrowLeft, Target, Save, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowLeft, Target, Save, AlertTriangle, Info } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 
 type GameState = 'betting' | 'powering' | 'shooting' | 'finished';
@@ -289,260 +290,299 @@ export default function PenaltyShootoutPage() {
 
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Target className="h-8 w-8 text-primary" />
-                    <h1 className="text-3xl font-bold tracking-tight">Tanda de Penales</h1>
+        <Dialog>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Target className="h-8 w-8 text-primary" />
+                        <h1 className="text-3xl font-bold tracking-tight">Tanda de Penales</h1>
+                    </div>
+                    <Button asChild size="lg">
+                        <Link href="/casino">
+                            <ArrowLeft className="mr-2 h-5 w-5" />
+                            Volver a Juegos
+                        </Link>
+                    </Button>
                 </div>
-                 <Button asChild size="lg">
-                    <Link href="/casino">
-                        <ArrowLeft className="mr-2 h-5 w-5" />
-                        Volver a Juegos
-                    </Link>
-                </Button>
-            </div>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                {/* Game Area */}
-                <div className="lg:col-span-2 flex flex-col items-center justify-center space-y-4">
-                    <Card className="w-full max-w-2xl aspect-[4/3] relative overflow-hidden bg-green-600">
-                        {assetsLoading ? (
-                             <Skeleton className="absolute inset-0" />
-                        ) : (
-                            <>
-                                 <Image
-                                    src={gameAssets.background as string}
-                                    alt="Campo de futbol"
-                                    fill
-                                    className="object-cover"
-                                    priority
-                                />
-                                {/* Goalkeeper */}
-                                {keeperImage && (
-                                    <div
-                                        className="absolute w-32 h-32 transition-all duration-300 ease-out"
-                                        style={keeperStyle}
-                                    >
-                                        <Image
-                                            src={keeperImage}
-                                            alt="Goalkeeper"
-                                            width={128}
-                                            height={128}
-                                            className="drop-shadow-lg"
-                                        />
-                                    </div>
-                                )}
-                                {/* Ball */}
-                                <div className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
-                                     style={getBallStyle()} >
-                                    <Image src={gameAssets.ball as string} alt="Balón de fútbol" fill className="object-contain" />
-                                </div>
-                            </>
-                        )}
-                        
-                        {/* Zones */}
-                        {gameState === 'betting' && selectedMultiplier && goalZones.map(zone => (
-                             <div
-                                key={zone.id}
-                                id={`zone-${zone.id}`}
-                                onClick={() => gameState === 'betting' && setSelectedZone(zone.id)}
-                                className="absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer flex items-center justify-center"
-                                style={zone.position}
-                             >
-                                 <div className={cn("w-full h-full transition-all bg-yellow-400/20 hover:bg-yellow-400/40 rounded-full",
-                                    selectedZone === zone.id ? 'bg-transparent' : ''
-                                 )}>
-                                    {selectedZone === zone.id && (
-                                        <Target className="w-12 h-12 text-primary animate-in fade-in zoom-in" />
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                    {/* Game Area */}
+                    <div className="lg:col-span-2 flex flex-col items-center justify-center space-y-4">
+                        <Card className="w-full max-w-2xl aspect-[4/3] relative overflow-hidden bg-green-600">
+                            {assetsLoading ? (
+                                <Skeleton className="absolute inset-0" />
+                            ) : (
+                                <>
+                                    <Image
+                                        src={gameAssets.background as string}
+                                        alt="Campo de futbol"
+                                        fill
+                                        className="object-cover"
+                                        priority
+                                    />
+                                    {/* Goalkeeper */}
+                                    {keeperImage && (
+                                        <div
+                                            className="absolute w-32 h-32 transition-all duration-300 ease-out"
+                                            style={keeperStyle}
+                                        >
+                                            <Image
+                                                src={keeperImage}
+                                                alt="Goalkeeper"
+                                                width={128}
+                                                height={128}
+                                                className="drop-shadow-lg"
+                                            />
+                                        </div>
                                     )}
-                                 </div>
-                             </div>
-                        ))}
-                         {shotResult && selectedZone && shotResult !== 'miss' && (
-                            <div className={cn("absolute w-16 h-16 -translate-x-1/2 -translate-y-1/2 rounded-full", shotResult === 'goal' ? 'bg-green-500/40' : 'bg-red-500/40')} style={goalZones.find(z => z.id === selectedZone)?.position}></div>
-                         )}
-
-
-                         {/* Result text */}
-                        {gameState === 'finished' && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                                <h2 className={cn("text-6xl font-bold font-headline animate-in zoom-in", shotResult === 'goal' ? 'text-green-400' : 'text-red-500')}>
-                                    {getResultText()}
-                                </h2>
-                            </div>
-                        )}
-                    </Card>
-                    
-                    {/* DEV CONTROLS */}
-                    {isAdmin && (
-                        <Card className='w-full max-w-2xl'>
-                            <CardHeader>
-                                <CardTitle className='text-base'>Controles de Desarrollo</CardTitle>
-                                <CardDescription className='text-xs'>Ajusta la posición y escala de los elementos.</CardDescription>
-                            </CardHeader>
-                            <CardContent className='space-y-4'>
-                                <form action={saveAction} className='space-y-6'>
-                                    <input type="hidden" name="keeperTop" value={keeperTop} />
-                                    <input type="hidden" name="keeperLeft" value={keeperLeft} />
-                                    <input type="hidden" name="keeperScale" value={keeperScale} />
-                                    <input type="hidden" name="ballTop" value={ballTop} />
-                                    <input type="hidden" name="ballLeft" value={ballLeft} />
-                                    <input type="hidden" name="ballScale" value={ballScale} />
-                                    <div className='grid grid-cols-2 gap-4'>
-                                        <div className='space-y-3 p-3 border rounded-lg'>
-                                            <Label className='font-semibold'>Portero</Label>
-                                            <div className='space-y-1'>
-                                                <Label htmlFor="keeper-top" className='text-xs'>Posición Y: {keeperTop}</Label>
-                                                <Slider id="keeper-top" value={[keeperTop]} onValueChange={(v) => setKeeperTop(v[0])} max={100} step={1} />
-                                            </div>
-                                            <div className='space-y-1'>
-                                                <Label htmlFor="keeper-left" className='text-xs'>Posición X: {keeperLeft}</Label>
-                                                <Slider id="keeper-left" value={[keeperLeft]} onValueChange={(v) => setKeeperLeft(v[0])} max={100} step={1} />
-                                            </div>
-                                            <div className='space-y-1'>
-                                                <Label htmlFor="keeper-scale" className='text-xs'>Escala: {keeperScale}</Label>
-                                                <Slider id="keeper-scale" value={[keeperScale]} onValueChange={(v) => setKeeperScale(v[0])} max={3} step={0.1} />
-                                            </div>
-                                        </div>
-                                        <div className='space-y-3 p-3 border rounded-lg'>
-                                            <Label className='font-semibold'>Balón</Label>
-                                            <div className='space-y-1'>
-                                                <Label htmlFor="ball-top" className='text-xs'>Posición Y: {ballTop}</Label>
-                                                <Slider id="ball-top" value={[ballTop]} onValueChange={(v) => setBallTop(v[0])} max={100} step={1} />
-                                            </div>
-                                            <div className='space-y-1'>
-                                                <Label htmlFor="ball-left" className='text-xs'>Posición X: {ballLeft}</Label>
-                                                <Slider id="ball-left" value={[ballLeft]} onValueChange={(v) => setBallLeft(v[0])} max={100} step={1} />
-                                            </div>
-                                            <div className='space-y-1'>
-                                                <Label htmlFor="ball-scale" className='text-xs'>Escala: {ballScale}</Label>
-                                                <Slider id="ball-scale" value={[ballScale]} onValueChange={(v) => setBallScale(v[0])} max={3} step={0.1} />
-                                            </div>
-                                        </div>
+                                    {/* Ball */}
+                                    <div className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
+                                        style={getBallStyle()} >
+                                        <Image src={gameAssets.ball as string} alt="Balón de fútbol" fill className="object-contain" />
                                     </div>
-                                    <Button type="submit" disabled={isSaving} className='w-full'>
-                                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                        Guardar Posiciones
-                                    </Button>
-                                </form>
-                            </CardContent>
+                                </>
+                            )}
+                            
+                            {/* Zones */}
+                            {gameState === 'betting' && selectedMultiplier && goalZones.map(zone => (
+                                <div
+                                    key={zone.id}
+                                    id={`zone-${zone.id}`}
+                                    onClick={() => gameState === 'betting' && setSelectedZone(zone.id)}
+                                    className="absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer flex items-center justify-center"
+                                    style={zone.position}
+                                >
+                                    <div className={cn("w-full h-full transition-all bg-yellow-400/20 hover:bg-yellow-400/40 rounded-full",
+                                        selectedZone === zone.id ? 'bg-transparent' : ''
+                                    )}>
+                                        {selectedZone === zone.id && (
+                                            <Target className="w-12 h-12 text-primary animate-in fade-in zoom-in" />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {shotResult && selectedZone && shotResult !== 'miss' && (
+                                <div className={cn("absolute w-16 h-16 -translate-x-1/2 -translate-y-1/2 rounded-full", shotResult === 'goal' ? 'bg-green-500/40' : 'bg-red-500/40')} style={goalZones.find(z => z.id === selectedZone)?.position}></div>
+                            )}
+
+
+                            {/* Result text */}
+                            {gameState === 'finished' && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                                    <h2 className={cn("text-6xl font-bold font-headline animate-in zoom-in", shotResult === 'goal' ? 'text-green-400' : 'text-red-500')}>
+                                        {getResultText()}
+                                    </h2>
+                                </div>
+                            )}
                         </Card>
-                    )}
-
-                </div>
-
-                {/* Control Panel */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Coloca tu Apuesta</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className='space-y-2'>
-                            <Label>1. Elige un monto</Label>
-                            <div className="grid grid-cols-4 gap-2">
-                                <Button size="sm" variant="outline" onClick={() => setBetAmount('1.00')} disabled={gameState !== 'betting'}>$1</Button>
-                                <Button size="sm" variant="outline" onClick={() => setBetAmount('2.00')} disabled={gameState !== 'betting'}>$2</Button>
-                                <Button size="sm" variant="outline" onClick={() => setBetAmount('5.00')} disabled={gameState !== 'betting'}>$5</Button>
-                                <Button size="sm" variant="outline" onClick={() => setBetAmount('10.00')} disabled={gameState !== 'betting'}>$10</Button>
-                            </div>
-                             <div className="flex gap-2">
-                                <Input 
-                                    type="number" 
-                                    value={betAmount} 
-                                    onChange={(e) => setBetAmount(e.target.value)}
-                                    placeholder="1.00"
-                                    className='text-base font-bold'
-                                    disabled={gameState !== 'betting'}
-                                />
-                                <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState !== 'betting'}>½</Button>
-                                <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting'}>2x</Button>
-                            </div>
-                        </div>
-
-                         <div className='space-y-2'>
-                            <Label>2. Elige tu Riesgo/Premio</Label>
-                            <div className="grid grid-cols-4 gap-2">
-                                {multiplierOptions.map(opt => (
-                                    <Button
-                                        key={opt.multiplier}
-                                        variant={selectedMultiplier === opt.multiplier ? 'secondary' : 'outline'}
-                                        onClick={() => setSelectedMultiplier(opt.multiplier)}
-                                        disabled={gameState !== 'betting'}
-                                        className="h-auto py-2 flex-col"
-                                    >
-                                        <span className="font-bold">{opt.multiplier}x</span>
-                                        <span className="text-xs text-muted-foreground">{opt.displayChance * 100}%</span>
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className='space-y-2'>
-                            <Label className={cn(!selectedMultiplier && 'text-muted-foreground')}>3. Elige una zona para disparar</Label>
-                            <div className="grid grid-cols-3 gap-2">
-                                {goalZones.map(zone => (
-                                    <Button
-                                        key={zone.id}
-                                        variant={selectedZone === zone.id ? 'secondary' : 'outline'}
-                                        onClick={() => setSelectedZone(zone.id)}
-                                        disabled={gameState !== 'betting' || !selectedMultiplier}
-                                        className="h-auto py-2 flex-col"
-                                    >
-                                        <Target className="h-5 w-5 mb-1" />
-                                        <span className="text-xs">{zone.name}</span>
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
                         
-                        <div className="text-center bg-secondary p-3 rounded-md space-y-2">
-                            <div className='grid grid-cols-2 gap-2'>
-                                <div className='text-left'>
-                                    <p className="text-sm text-muted-foreground">Posible Ganancia</p>
-                                    <p className="text-xl font-bold text-green-400">
-                                        {selectedMultiplierData ? `+$${(parseFloat(betAmount) * selectedMultiplierData.multiplier).toFixed(2)}` : '-'}
-                                    </p>
-                                </div>
-                                <div className='text-right'>
-                                    <p className="text-sm text-muted-foreground">Posible Pérdida</p>
-                                    <p className="text-xl font-bold text-red-500">
-                                        {selectedMultiplierData ? `-$${(parseFloat(betAmount) * selectedMultiplierData.multiplier).toFixed(2)}` : '-'}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="text-xs text-amber-500/80 font-semibold flex items-center justify-center gap-1 border-t border-border pt-2">
-                                <AlertTriangle className='h-3 w-3' />
-                                ¡Atención! Una pérdida cuesta el PREMIO POTENCIAL.
-                            </div>
-                        </div>
+                        {/* DEV CONTROLS */}
+                        {isAdmin && (
+                            <Card className='w-full max-w-2xl'>
+                                <CardHeader>
+                                    <CardTitle className='text-base'>Controles de Desarrollo</CardTitle>
+                                    <CardDescription className='text-xs'>Ajusta la posición y escala de los elementos.</CardDescription>
+                                </CardHeader>
+                                <CardContent className='space-y-4'>
+                                    <form action={saveAction} className='space-y-6'>
+                                        <input type="hidden" name="keeperTop" value={keeperTop} />
+                                        <input type="hidden" name="keeperLeft" value={keeperLeft} />
+                                        <input type="hidden" name="keeperScale" value={keeperScale} />
+                                        <input type="hidden" name="ballTop" value={ballTop} />
+                                        <input type="hidden" name="ballLeft" value={ballLeft} />
+                                        <input type="hidden" name="ballScale" value={ballScale} />
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-3 p-3 border rounded-lg'>
+                                                <Label className='font-semibold'>Portero</Label>
+                                                <div className='space-y-1'>
+                                                    <Label htmlFor="keeper-top" className='text-xs'>Posición Y: {keeperTop}</Label>
+                                                    <Slider id="keeper-top" value={[keeperTop]} onValueChange={(v) => setKeeperTop(v[0])} max={100} step={1} />
+                                                </div>
+                                                <div className='space-y-1'>
+                                                    <Label htmlFor="keeper-left" className='text-xs'>Posición X: {keeperLeft}</Label>
+                                                    <Slider id="keeper-left" value={[keeperLeft]} onValueChange={(v) => setKeeperLeft(v[0])} max={100} step={1} />
+                                                </div>
+                                                <div className='space-y-1'>
+                                                    <Label htmlFor="keeper-scale" className='text-xs'>Escala: {keeperScale}</Label>
+                                                    <Slider id="keeper-scale" value={[keeperScale]} onValueChange={(v) => setKeeperScale(v[0])} max={3} step={0.1} />
+                                                </div>
+                                            </div>
+                                            <div className='space-y-3 p-3 border rounded-lg'>
+                                                <Label className='font-semibold'>Balón</Label>
+                                                <div className='space-y-1'>
+                                                    <Label htmlFor="ball-top" className='text-xs'>Posición Y: {ballTop}</Label>
+                                                    <Slider id="ball-top" value={[ballTop]} onValueChange={(v) => setBallTop(v[0])} max={100} step={1} />
+                                                </div>
+                                                <div className='space-y-1'>
+                                                    <Label htmlFor="ball-left" className='text-xs'>Posición X: {ballLeft}</Label>
+                                                    <Slider id="ball-left" value={[ballLeft]} onValueChange={(v) => setBallLeft(v[0])} max={100} step={1} />
+                                                </div>
+                                                <div className='space-y-1'>
+                                                    <Label htmlFor="ball-scale" className='text-xs'>Escala: {ballScale}</Label>
+                                                    <Slider id="ball-scale" value={[ballScale]} onValueChange={(v) => setBallScale(v[0])} max={3} step={0.1} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Button type="submit" disabled={isSaving} className='w-full'>
+                                            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                            Guardar Posiciones
+                                        </Button>
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        )}
 
-                        <div className='space-y-2'>
-                            <Label className={cn(!selectedZone && 'text-muted-foreground')}>4. Potencia tu Disparo</Label>
-                            <Progress value={shotPower} className="w-full" />
-                            <Button
-                                size="lg"
-                                className="w-full h-12 text-lg"
-                                onMouseDown={startPowering}
-                                onMouseUp={releasePower}
-                                onMouseLeave={releasePower}
-                                onTouchStart={(e) => { e.preventDefault(); startPowering(); }}
-                                onTouchEnd={(e) => { e.preventDefault(); releasePower(); }}
-                                disabled={gameState === 'shooting' || !selectedZone || !selectedMultiplier}
-                            >
-                                {gameState === 'powering' && `Potencia: ${Math.round(shotPower)}%`}
-                                {gameState === 'betting' && 'Mantén para Patear'}
-                                {gameState === 'shooting' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {gameState === 'finished' && 'Ronda Terminada'}
-                            </Button>
-                            <p className='text-xs text-muted-foreground text-center'>Si la potencia supera el 50%, hay un 20% de riesgo de que el tiro se vaya fuera.</p>
-                        </div>
-                    </CardContent>
-                </Card>
+                    </div>
+
+                    {/* Control Panel */}
+                    <Card>
+                        <CardHeader className="flex-row items-center justify-between">
+                            <CardTitle>Coloca tu Apuesta</CardTitle>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                    <Info className="mr-2 h-4 w-4" />
+                                    Indicaciones
+                                </Button>
+                            </DialogTrigger>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className='space-y-2'>
+                                <Label>1. Elige un monto</Label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    <Button size="sm" variant="outline" onClick={() => setBetAmount('1.00')} disabled={gameState !== 'betting'}>$1</Button>
+                                    <Button size="sm" variant="outline" onClick={() => setBetAmount('2.00')} disabled={gameState !== 'betting'}>$2</Button>
+                                    <Button size="sm" variant="outline" onClick={() => setBetAmount('5.00')} disabled={gameState !== 'betting'}>$5</Button>
+                                    <Button size="sm" variant="outline" onClick={() => setBetAmount('10.00')} disabled={gameState !== 'betting'}>$10</Button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        type="number" 
+                                        value={betAmount} 
+                                        onChange={(e) => setBetAmount(e.target.value)}
+                                        placeholder="1.00"
+                                        className='text-base font-bold'
+                                        disabled={gameState !== 'betting'}
+                                    />
+                                    <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState !== 'betting'}>½</Button>
+                                    <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting'}>2x</Button>
+                                </div>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label>2. Elige tu Riesgo/Premio</Label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {multiplierOptions.map(opt => (
+                                        <Button
+                                            key={opt.multiplier}
+                                            variant={selectedMultiplier === opt.multiplier ? 'secondary' : 'outline'}
+                                            onClick={() => setSelectedMultiplier(opt.multiplier)}
+                                            disabled={gameState !== 'betting'}
+                                            className="h-auto py-2 flex-col"
+                                        >
+                                            <span className="font-bold">{opt.multiplier}x</span>
+                                            <span className="text-xs text-muted-foreground">{opt.displayChance * 100}%</span>
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label className={cn(!selectedMultiplier && 'text-muted-foreground')}>3. Elige una zona para disparar</Label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {goalZones.map(zone => (
+                                        <Button
+                                            key={zone.id}
+                                            variant={selectedZone === zone.id ? 'secondary' : 'outline'}
+                                            onClick={() => setSelectedZone(zone.id)}
+                                            disabled={gameState !== 'betting' || !selectedMultiplier}
+                                            className="h-auto py-2 flex-col"
+                                        >
+                                            <Target className="h-5 w-5 mb-1" />
+                                            <span className="text-xs">{zone.name}</span>
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="text-center bg-secondary p-3 rounded-md space-y-2">
+                                <div className='grid grid-cols-2 gap-2'>
+                                    <div className='text-left'>
+                                        <p className="text-sm text-muted-foreground">Posible Ganancia</p>
+                                        <p className="text-xl font-bold text-green-400">
+                                            {selectedMultiplierData ? `+$${(parseFloat(betAmount) * selectedMultiplierData.multiplier).toFixed(2)}` : '-'}
+                                        </p>
+                                    </div>
+                                    <div className='text-right'>
+                                        <p className="text-sm text-muted-foreground">Posible Pérdida</p>
+                                        <p className="text-xl font-bold text-red-500">
+                                            {selectedMultiplierData ? `-$${(parseFloat(betAmount) * selectedMultiplierData.multiplier).toFixed(2)}` : '-'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-xs text-amber-500/80 font-semibold flex items-center justify-center gap-1 border-t border-border pt-2">
+                                    <AlertTriangle className='h-3 w-3' />
+                                    ¡Atención! Una pérdida cuesta el PREMIO POTENCIAL.
+                                </div>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label className={cn(!selectedZone && 'text-muted-foreground')}>4. Potencia tu Disparo</Label>
+                                <Progress value={shotPower} className="w-full" />
+                                <Button
+                                    size="lg"
+                                    className="w-full h-12 text-lg"
+                                    onMouseDown={startPowering}
+                                    onMouseUp={releasePower}
+                                    onMouseLeave={releasePower}
+                                    onTouchStart={(e) => { e.preventDefault(); startPowering(); }}
+                                    onTouchEnd={(e) => { e.preventDefault(); releasePower(); }}
+                                    disabled={gameState === 'shooting' || !selectedZone || !selectedMultiplier}
+                                >
+                                    {gameState === 'powering' && `Potencia: ${Math.round(shotPower)}%`}
+                                    {gameState === 'betting' && 'Mantén para Patear'}
+                                    {gameState === 'shooting' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {gameState === 'finished' && 'Ronda Terminada'}
+                                </Button>
+                                <p className='text-xs text-muted-foreground text-center'>Si la potencia supera el 50%, hay un 20% de riesgo de que el tiro se vaya fuera.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </div>
+
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Cómo Jugar a la Tanda de Penales</DialogTitle>
+                    <DialogDescription>Sigue estos pasos para probar tu suerte y habilidad.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 text-sm text-muted-foreground py-4">
+                    <p>
+                        <strong>Paso 1: Elige tu Apuesta</strong><br/>
+                        Usa los botones rápidos o introduce un monto personalizado para definir cuánto quieres apostar en esta ronda.
+                    </p>
+                    <p>
+                        <strong>Paso 2: Selecciona el Riesgo</strong><br/>
+                        Elige un multiplicador (2x, 3x, 4x, o 5x). A mayor multiplicador, mayor será el premio si ganas, pero menor será tu probabilidad de marcar el gol. ¡La pérdida también será mayor!
+                    </p>
+                    <p>
+                        <strong>Paso 3: Elige la Zona</strong><br/>
+                        Selecciona a qué parte de la portería quieres disparar. La probabilidad de éxito no cambia según la zona, solo depende del riesgo que elegiste en el paso anterior.
+                    </p>
+                     <p>
+                        <strong>Paso 4: Potencia tu Disparo</strong><br/>
+                        Mantén presionado el botón "Mantén para Patear" para cargar potencia. Si la barra de potencia supera el 50%, tienes un 20% de riesgo de que el tiro se vaya fuera y pierdas automáticamente.
+                    </p>
+                    <div className="p-3 bg-secondary rounded-md">
+                        <h4 className="font-semibold text-foreground mb-2">Reglas Clave</h4>
+                        <ul className="list-disc list-inside space-y-1">
+                            <li><strong>Si marcas GOL:</strong> Ganas `Monto Apostado × Multiplicador Elegido`.</li>
+                            <li><strong>Si el portero ATAJA o el tiro se va FUERA:</strong> Pierdes `Monto Apostado × Multiplicador Elegido`.</li>
+                        </ul>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 }
-
 
     
