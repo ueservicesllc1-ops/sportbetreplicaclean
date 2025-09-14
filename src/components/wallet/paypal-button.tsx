@@ -1,91 +1,141 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
-import { PayPalScriptProvider, PayPalButtons, type OnApproveData, type CreateOrderData } from "@paypal/react-paypal-js";
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-// Using the LIVE Client ID directly in the component for reliability.
-// This is a public key and is safe to be exposed in client-side code.
 const PAYPAL_CLIENT_ID = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
+const PAYPAL_SCRIPT_ID = "paypal-sdk-script";
 
 interface PaypalButtonProps {
   amount: number;
   onPaymentSuccess: () => void;
 }
 
-function PayPalButtonsComponent({ amount, onPaymentSuccess }: PaypalButtonProps) {
+declare global {
+  interface Window {
+    paypal?: any;
+  }
+}
+
+export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [scriptLoaded, setScriptLoaded] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleCreateOrder = async (data: CreateOrderData, actions: any) => {
-        setError(null);
-        if (amount <= 0) {
-            const errMessage = 'El monto a depositar debe ser mayor a cero.';
-            toast({ variant: 'destructive', title: 'Monto Inválido', description: errMessage });
-            setError(errMessage);
-            throw new Error(errMessage);
-        }
-        try {
-            const order = await createOrder(amount);
-            if (order.id) {
-                return order.id;
-            }
-            const errorDetail = order.details?.[0] || { issue: 'UNKNOWN_ERROR', description: 'No se pudo crear la orden en el servidor.' };
-            toast({ variant: 'destructive', title: `Error de PayPal: ${errorDetail.issue}`, description: errorDetail.description });
-            setError(errorDetail.description);
-            throw new Error(errorDetail.description);
-        } catch (err: any) {
-            console.error("Create Order Error:", err);
-            setError(err.message || 'Error desconocido al crear la orden.');
-            throw err;
-        }
-    };
-    
-    const handleOnApprove = async (data: OnApproveData, actions: any) => {
-        setIsProcessing(true);
-        setError(null);
-        if (!user) {
-            const errMessage = 'No se encontró el usuario para acreditar el saldo.';
-            toast({ variant: 'destructive', title: 'Error de Autenticación', description: errMessage });
-            setError(errMessage);
-            setIsProcessing(false);
-            return;
-        }
+    const paypalButtonsRef = useRef<HTMLDivElement>(null);
 
-        try {
-            const result = await captureOrder(data.orderID, user.uid);
-            if (result.success) {
-                toast({
-                    title: '¡Depósito Exitoso!',
-                    description: `Se han añadido $${amount.toFixed(2)} a tu saldo.`,
-                    className: 'bg-green-600 border-green-600 text-white'
-                });
-                onPaymentSuccess();
-            } else {
-                throw new Error(result.message);
+    useEffect(() => {
+        // Function to load the PayPal script
+        const addPaypalScript = () => {
+            if (window.paypal) {
+                setScriptLoaded(true);
+                return;
             }
-        } catch (err: any) {
-            const errMessage = err.message || 'Ocurrió un error inesperado al procesar el pago.';
-            toast({ variant: 'destructive', title: 'Error en la Captura del Pago', description: errMessage });
-            setError(errMessage);
-        } finally {
-            setIsProcessing(false);
-        }
-    };
+            
+            const script = document.createElement("script");
+            script.id = PAYPAL_SCRIPT_ID;
+            script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&intent=capture`;
+            script.async = true;
 
-    const handleOnError = (err: any) => {
-        console.error("PayPal Buttons Error:", err);
-        const errMessage = 'Ocurrió un error con la interfaz de PayPal. Por favor, revisa la consola para más detalles o intenta de nuevo.';
-        toast({ variant: 'destructive', title: 'Error en el Pago', description: errMessage });
-        setError(errMessage);
-    };
+            script.onload = () => {
+                setScriptLoaded(true);
+            };
+
+            script.onerror = () => {
+                 setError("No se pudo cargar el script de PayPal. Por favor, revisa tu conexión o intenta más tarde.");
+            };
+
+            document.body.appendChild(script);
+        };
+
+        addPaypalScript();
+
+        // Cleanup function to remove script if component unmounts
+        return () => {
+            const script = document.getElementById(PAYPAL_SCRIPT_ID);
+            if (script) {
+                // document.body.removeChild(script);
+            }
+        };
+    }, []);
+
+
+    useEffect(() => {
+        if (scriptLoaded && paypalButtonsRef.current && window.paypal) {
+            // Clear previous buttons before rendering new ones
+            paypalButtonsRef.current.innerHTML = "";
+
+            try {
+                window.paypal.Buttons({
+                    createOrder: async () => {
+                        setError(null);
+                        if (amount <= 0) {
+                            const errMessage = 'El monto a depositar debe ser mayor a cero.';
+                            toast({ variant: 'destructive', title: 'Monto Inválido', description: errMessage });
+                            setError(errMessage);
+                            throw new Error(errMessage);
+                        }
+                        try {
+                            const order = await createOrder(amount);
+                            if (order.id) {
+                                return order.id;
+                            }
+                             const errorDetail = order.details?.[0] || { issue: 'UNKNOWN_ERROR', description: 'No se pudo crear la orden en el servidor.' };
+                            throw new Error(errorDetail.description);
+                        } catch (err: any) {
+                             console.error("Create Order Error:", err);
+                             setError(err.message || 'Error desconocido al crear la orden.');
+                             throw err;
+                        }
+                    },
+                    onApprove: async (data: { orderID: string }) => {
+                        setIsProcessing(true);
+                        setError(null);
+                        if (!user) {
+                             setError('No se encontró el usuario para acreditar el saldo.');
+                            setIsProcessing(false);
+                            return;
+                        }
+
+                        try {
+                            const result = await captureOrder(data.orderID, user.uid);
+                            if (result.success) {
+                                toast({
+                                    title: '¡Depósito Exitoso!',
+                                    description: `Se han añadido $${amount.toFixed(2)} a tu saldo.`,
+                                    className: 'bg-green-600 border-green-600 text-white'
+                                });
+                                onPaymentSuccess();
+                            } else {
+                                throw new Error(result.message);
+                            }
+                        } catch (err: any) {
+                            const errMessage = err.message || 'Ocurrió un error inesperado al procesar el pago.';
+                            toast({ variant: 'destructive', title: 'Error en la Captura del Pago', description: errMessage });
+                            setError(errMessage);
+                        } finally {
+                            setIsProcessing(false);
+                        }
+                    },
+                    onError: (err: any) => {
+                        console.error("PayPal Buttons Error:", err);
+                        setError('Ocurrió un error con la interfaz de PayPal.');
+                    }
+                }).render(paypalButtonsRef.current);
+            } catch (err) {
+                 console.error("Failed to render PayPal Buttons", err);
+                 setError("Error al renderizar los botones de PayPal.");
+            }
+        }
+    }, [scriptLoaded, amount, user, onPaymentSuccess, toast]);
+
 
     return (
         <div className="relative min-h-[120px]">
@@ -95,40 +145,22 @@ function PayPalButtonsComponent({ amount, onPaymentSuccess }: PaypalButtonProps)
                     <p className="text-sm text-muted-foreground">Procesando pago...</p>
                 </div>
             )}
-             {error && (
+            
+            {error && (
                 <Alert variant="destructive" className="mb-4">
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
-            <PayPalButtons
-                style={{ layout: "vertical", color: 'black', shape: 'rect', label: 'pay' }}
-                createOrder={handleCreateOrder}
-                onApprove={handleOnApprove}
-                onError={handleOnError}
-                disabled={isProcessing || amount <= 0}
-                forceReRender={[amount]} 
-            />
+
+            {!scriptLoaded && !error && (
+                <div className="flex items-center justify-center h-full">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+            )}
+
+            <div ref={paypalButtonsRef} className={cn(isProcessing ? "pointer-events-none opacity-50" : "")} />
         </div>
     );
 }
 
-
-export function PaypalButton(props: PaypalButtonProps) {
-     if (!PAYPAL_CLIENT_ID) {
-        return (
-             <Alert variant="destructive">
-                <AlertTitle>Error de Configuración de PayPal</AlertTitle>
-                <AlertDescription>
-                    El Client ID de PayPal no está configurado en el componente.
-                </AlertDescription>
-            </Alert>
-        );
-    }
-    
-    return (
-        <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: "USD", intent: "capture" }}>
-            <PayPalButtonsComponent {...props} />
-        </PayPalScriptProvider>
-    );
-}
