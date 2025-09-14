@@ -62,7 +62,7 @@ function DepositArea() {
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
             <div className='space-y-4'>
                  <Button onClick={openPayPal} className="w-full bg-[#0070BA] hover:bg-[#005ea6] text-white">
-                    Pagar con PayPal
+                    Recargar
                 </Button>
                  <Separator />
                 <Button variant="outline" className="w-full justify-start gap-2">
