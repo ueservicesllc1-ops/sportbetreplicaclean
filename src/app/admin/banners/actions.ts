@@ -52,7 +52,7 @@ export async function deleteBanner(bannerId: string) {
 
         // Delete from storage if imagePath exists (for manually uploaded images in the future)
         if(imagePath){
-             const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+             const bucketName = 'studio-3302383355-1ea39.appspot.com';
             if (bucketName) {
                 try {
                     const admin = getFirebaseAdmin();
