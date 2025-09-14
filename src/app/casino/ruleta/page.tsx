@@ -18,15 +18,17 @@ import { Progress } from '@/components/ui/progress';
 const segments: WheelSegment[] = [
   { color: '#dc2626', label: '2x', value: 2 }, // red
   { color: '#000000', label: '0x', value: 0 }, // black
+  { color: '#16a34a', label: '1.1x', value: 1.1 }, // green (new)
+  { color: '#000000', label: '0x', value: 0 },
   { color: '#16a34a', label: '2x', value: 2 }, // green
   { color: '#000000', label: '0x', value: 0 },
   { color: '#dc2626', label: '3x', value: 3 },
   { color: '#000000', label: '0x', value: 0 },
   { color: '#16a34a', label: '2x', value: 2 },
   { color: '#000000', label: '0x', value: 0 },
-  { color: '#dc2626', label: '5x', value: 5 },
+  { color: '#dc2626', label: '1.3x', value: 1.3 }, // red (new)
   { color: '#000000', label: '0x', value: 0 },
-  { color: '#16a34a', label: '2x', value: 2 },
+  { color: '#dc2626', label: '5x', value: 5 },
   { color: '#000000', label: '0x', value: 0 },
   { color: '#facc15', label: '10x', value: 10 }, // yellow
   { color: '#000000', label: '0x', value: 0 },
