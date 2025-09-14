@@ -69,9 +69,17 @@ export default function RuletaPage() {
 
     }, [winningIndex, spinPower])
 
+    // Effect to auto-spin when power reaches 100
+    useEffect(() => {
+        if (spinPower >= 100 && gameState === 'charging') {
+            if (powerIntervalRef.current) clearInterval(powerIntervalRef.current);
+            handleSpin();
+        }
+    }, [spinPower, gameState]);
+
 
     const startCharging = () => {
-        if (gameState !== 'betting') return;
+        if (gameState !== 'betting' || isSubmitting) return;
         setGameState('charging');
         powerIntervalRef.current = setInterval(() => {
             setSpinPower(prev => Math.min(100, prev + 1));
@@ -86,25 +94,31 @@ export default function RuletaPage() {
         } else {
             setGameState('betting');
         }
-        setSpinPower(0);
+        // Don't reset power here, handleSpin will do it
     }
 
 
     const handleSpin = async () => {
+        // Prevent double spins
+        if (isSubmitting || gameState === 'spinning') return;
+
         if (!user) {
             toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para apostar.' });
             setGameState('betting');
+            setSpinPower(0);
             return;
         }
         if (!selectedColor) {
             toast({ variant: 'destructive', title: 'Error', description: 'Debes seleccionar un color para apostar.' });
             setGameState('betting');
+            setSpinPower(0);
             return;
         }
         const amount = parseFloat(betAmount);
         if (isNaN(amount) || amount <= 0) {
             toast({ variant: 'destructive', title: 'Error', description: 'Introduce un monto de apuesta válido.' });
             setGameState('betting');
+            setSpinPower(0);
             return;
         }
 
@@ -149,6 +163,7 @@ export default function RuletaPage() {
                     setGameState('betting');
                     setIsSubmitting(false);
                     setWinningIndex(null);
+                    setSpinPower(0);
                 }, 3000);
 
             }, 4000); // Corresponds to the transition duration
@@ -159,6 +174,7 @@ export default function RuletaPage() {
             setGameState('betting');
             setIsSubmitting(false);
             setWinningIndex(null);
+            setSpinPower(0);
         }
     };
 
@@ -276,3 +292,5 @@ export default function RuletaPage() {
         </div>
     );
 }
+
+    
