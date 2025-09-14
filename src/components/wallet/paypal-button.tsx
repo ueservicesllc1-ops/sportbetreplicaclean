@@ -9,11 +9,8 @@ import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-
-// --- Hardcoded Public Client ID (LIVE) ---
-// This is a public key, safe to be in client-side code.
-const PAYPAL_CLIENT_ID = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
-
+// This is your LIVE production key. It is safe to have this in client-side code.
+const PAYPAL_CLIENT_ID = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
 
 interface PayPalButtonsComponentProps {
     amount: number;
@@ -83,8 +80,7 @@ const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsCompo
 
     const onError = (err: any) => {
         console.error("PayPal Buttons Error:", err);
-        // This error can happen due to browser session issues.
-        if (err && err.message && err.message.includes('global_session_not_found')) {
+         if (err && err.message && (err.message.includes('global_session_not_found') || err.message.includes('CHECKOUT_SESSION_NOT_FOUND'))) {
              toast({
                 variant: 'destructive',
                 title: 'Error de Sesión de PayPal',
@@ -131,7 +127,7 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
             <Alert variant="destructive">
                 <AlertTitle>Error de Configuración de PayPal</AlertTitle>
                 <AlertDescription>
-                    El Client ID de PayPal no está configurado correctamente.
+                    La constante PAYPAL_CLIENT_ID no está definida en el componente.
                 </AlertDescription>
             </Alert>
         );
@@ -143,4 +139,3 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
         </PayPalScriptProvider>
     );
 }
-
