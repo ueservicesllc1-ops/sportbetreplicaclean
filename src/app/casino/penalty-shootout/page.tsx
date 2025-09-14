@@ -81,8 +81,10 @@ export default function PenaltyShootoutPage() {
     const [keeperStyle, setKeeperStyle] = useState(initialKeeperStyle);
 
     useEffect(() => {
-        setKeeperStyle({ top: `${keeperTop}%`, left: `${keeperLeft}%`, transform: `translateX(-50%) scale(${keeperScale})` });
-    }, [keeperTop, keeperLeft, keeperScale]);
+        if (gameState === 'betting') {
+            setKeeperStyle({ top: `${keeperTop}%`, left: `${keeperLeft}%`, transform: `translateX(-50%) scale(${keeperScale})` });
+        }
+    }, [keeperTop, keeperLeft, keeperScale, gameState]);
     
 
      useEffect(() => {
@@ -126,20 +128,27 @@ export default function PenaltyShootoutPage() {
         try {
             await placePenaltyBet(user.uid, amount);
 
-            const targetPosition = goalZones.find(z => z.id === selectedZone)!.position;
-
             const isGoal = Math.random() < GOAL_CHANCE;
             const keeperTargetZoneId = isGoal 
                 ? goalZones.find(z => z.id !== selectedZone)!.id 
                 : selectedZone;
             
+            if (!keeperTargetZoneId) return;
+
             const keeperTargetPosition = goalZones.find(z => z.id === keeperTargetZoneId)!.position;
             
+            let rotationAngle = 0;
+            if ([1, 4].includes(keeperTargetZoneId)) { // Left zones
+                rotationAngle = -20;
+            } else if ([2, 5].includes(keeperTargetZoneId)) { // Right zones
+                rotationAngle = 20;
+            }
+
             setKeeperStyle(prev => ({
                 ...prev,
                 top: keeperTargetPosition.top,
                 left: keeperTargetPosition.left,
-                transform: `translateX(-50%) translateY(-50%) scale(${keeperScale * 1.1})`
+                transform: `translateX(-50%) translateY(-50%) scale(${keeperScale * 1.1}) rotate(${rotationAngle}deg)`
             }));
 
 
@@ -166,7 +175,6 @@ export default function PenaltyShootoutPage() {
                 
                 setTimeout(() => {
                     setGameState('betting');
-                    setKeeperStyle(initialKeeperStyle);
                     setSelectedZone(null);
                 }, 3000);
 
