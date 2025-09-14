@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Landmark, ShieldCheck, ShieldAlert, Bitcoin, Copy } from 'lucide-react';
+import { Loader2, Landmark, ShieldCheck, ShieldAlert, Bitcoin, Copy, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
