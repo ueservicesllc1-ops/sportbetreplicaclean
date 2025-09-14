@@ -46,7 +46,7 @@ export default function PenaltyShootoutPage() {
     const [shotResult, setShotResult] = useState<ShotResult | null>(null);
     const [ballPosition, setBallPosition] = useState({ x: '50%', y: '85%' });
     const [keeperStyle, setKeeperStyle] = useState({
-        top: '40%',
+        top: '35%',
         left: '50%',
         transform: 'translateX(-50%) scale(0.9)',
     });
@@ -134,7 +134,7 @@ export default function PenaltyShootoutPage() {
                     setGameState('betting');
                     setBallPosition({ x: '50%', y: '85%' });
                     setKeeperStyle({
-                        top: '40%',
+                        top: '35%',
                         left: '50%',
                         transform: 'translateX(-50%) scale(0.9)',
                     });
@@ -323,5 +323,7 @@ export default function PenaltyShootoutPage() {
     
 
 
+
+    
 
     
