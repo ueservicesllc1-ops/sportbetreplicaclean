@@ -21,13 +21,16 @@ const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
 const PAYPAL_ACTION_URL = 'https://www.paypal.com/ncp/payment/48XSRX2BKGNCE';
 
 // Custom PayPal button component to safely render the form
-function PayPalButton() {
+function PayPalButton({ depositAmount }: { depositAmount: number | string }) {
     return (
         <form action={PAYPAL_ACTION_URL} method="post" target="_blank" className="inline-grid justify-items-center items-center gap-2 w-full">
+            <input type="hidden" name="amount" value={depositAmount} />
+            <input type="hidden" name="currency_code" value="USD" />
             <input 
                 type="submit" 
                 value="Comprar ahora" 
                 className="text-center border-none rounded-md min-w-[11.625rem] px-8 h-[2.625rem] font-bold bg-[#FFD140] text-black font-sans text-base leading-5 cursor-pointer w-full"
+                disabled={!depositAmount || Number(depositAmount) <= 0}
             />
             <Image 
                 src="https://www.paypalobjects.com/images/Debit_Credit_APM.svg" 
@@ -86,7 +89,7 @@ function DepositArea() {
             </div>
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
             <div className='space-y-4'>
-                 <PayPalButton />
+                 <PayPalButton depositAmount={depositAmount} />
                  <Separator />
                 <Button variant="outline" className="w-full justify-start gap-2">
                     <Landmark /> Transferencia Bancaria
