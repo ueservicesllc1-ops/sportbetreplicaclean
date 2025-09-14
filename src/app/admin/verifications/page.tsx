@@ -16,7 +16,6 @@ import type { UserProfile, VerificationStatus } from "@/contexts/auth-context";
 import { processVerification } from "./actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription as AlertDescriptionComponent } from "@/components/ui/alert";
-import Image from "next/image";
 
 
 interface VerificationRequest extends UserProfile {
@@ -185,11 +184,10 @@ export default function AdminVerificationsPage() {
                                                             </AlertDescriptionComponent>
                                                         </Alert>
                                                     ) : (
-                                                        <Image
+                                                        <img
                                                             src={req.idPhotoUrl} 
                                                             alt={`ID de ${req.realName}`} 
-                                                            fill
-                                                            style={{ objectFit: "contain" }}
+                                                            style={{ objectFit: "contain", width: '100%', height: '100%' }}
                                                             onError={() => setImageError(true)}
                                                             className="rounded-lg"
                                                         />
