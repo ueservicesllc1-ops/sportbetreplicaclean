@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Landmark, ShieldCheck, ShieldAlert, Bitcoin, Copy, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Loader2, Landmark, ShieldAlert, Bitcoin, Copy, AlertTriangle, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
@@ -17,6 +17,7 @@ import { PaypalButton } from './paypal-button';
 import { ScrollArea } from '../ui/scroll-area';
 import Image from 'next/image';
 import { getBankingSettings, type BankingInfo } from '@/app/admin/banking/actions';
+import { ShieldCheck } from 'lucide-react';
 
 const WELCOME_BONUS = 100;
 
@@ -64,30 +65,41 @@ function BankTransferArea() {
         );
     }
     
-    const bankDetails = [
-        { label: "Banco", value: settings.bankName, logo: settings.logoPichincha },
+    const destinationBankDetails = [
+        { label: "Banco", value: settings.bankName },
         { label: "Titular", value: settings.accountHolder },
-        { label: "RUC", value: settings.ruc },
+        { label: "RUC / C.I.", value: settings.ruc },
         { label: "Tipo de Cuenta", value: settings.accountType },
         { label: "Número de Cuenta", value: settings.accountNumber },
-        { label: "Email", value: settings.email },
-        { label: "WhatsApp", value: settings.whatsapp, icon: MessageSquare },
+        { label: "Email Comprobante", value: settings.email },
+        { label: "WhatsApp Comprobante", value: settings.whatsapp, icon: MessageSquare },
     ];
+
+    const availableBanks = [
+        { name: 'Pichincha', logo: settings.logoPichincha },
+        { name: 'Guayaquil', logo: settings.logoGuayaquil },
+        { name: 'Internacional', logo: settings.logoInternacional },
+        { name: 'Pacífico', logo: settings.logoPacifico },
+    ].filter(bank => bank.logo);
 
 
     return (
          <div className="space-y-4 rounded-lg border p-4">
             <h3 className="font-semibold text-lg">Depositar por Transferencia</h3>
              <p className="text-sm text-muted-foreground">
-               Realiza una transferencia bancaria directa a nuestra cuenta y reporta tu pago para recibir tu saldo.
+               Realiza una transferencia desde uno de estos bancos. Haz clic en el logo para ver los datos de la cuenta de destino.
              </p>
 
-            <DialogTrigger asChild>
-                <Button variant="outline" className="w-full">
-                    <Landmark className="mr-2 h-4 w-4" />
-                    Ver Datos Bancarios
-                </Button>
-            </DialogTrigger>
+            <div className='grid grid-cols-4 gap-2'>
+                {availableBanks.map(bank => (
+                     <DialogTrigger asChild key={bank.name}>
+                        <Button variant="outline" className="h-16 w-full flex items-center justify-center p-1">
+                            <Image src={bank.logo!} alt={`Logo ${bank.name}`} width={80} height={30} className="object-contain" />
+                        </Button>
+                    </DialogTrigger>
+                ))}
+            </div>
+
              <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Datos para la Transferencia Bancaria</DialogTitle>
@@ -96,11 +108,10 @@ function BankTransferArea() {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-3 py-4">
-                    {bankDetails.map((item) => item.value && (
+                    {destinationBankDetails.map((item) => item.value && (
                         <div key={item.label} className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">{item.label}:</span>
                             <div className="flex items-center gap-2">
-                                {item.logo && <Image src={item.logo} alt={`${item.label} logo`} width={20} height={20} className="mr-1"/>}
                                 {item.icon && <item.icon className="h-4 w-4 text-green-500 mr-1" />}
                                 <span className="font-semibold">{item.value}</span>
                                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopy(item.value!)}>
