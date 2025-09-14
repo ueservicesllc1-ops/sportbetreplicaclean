@@ -19,10 +19,8 @@ export default function Home() {
         <div className="container mx-auto flex-1 px-2 md:px-4">
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
             {/* Left Sidebar */}
-            <aside className="hidden lg:col-span-1 lg:block">
-                <div className="sticky top-20">
-                    <SportsSidebar />
-                </div>
+            <aside className="sticky top-20 hidden lg:col-span-1 lg:block">
+                <SportsSidebar />
             </aside>
             
             {/* Main Content */}
@@ -34,10 +32,8 @@ export default function Home() {
             </main>
 
             {/* Right Sidebar - Sticky */}
-            <aside className="hidden lg:col-span-1 lg:block">
-                <div className="sticky top-20">
-                    <BetSlip />
-                </div>
+            <aside className="sticky top-20 hidden h-[calc(100vh-6rem)] lg:col-span-1 lg:block">
+                <BetSlip />
             </aside>
           </div>
         </div>
