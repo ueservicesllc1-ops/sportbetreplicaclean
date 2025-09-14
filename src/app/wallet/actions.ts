@@ -7,7 +7,9 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 
 function getPublicUrl(bucketName: string, filePath: string) {
-    return `https://storage.googleapis.com/${bucketName}/${filePath}`;
+    // URL-encode the file path
+    const encodedFilePath = encodeURIComponent(filePath);
+    return `https://storage.googleapis.com/${bucketName}/${encodedFilePath}?alt=media`;
 }
 
 export async function updateUserVerification(prevState: any, formData: FormData) {
@@ -38,7 +40,7 @@ export async function updateUserVerification(prevState: any, formData: FormData)
     
     try {
         const bucket = admin.storage().bucket(bucketName);
-        const filePath = `user-documents/${uid}/${idPhoto.name}`;
+        const filePath = `user-documents/${uid}/${Date.now()}-${idPhoto.name}`;
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await idPhoto.arrayBuffer());
 
@@ -46,8 +48,7 @@ export async function updateUserVerification(prevState: any, formData: FormData)
             metadata: { contentType: idPhoto.type },
         });
         
-        await file.makePublic();
-
+        // No need to make each file public if the bucket rules allow public read
         const idPhotoUrl = getPublicUrl(bucketName, filePath);
         
         const userDocRef = doc(db, 'users', uid);
@@ -60,6 +61,7 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         });
         
         revalidatePath('/wallet');
+        revalidatePath('/admin/verifications');
         return { success: true, message: 'Documentos enviados para verificación.' };
 
     } catch (error) {
