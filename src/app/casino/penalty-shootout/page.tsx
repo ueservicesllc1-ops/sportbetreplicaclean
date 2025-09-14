@@ -25,8 +25,8 @@ const GOAL_MULTIPLIER = 3;
 const GOAL_CHANCE = 0.60; // 60% chance to score
 
 const goalZones = [
-    { id: 1, name: 'Superior Izquierda', position: { top: '25%', left: '22%' } },
-    { id: 2, name: 'Superior Derecha', position: { top: '25%', left: '76%' } },
+    { id: 1, name: 'Superior Izquierda', position: { top: '30%', left: '22%' } },
+    { id: 2, name: 'Superior Derecha', position: { top: '30%', left: '76%' } },
     { id: 3, name: 'Centro', position: { top: '40%', left: '50%' } },
     { id: 4, name: 'Inferior Izquierda', position: { top: '55%', left: '22%' } },
     { id: 5, name: 'Inferior Derecha', position: { top: '55%', left: '76%' } },
@@ -321,3 +321,4 @@ export default function PenaltyShootoutPage() {
     
 
     
+
