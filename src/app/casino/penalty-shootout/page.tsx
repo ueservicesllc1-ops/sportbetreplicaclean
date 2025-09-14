@@ -223,7 +223,7 @@ export default function PenaltyShootoutPage() {
                         )}
                         
                         {/* Zones */}
-                        <div className="absolute top-[10%] left-[10%] w-[80%] h-[70%] grid grid-cols-3 grid-rows-2">
+                        <div className="absolute top-[15%] left-[15%] w-[70%] h-[60%] grid grid-cols-3 grid-rows-2">
                            <div id="zone-1" onClick={() => gameState === 'betting' && setSelectedZone(1)} className={cn("row-start-1 col-start-1", shotResult && selectedZone === 1 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-r border-b border-white/20")}></div>
                            <div id="zone-2" onClick={() => gameState === 'betting' && setSelectedZone(2)} className={cn("row-start-1 col-start-3", shotResult && selectedZone === 2 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-l border-b border-white/20")}></div>
                            <div id="zone-3" onClick={() => gameState === 'betting' && setSelectedZone(3)} className={cn("row-start-1 col-start-2", shotResult && selectedZone === 3 ? (shotResult === 'goal' ? 'bg-green-500/50' : 'bg-red-500/50') : 'hover:bg-white/20', "cursor-pointer transition-colors border-b border-white/20")}></div>
@@ -305,5 +305,3 @@ export default function PenaltyShootoutPage() {
         </div>
     );
 }
-
-    
