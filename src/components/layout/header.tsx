@@ -188,7 +188,7 @@ export function Header() {
                 </Dialog>
               )}
               {/* This is the sheet content for the wallet */}
-               <SheetContent className="w-[400px] sm:w-[540px]">
+               <SheetContent className="w-[800px] sm:w-[1080px]">
                 <SheetHeader className="mb-6">
                     <SheetTitle className="flex items-center gap-2">
                         <Wallet className="h-7 w-7" />
