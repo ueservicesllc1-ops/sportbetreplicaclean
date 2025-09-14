@@ -4,12 +4,10 @@
 import { db } from '@/lib/firebase';
 import { doc, serverTimestamp, runTransaction, increment, collection, addDoc } from 'firebase/firestore';
 
-// The public Client ID has been moved to the client component `paypal-button.tsx`.
-// The SECRET KEY remains here, safely on the server.
 const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
-const base = 'https://api-m.sandbox.paypal.com';
+const base = 'https://api-m.paypal.com'; // PRODUCTION URL
 
 async function generateAccessToken() {
   if (!PAYPAL_CLIENT_ID || !PAYPAL_SECRET_KEY) {

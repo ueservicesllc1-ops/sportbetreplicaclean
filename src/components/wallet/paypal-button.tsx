@@ -10,10 +10,9 @@ import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 
-// --- Hardcoded Public Client ID ---
+// --- Hardcoded Public Client ID (LIVE) ---
 // This is a public key, safe to be in client-side code.
-// We are hardcoding it here to bypass all environment variable issues in Vercel.
-const PAYPAL_CLIENT_ID = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
+const PAYPAL_CLIENT_ID = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
 
 
 interface PayPalButtonsComponentProps {
@@ -132,7 +131,7 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
             <Alert variant="destructive">
                 <AlertTitle>Error de Configuración de PayPal</AlertTitle>
                 <AlertDescription>
-                    El Client ID de PayPal no está configurado en el código fuente.
+                    El Client ID de PayPal no está configurado correctamente.
                 </AlertDescription>
             </Alert>
         );
