@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Loader2, ShieldAlert, Check, X, User, Hash, FileImage } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
@@ -185,13 +184,11 @@ export default function AdminVerificationsPage() {
                                                             </AlertDescriptionComponent>
                                                         </Alert>
                                                     ) : (
-                                                        <Image
+                                                        <img
                                                             src={req.idPhotoUrl} 
-                                                            alt={`ID de ${req.realName}`} 
-                                                            fill
-                                                            style={{ objectFit: "contain" }}
+                                                            alt={`ID de ${req.realName}`}
                                                             onError={() => setImageError(true)}
-                                                            className="rounded-lg"
+                                                            className="rounded-lg w-full h-full object-contain"
                                                         />
                                                     )}
                                                 </div>
