@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -9,8 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
+import { placeCasinoBet, resolveCasinoBet } from './actions';
+import { Loader2 } from 'lucide-react';
 
-type GameState = 'betting' | 'playing' | 'crashed' | 'cashout';
+type GameState = 'betting' | 'waiting' | 'playing' | 'crashed' | 'cashout';
 
 const RevolutionMeter = ({ multiplier, gameState }: { multiplier: number, gameState: GameState }) => {
     const totalBars = 20;
@@ -80,13 +83,17 @@ const RevolutionMeter = ({ multiplier, gameState }: { multiplier: number, gameSt
   };
 
 
-// This is a client-side simulation. True multiplayer requires a server.
 export default function CasinoPage() {
   const [betAmount, setBetAmount] = useState<string>('1.00');
   const [multiplier, setMultiplier] = useState<number>(1.00);
   const [gameState, setGameState] = useState<GameState>('betting');
   const [countdown, setCountdown] = useState<number>(5);
   const [winnings, setWinnings] = useState<number>(0);
+  const [hasPlacedBet, setHasPlacedBet] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const history = useRef([2.34, 1.56, 1.02, 8.91, 3.45, 1.19, 4.01, 1.88, 2.76, 10.21, 1.00, 3.12]);
   const crashPoint = useRef<number>(0);
@@ -96,6 +103,9 @@ export default function CasinoPage() {
   useEffect(() => {
     if (gameState === 'betting') {
         setMultiplier(1.00);
+        setHasPlacedBet(false);
+        setWinnings(0);
+
       intervalRef.current = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -109,19 +119,18 @@ export default function CasinoPage() {
     } else if (gameState === 'playing') {
       const r = Math.random();
       if (r < 0.5) { 
-        crashPoint.current = 1 + Math.random() * 2; // More crashes at low multipliers
+        crashPoint.current = 1 + Math.random() * 2;
       } else if (r < 0.9) {
-        crashPoint.current = 3 + Math.random() * 7; // Medium multipliers
+        crashPoint.current = 3 + Math.random() * 7;
       } else { 
-        crashPoint.current = 10 + Math.random() * 40; // High multipliers are rare
+        crashPoint.current = 10 + Math.random() * 40;
       }
 
       setMultiplier(1.00);
-      setWinnings(0);
 
       intervalRef.current = setInterval(() => {
         setMultiplier((prevMultiplier) => {
-          if (prevMultiplier >= crashPoint.current) {
+          if (hasPlacedBet && prevMultiplier >= crashPoint.current) {
             setGameState('crashed');
             return prevMultiplier;
           }
@@ -144,16 +153,54 @@ export default function CasinoPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [gameState]);
+  }, [gameState, hasPlacedBet]);
 
-  const handlePlaceBet = () => {
-    // This is just for UI state change, in a real app this would register the bet
+  const handlePlaceBet = async () => {
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para apostar.' });
+        return;
+    }
+    const amount = parseFloat(betAmount);
+    if (isNaN(amount) || amount <= 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, introduce un monto de apuesta válido.' });
+        return;
+    }
+
+    setIsSubmitting(true);
+    try {
+        await placeCasinoBet(amount);
+        toast({ title: 'Apuesta Realizada', description: `Has apostado $${amount.toFixed(2)}.` });
+        setHasPlacedBet(true);
+        setGameState('waiting');
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Error al apostar', description: error.message });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
-  const handleCashOut = () => {
-      if(gameState !== 'playing') return;
-      setWinnings(parseFloat(betAmount) * multiplier);
-      setGameState('cashout');
+  const handleCashOut = async () => {
+      if(gameState !== 'playing' || !hasPlacedBet) return;
+      
+      const currentWinnings = parseFloat(betAmount) * multiplier;
+      setWinnings(currentWinnings);
+      setIsSubmitting(true);
+
+      try {
+          await resolveCasinoBet(currentWinnings);
+          toast({
+              title: '¡Ganaste!',
+              description: `Has retirado $${currentWinnings.toFixed(2)}.`,
+              className: 'bg-green-600 border-green-600 text-white'
+          });
+      } catch (error: any) {
+          toast({ variant: 'destructive', title: 'Error al retirar', description: error.message });
+          // Even if crediting fails, we cash out locally to show the UI state.
+          // A more robust system would handle this reconciliation.
+      } finally {
+          setIsSubmitting(false);
+          setGameState('cashout');
+      }
   }
 
   const getMultiplierColor = () => {
@@ -162,6 +209,53 @@ export default function CasinoPage() {
       if (multiplier < 2) return 'text-white';
       if (multiplier < 10) return 'text-green-400';
       return 'text-primary';
+  }
+  
+  const renderButton = () => {
+    if (gameState === 'playing') {
+        if (!hasPlacedBet) return null; // Don't show cashout if no bet was placed
+        return (
+            <Button 
+                size="lg" 
+                className="w-full h-12 bg-yellow-500 text-black hover:bg-yellow-600 text-lg"
+                onClick={handleCashOut}
+                disabled={isSubmitting}
+            >
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Retirar ${ (parseFloat(betAmount) * multiplier).toFixed(2) }
+            </Button>
+        );
+    }
+
+    if (gameState === 'waiting') {
+        return (
+            <Button size="lg" className="w-full h-12 text-lg" disabled>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Esperando la próxima ronda...
+            </Button>
+        );
+    }
+    
+    if (gameState === 'betting') {
+         return (
+            <Button 
+                size="lg" 
+                className="w-full h-12 bg-green-600 text-white hover:bg-green-700 text-lg"
+                onClick={handlePlaceBet}
+                disabled={isSubmitting}
+            >
+               {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+               Apostar para la próxima ronda
+            </Button>
+        );
+    }
+
+    // For 'crashed' or 'cashout' states
+    return (
+        <Button size="lg" className="w-full h-12 text-lg" disabled>
+            Esperando la próxima ronda...
+        </Button>
+    );
   }
 
 
@@ -182,7 +276,7 @@ export default function CasinoPage() {
                     fill
                     className={cn(
                         'object-cover transition-transform duration-500 ease-in-out',
-                        gameState !== 'betting' ? 'scale-150' : 'scale-100'
+                        gameState !== 'betting' && gameState !== 'waiting' ? 'scale-150' : 'scale-100'
                     )}
                     priority
                 />
@@ -190,7 +284,7 @@ export default function CasinoPage() {
                   <div className="absolute inset-0 z-10 animate-pulse bg-red-600/70" />
                 )}
                 <div className="absolute inset-0 z-20 flex h-full flex-col items-center justify-center p-4">
-                {gameState === 'betting' && (
+                {(gameState === 'betting' || gameState === 'waiting') && (
                     <div className="text-center" style={{ transform: 'translateY(-20%)' }}>
                     <p className="font-headline text-3xl font-semibold text-yellow-400 drop-shadow-lg">La próxima carrera comienza en...</p>
                     <p className="font-headline text-9xl font-bold text-yellow-400 drop-shadow-lg">{countdown.toFixed(0)}s</p>
@@ -241,32 +335,13 @@ export default function CasinoPage() {
                         onChange={(e) => setBetAmount(e.target.value)}
                         placeholder="1.00"
                         className='text-base font-bold'
-                        disabled={gameState === 'playing' || gameState === 'crashed'}
+                        disabled={gameState !== 'betting'}
                       />
-                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState === 'playing'}>½</Button>
-                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState === 'playing'}>2x</Button>
+                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState !== 'betting'}>½</Button>
+                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting'}>2x</Button>
                     </div>
                   </div>
-
-                   {gameState !== 'playing' ? (
-                     <Button 
-                        size="lg" 
-                        className="w-full h-12 bg-green-600 text-white hover:bg-green-700 text-lg"
-                        onClick={handlePlaceBet}
-                        disabled={gameState !== 'betting'}
-                    >
-                       {gameState === 'betting' ? 'Apuesta para la próxima ronda' : 'Esperando la próxima ronda...'}
-                    </Button>
-                   ) : (
-                    <Button 
-                        size="lg" 
-                        className="w-full h-12 bg-yellow-500 text-black hover:bg-yellow-600 text-lg"
-                        onClick={handleCashOut}
-                        disabled={gameState !== 'playing'}
-                    >
-                      Retirar ${ (parseFloat(betAmount) * multiplier).toFixed(2) }
-                    </Button>
-                   )}
+                  {renderButton()}
                 </TabsContent>
               </Tabs>
             </CardContent>
