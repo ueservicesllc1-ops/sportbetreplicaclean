@@ -84,17 +84,19 @@ export default function AdminVerificationsPage() {
 
     if (!isAdmin) {
         return (
-             <Card className="text-center">
-                <CardHeader>
-                    <CardTitle className="flex items-center justify-center gap-2">
-                        <ShieldAlert className="h-6 w-6" />
-                        Acceso Denegado
-                    </Title>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">No tienes permisos para acceder a esta sección.</p>
-                </CardContent>
-            </Card>
+             <>
+                <Card className="text-center">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-center gap-2">
+                            <ShieldAlert className="h-6 w-6" />
+                            Acceso Denegado
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">No tienes permisos para acceder a esta sección.</p>
+                    </CardContent>
+                </Card>
+            </>
         )
     }
 
