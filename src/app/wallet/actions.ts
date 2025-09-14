@@ -1,3 +1,4 @@
+
 'use server';
 
 import admin from '@/lib/firebase-admin';
@@ -37,7 +38,7 @@ export async function updateUserVerification(prevState: any, formData: FormData)
     
     try {
         const bucket = admin.storage().bucket(bucketName);
-        const filePath = `user-documents/${uid}/${Date.now()}-${idPhoto.name}`;
+        const filePath = `user-documents/${uid}/${idPhoto.name}`;
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await idPhoto.arrayBuffer());
 
@@ -47,7 +48,7 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         
         await file.makePublic();
 
-        const idPhotoUrl = file.publicUrl();
+        const idPhotoUrl = getPublicUrl(bucketName, filePath);
         
         const userDocRef = doc(db, 'users', uid);
 

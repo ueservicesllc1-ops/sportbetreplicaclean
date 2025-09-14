@@ -48,9 +48,6 @@ export function KycForm() {
     if (file) {
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
-      
-      // Revoke the object URL when the component unmounts
-      return () => URL.revokeObjectURL(objectUrl);
     } else {
       setPreview(null);
     }
@@ -62,7 +59,7 @@ export function KycForm() {
             <ShieldQuestion className="h-6 w-6 text-primary" />
             <div>
                 <h3 className="font-semibold text-lg">Verifica tu Identidad</h3>
-                <p className="text-sm text-muted-foreground">Para habilitar los depósitos, necesitamos confirmar tu identidad.</p>
+                <p className="text-sm text-muted-foreground">Para habilitar los depósitos y retiros, necesitamos confirmar tu identidad.</p>
             </div>
         </div>
 
@@ -105,7 +102,7 @@ export function KycForm() {
                 <AlertDescription>{state.message}</AlertDescription>
                 </Alert>
             )}
-
+             
             <SubmitButton />
         </form>
     </div>
