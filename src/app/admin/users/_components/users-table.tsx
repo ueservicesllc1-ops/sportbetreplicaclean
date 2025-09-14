@@ -51,7 +51,7 @@ function RoleBadge({ role }: { role: UserRole }) {
 
 export function UsersTable({ initialUsers }: { initialUsers: UserProfile[]}) {
   const [users, setUsers] = useState<UserProfile[]>(initialUsers);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialUsers || initialUsers.length === 0);
   const { userProfile, isSuperAdmin } = useAuth();
   const { toast } = useToast();
 
