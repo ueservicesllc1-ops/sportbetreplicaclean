@@ -4,8 +4,6 @@
 import { db } from '@/lib/firebase';
 import { doc, serverTimestamp, runTransaction, increment, collection } from 'firebase/firestore';
 
-// Forzar reconstrucción para Vercel
-
 // These variables are only accessed on the server, so no NEXT_PUBLIC_ prefix is needed.
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;

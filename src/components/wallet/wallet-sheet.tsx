@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { PaypalButton } from './paypal-button';
 
 const WELCOME_BONUS = 100;
 
@@ -28,8 +29,25 @@ function DepositArea() {
          <div className="space-y-4 rounded-lg border p-4">
             <h3 className="font-semibold text-lg">Depositar con PayPal</h3>
              <p className="text-sm text-muted-foreground">
-               (Integración de PayPal temporalmente desactivada)
+               Selecciona un monto o ingresa una cantidad para añadir fondos a tu billetera de forma segura.
              </p>
+             <div className="grid grid-cols-4 gap-2">
+                <Button size="sm" variant="outline" onClick={() => setAmount('10.00')}>$10</Button>
+                <Button size="sm" variant="outline" onClick={() => setAmount('25.00')}>$25</Button>
+                <Button size="sm" variant="outline" onClick={() => setAmount('50.00')}>$50</Button>
+                <Button size="sm" variant="outline" onClick={() => setAmount('100.00')}>$100</Button>
+            </div>
+             <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">$</span>
+                <Input 
+                    type="number" 
+                    placeholder="Monto a depositar"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                />
+            </div>
+
+            <PaypalButton amount={parseFloat(amount) || 0} onPaymentSuccess={handlePaymentSuccess} />
         </div>
     )
 }
