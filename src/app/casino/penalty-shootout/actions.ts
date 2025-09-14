@@ -84,12 +84,12 @@ export async function resolvePenaltyBet(userId: string, winnings: number): Promi
     }
 }
 
-export async function resolvePenaltyLoss(userId: string, betAmount: number): Promise<void> {
+export async function resolvePenaltyLoss(userId: string, penaltyAmount: number): Promise<void> {
     if (!userId) {
         throw new Error('Usuario no autenticado.');
     }
-    // The initial stake was already deducted. We just deduct it again.
-     if (betAmount <= 0) {
+    // The initial stake was already deducted. We now apply the penalty.
+     if (penaltyAmount <= 0) {
         return;
     }
 
@@ -103,18 +103,21 @@ export async function resolvePenaltyLoss(userId: string, betAmount: number): Pro
                 throw new Error('No se encontró el perfil de usuario para procesar la pérdida.');
             }
             // Check if user has enough balance for the penalty
-            if (userDoc.data().balance < betAmount) {
-                // Not enough for double loss, just take what's left
+            const currentBalance = userDoc.data().balance || 0;
+            const amountToDeduct = penaltyAmount; // This is the multiplier * bet
+
+            if (currentBalance < amountToDeduct) {
+                // Not enough for full penalty, just take what's left
                 transaction.update(userDocRef, { balance: 0 });
             } else {
-                transaction.update(userDocRef, { balance: increment(-betAmount) });
+                transaction.update(userDocRef, { balance: increment(-amountToDeduct) });
             }
 
             transaction.set(doc(transactionsRef), {
                 userId: userId,
                 game: 'PenaltyShootout',
                 type: 'debit_loss_penalty',
-                amount: betAmount,
+                amount: amountToDeduct,
                 createdAt: serverTimestamp(),
             });
         });
