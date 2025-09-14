@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Landmark, ShieldCheck, ShieldAlert, Bitcoin, Copy, AlertTriangle } from 'lucide-react';
+import { Loader2, Landmark, ShieldCheck, ShieldAlert, Bitcoin, Copy, AlertTriangle, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
@@ -15,18 +15,20 @@ import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { PaypalButton } from './paypal-button';
 import { ScrollArea } from '../ui/scroll-area';
+import Image from 'next/image';
 
 const WELCOME_BONUS = 100;
 
 function BankTransferArea() {
     const { toast } = useToast();
     const bankDetails = {
-        "Banco": "Banco Pichincha",
-        "Titular": "Wingo Sports S.A.S.",
-        "RUC": "179XXXXXXXXX1",
-        "Tipo de Cuenta": "Corriente",
-        "Número de Cuenta": "1234567890",
-        "Email para comprobantes": "pagos@wingo.ec"
+        "Banco": { value: "Banco Pichincha", logo: "https://i.postimg.cc/9M9g0FBD/banco-pichincha-logo.png" },
+        "Titular": { value: "Wingo Sports S.A.S." },
+        "RUC": { value: "179XXXXXXXXX1" },
+        "Tipo de Cuenta": { value: "Corriente" },
+        "Número de Cuenta": { value: "1234567890" },
+        "Email para comprobantes": { value: "pagos@wingo.ec" },
+        "WhatsApp para comprobantes": { value: "+593 99 123 4567", icon: MessageSquare },
     };
 
     const handleCopy = (text: string) => {
@@ -51,16 +53,18 @@ function BankTransferArea() {
                 <DialogHeader>
                     <DialogTitle>Datos para la Transferencia Bancaria</DialogTitle>
                     <DialogDescription>
-                        Usa esta información para realizar tu depósito. Una vez hecho, envía el comprobante al email indicado.
+                        Usa esta información para realizar tu depósito. Una vez hecho, envía el comprobante al email o WhatsApp indicado.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-3 py-4">
-                    {Object.entries(bankDetails).map(([key, value]) => (
+                    {Object.entries(bankDetails).map(([key, data]) => (
                         <div key={key} className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">{key}:</span>
                             <div className="flex items-center gap-2">
-                                <span className="font-semibold">{value}</span>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopy(value)}>
+                                {data.logo && <Image src={data.logo} alt={`${key} logo`} width={20} height={20} className="mr-1"/>}
+                                {data.icon && <data.icon className="h-4 w-4 text-green-500 mr-1" />}
+                                <span className="font-semibold">{data.value}</span>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleCopy(data.value)}>
                                     <Copy className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -71,7 +75,7 @@ function BankTransferArea() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>¡Importante!</AlertTitle>
                     <AlertDescription>
-                        La acreditación del saldo es manual y puede tardar unas horas después de que recibamos tu comprobante por correo.
+                        La acreditación del saldo es manual y puede tardar unas horas después de que recibamos tu comprobante.
                     </AlertDescription>
                 </Alert>
              </DialogContent>
