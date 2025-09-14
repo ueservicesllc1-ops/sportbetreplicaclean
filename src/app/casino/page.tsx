@@ -362,11 +362,11 @@ export default function CasinoPage() {
                   <div className='space-y-2'>
                     <Label className="text-sm font-medium">Monto de Apuesta</Label>
                     <div className="grid grid-cols-5 gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setBetAmount('1.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$1</Button>
-                        <Button size="sm" variant="outline" onClick={() => setBetAmount('2.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$2</Button>
-                        <Button size="sm" variant="outline" onClick={() => setBetAmount('5.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$5</Button>
-                        <Button size="sm" variant="outline" onClick={() => setBetAmount('10.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$10</Button>
-                        <Button size="sm" variant="outline" onClick={() => setBetAmount('20.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$20</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('1.00')} disabled={hasPlacedBet}>$1</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('2.00')} disabled={hasPlacedBet}>$2</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('5.00')} disabled={hasPlacedBet}>$5</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('10.00')} disabled={hasPlacedBet}>$10</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('20.00')} disabled={hasPlacedBet}>$20</Button>
                     </div>
                     <div className="flex gap-2">
                       <Input 
@@ -375,10 +375,10 @@ export default function CasinoPage() {
                         onChange={(e) => setBetAmount(e.target.value)}
                         placeholder="1.00"
                         className='text-base font-bold'
-                        disabled={gameState !== 'betting' || hasPlacedBet}
+                        disabled={hasPlacedBet}
                       />
-                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState !== 'betting' || hasPlacedBet}>½</Button>
-                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting' || hasPlacedBet}>2x</Button>
+                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={hasPlacedBet}>½</Button>
+                      <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={hasPlacedBet}>2x</Button>
                     </div>
                   </div>
                   <div className="space-y-3">
@@ -391,7 +391,7 @@ export default function CasinoPage() {
                                 onChange={(e) => setAutoCashOutAmount(e.target.value)}
                                 placeholder="1.50"
                                 className="h-9 pr-6"
-                                disabled={gameState !== 'betting' || hasPlacedBet}
+                                disabled={hasPlacedBet}
                             />
                             <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">x</span>
                         </div>
@@ -400,7 +400,7 @@ export default function CasinoPage() {
                                 id="auto-cashout-switch" 
                                 checked={isAutoCashOutEnabled}
                                 onCheckedChange={setIsAutoCashOutEnabled}
-                                disabled={gameState !== 'betting' || hasPlacedBet}
+                                disabled={hasPlacedBet}
                             />
                             <Label htmlFor="auto-cashout-switch" className='text-xs cursor-pointer'>Activar</Label>
                         </div>
