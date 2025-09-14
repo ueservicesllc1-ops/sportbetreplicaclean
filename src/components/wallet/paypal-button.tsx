@@ -9,8 +9,10 @@ import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-// This public client ID is now defined directly in the client component
-// to bypass Vercel environment variable issues.
+
+// --- Hardcoded Public Client ID ---
+// This is a public key, safe to be in client-side code.
+// We are hardcoding it here to bypass all environment variable issues in Vercel.
 const PAYPAL_CLIENT_ID = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
 
 
@@ -112,10 +114,12 @@ const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsCompo
                 onApprove={onApprove}
                 onError={onError}
                 disabled={isProcessing}
+                key={amount} // Force re-render when amount changes
             />
         </div>
     );
 };
+
 
 interface PaypalButtonProps {
   amount: number;
@@ -126,9 +130,9 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
     if (!PAYPAL_CLIENT_ID) {
         return (
             <Alert variant="destructive">
-                <AlertTitle>Error de Configuración Interna</AlertTitle>
+                <AlertTitle>Error de Configuración de PayPal</AlertTitle>
                 <AlertDescription>
-                    La variable PAYPAL_CLIENT_ID no está disponible.
+                    El Client ID de PayPal no está configurado en el código fuente.
                 </AlertDescription>
             </Alert>
         );
@@ -136,7 +140,8 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
 
     return (
         <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
-            <PayPalButtonsComponent key={amount} amount={amount} onPaymentSuccess={onPaymentSuccess} />
+            <PayPalButtonsComponent amount={amount} onPaymentSuccess={onPaymentSuccess} />
         </PayPalScriptProvider>
     );
 }
+
