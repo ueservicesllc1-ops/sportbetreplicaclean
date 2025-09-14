@@ -4,7 +4,7 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Bet {
-  id: string; // Composite ID, e.g., eventId_marketKey
+  id: string; // Composite ID, e.g., eventId_marketKey_selectionName
   event: string;
   market: string; // e.g., h2h, totals, etc.
   selection: string;
@@ -27,34 +27,40 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
   const addBet = (newBet: Bet) => {
     setBets((prevBets) => {
       // An event can only have one bet from a specific market (e.g., only one 'h2h' winner).
-      // The bet ID should be a composite of eventId and marketKey to enforce this.
-      const existingBetIndex = prevBets.findIndex(
-        (bet) => bet.id === newBet.id
+      // We create a market-specific ID to check for existing bets on that market.
+      const marketSpecificId = `${newBet.event}_${newBet.market}`;
+      
+      const existingBetForMarketIndex = prevBets.findIndex(
+        (bet) => bet.event === newBet.event && bet.market === newBet.market
       );
 
       let updatedBets;
-      if (existingBetIndex !== -1) {
-        // If the same selection is clicked again, remove it (deselect)
-        if (prevBets[existingBetIndex].selection === newBet.selection) {
-          updatedBets = prevBets.filter((bet) => bet.id !== newBet.id);
-           toast({
+
+      if (existingBetForMarketIndex !== -1) {
+        // A bet for this market already exists.
+        const existingBet = prevBets[existingBetForMarketIndex];
+
+        if (existingBet.selection === newBet.selection) {
+          // The user clicked the same bet selection again, so we remove it (deselect).
+          updatedBets = prevBets.filter((bet) => bet.id !== existingBet.id);
+          toast({
             variant: 'destructive',
             title: 'Apuesta eliminada',
             description: `${newBet.selection}`,
           });
         } else {
-          // If a different selection for the same market is clicked, replace it
-          updatedBets = [...prevBets];
-          updatedBets[existingBetIndex] = newBet;
-          toast({
+          // The user clicked a different selection for the same market, so we replace the old one.
+          updatedBets = prevBets.filter((bet) => bet.id !== existingBet.id);
+          updatedBets.push(newBet);
+           toast({
             title: 'Apuesta actualizada',
             description: `${newBet.selection} @ ${newBet.odd.toFixed(2)}`,
           });
         }
       } else {
-        // Add new bet
+        // No bet for this market exists, so we add the new one.
         updatedBets = [...prevBets, newBet];
-         toast({
+        toast({
           title: 'Apuesta añadida',
           description: `${newBet.selection} @ ${newBet.odd.toFixed(2)}`,
         });

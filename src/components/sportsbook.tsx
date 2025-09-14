@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -234,7 +235,7 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
 
     const bet: Bet = {
       id: `${event.id}_h2h`, // Use a consistent market key for replacement
-      event: `${event.home_team} vs ${event.away_team}`,
+      event: `1. ${event.home_team} vs 2. ${event.away_team}`,
       market: 'h2h',
       selection: selection,
       odd,
@@ -243,7 +244,8 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
   };
 
   const getButtonVariant = (selectionName: string) => {
-      return bets.some(b => b.id === `${event.id}_h2h` && b.selection === selectionName) ? 'secondary' : 'outline';
+      const betId = `${event.id}_h2h`;
+      return bets.some(b => b.id === betId && b.selection === selectionName) ? 'secondary' : 'outline';
   }
   
   const hasOdds = homeOdd > 0 || awayOdd > 0 || drawOdd > 0;
@@ -257,7 +259,7 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
   return (
     <TableRow className='text-sm'>
         <TableCell>
-            <p className='font-medium'>{event.home_team} vs {event.away_team}</p>
+            <p className='font-medium'>1. {event.home_team} vs 2. {event.away_team}</p>
             <div className='text-xs text-muted-foreground mt-1'>
                 {isLive ? (
                     <Badge variant='destructive' className='animate-pulse'>EN VIVO</Badge>
