@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,10 +46,23 @@ export default function RuletaPage() {
     const [rotation, setRotation] = useState(0);
     const [gameState, setGameState] = useState<GameState>('betting');
     const [winningSegment, setWinningSegment] = useState<WheelSegment | null>(null);
+    const [winningIndex, setWinningIndex] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { user } = useAuth();
     const { toast } = useToast();
+
+    useEffect(() => {
+        if (winningIndex === null) return;
+
+        const segmentAngle = 360 / segments.length;
+        const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
+        const baseRotation = 360 * 5; // 5 full spins
+        const finalRotation = baseRotation - (winningIndex * segmentAngle) - (segmentAngle / 2) + randomOffset;
+        
+        setRotation(finalRotation);
+
+    }, [winningIndex])
 
     const handleSpin = async () => {
         if (!user) {
@@ -73,17 +86,11 @@ export default function RuletaPage() {
         try {
             await placeWheelBet(user.uid, amount);
 
-            const winningIndex = Math.floor(Math.random() * segments.length);
-            const segment = segments[winningIndex];
+            const finalWinningIndex = Math.floor(Math.random() * segments.length);
+            const segment = segments[finalWinningIndex];
+            setWinningIndex(finalWinningIndex);
             setWinningSegment(segment);
             
-            const segmentAngle = 360 / segments.length;
-            const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
-            const baseRotation = 360 * 5; // 5 full spins
-            const finalRotation = baseRotation - (winningIndex * segmentAngle) - (segmentAngle / 2) + randomOffset;
-            
-            setRotation(finalRotation);
-
             // Wait for animation to finish
             setTimeout(async () => {
                 const isWin = segment.color === selectedColor;
@@ -112,6 +119,7 @@ export default function RuletaPage() {
                 setTimeout(() => {
                     setGameState('betting');
                     setIsSubmitting(false);
+                    setWinningIndex(null);
                 }, 3000);
 
             }, 4000); // Corresponds to the transition duration
@@ -121,6 +129,7 @@ export default function RuletaPage() {
             toast({ variant: 'destructive', title: 'Error al apostar', description: error.message });
             setGameState('betting');
             setIsSubmitting(false);
+            setWinningIndex(null);
         }
     };
 
@@ -136,9 +145,9 @@ export default function RuletaPage() {
                 {/* Game Area */}
                 <div className="lg:col-span-2 flex items-center justify-center">
                     <div className="relative w-full max-w-[500px] aspect-square">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-b-[30px] border-b-primary z-10 drop-shadow-lg"></div>
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[30px] border-t-primary z-10 drop-shadow-lg"></div>
                         <div 
-                            style={{ transform: `rotate(${rotation}deg)`, transition: 'transform 4s ease-out' }}
+                            style={{ transform: `rotate(${rotation}deg)`, transition: gameState === 'spinning' ? 'transform 4s ease-out' : 'none' }}
                             className="absolute inset-0"
                         >
                              <Wheel segments={segments} />

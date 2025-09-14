@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface WheelSegment {
   color: string;
@@ -12,12 +13,35 @@ interface WheelProps {
   segments: WheelSegment[];
 }
 
-export const Wheel = ({ segments }: WheelProps) => {
-  const numSegments = segments.length;
-  const anglePerSegment = 360 / numSegments;
+interface PathData {
+  pathD: string;
+  textPos: { x: number; y: number };
+  textAngle: number;
+}
 
-  const paths = useMemo(() => {
-    return segments.map((segment, index) => {
+export const Wheel = ({ segments }: WheelProps) => {
+  const [paths, setPaths] = useState<PathData[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    const numSegments = segments.length;
+    const anglePerSegment = 360 / numSegments;
+
+    const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
+      const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+      return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+      };
+    }
+
+    const calculatedPaths = segments.map((_, index) => {
       const startAngle = index * anglePerSegment;
       const endAngle = (index + 1) * anglePerSegment;
 
@@ -42,14 +66,17 @@ export const Wheel = ({ segments }: WheelProps) => {
         textAngle: textAngle > 90 && textAngle < 270 ? textAngle + 180 : textAngle
       };
     });
-  }, [segments, anglePerSegment]);
+    
+    setPaths(calculatedPaths);
 
-  function polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
-    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-    return {
-      x: centerX + (radius * Math.cos(angleInRadians)),
-      y: centerY + (radius * Math.sin(angleInRadians))
-    };
+  }, [segments, isClient]);
+
+  if (!isClient || paths.length === 0) {
+    return (
+        <svg viewBox="-105 -105 210 210" className="w-full h-full animate-pulse">
+            <circle cx="0" cy="0" r="102" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="4"/>
+        </svg>
+    ); 
   }
 
   return (
