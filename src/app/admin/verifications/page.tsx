@@ -171,13 +171,13 @@ export default function AdminVerificationsPage() {
                                              <DialogHeader>
                                                 <DialogTitle>Documento de {req.realName}</DialogTitle>
                                                 <DialogDescription>
-                                                    URL del documento de identidad subido por el usuario.
+                                                    Documento de identidad subido por el usuario.
                                                 </DialogDescription>
                                              </DialogHeader>
                                             
                                              {req.idPhotoUrl && (
                                                 <div className="mt-4 rounded-md bg-secondary p-4">
-                                                   <pre className="text-xs text-wrap break-all font-mono">{req.idPhotoUrl}</pre>
+                                                  <img src={req.idPhotoUrl} alt={`Documento de ${req.realName}`} className="max-w-full h-auto rounded-md" />
                                                 </div>
                                              )}
                                         </DialogContent>
