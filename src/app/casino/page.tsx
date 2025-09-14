@@ -40,17 +40,17 @@ export default async function CasinoLobbyPage() {
                 {casinoGames.map((game) => (
                    <Link href={game.href} key={game.name} className="group">
                      <Card className="h-full overflow-hidden transition-all group-hover:border-primary group-hover:scale-105">
-                        <div className="relative aspect-[4/3]">
+                        <div className="relative aspect-[4/3] border-b">
                             <Image 
                                 src={game.imageUrl}
                                 alt={`Imagen del juego ${game.name}`}
                                 fill
-                                className="object-cover transition-transform group-hover:scale-110"
+                                className="object-contain transition-transform group-hover:scale-110"
                             />
                         </div>
                         <CardHeader className="p-4">
-                            <CardTitle className="text-lg">{game.name}</CardTitle>
-                            <CardDescription className="text-sm">{game.description}</CardDescription>
+                            <CardTitle className="text-base">{game.name}</CardTitle>
+                            <CardDescription className="text-xs">{game.description}</CardDescription>
                         </CardHeader>
                     </Card>
                    </Link>
