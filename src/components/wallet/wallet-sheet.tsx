@@ -1,16 +1,17 @@
+
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Landmark, ShieldAlert, Bitcoin, Copy, AlertTriangle, MessageSquare, ShieldCheck } from 'lucide-react';
+import { Loader2, Landmark, ShieldAlert, Bitcoin, Copy, AlertTriangle, MessageSquare, ShieldCheck, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useActionState, useRef } from 'react';
 import { KycForm } from './kyc-form';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
+import { requestWithdrawal, submitDepositNotification } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { PaypalButton } from './paypal-button';
 import { ScrollArea } from '../ui/scroll-area';
@@ -19,6 +20,8 @@ import { getBankingSettings, type BankingInfo } from '@/app/admin/banking/action
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { useFormStatus } from 'react-dom';
 
 
 const WELCOME_BONUS = 100;
@@ -305,6 +308,79 @@ function WithdrawalArea() {
     )
 }
 
+const initialNotificationState = {
+  success: false,
+  message: '',
+};
+
+function SubmitNotificationButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+      Notificar Depósito
+    </Button>
+  );
+}
+
+function DepositNotificationForm() {
+    const { user, userProfile } = useAuth();
+    const [state, formAction] = useActionState(submitDepositNotification, initialNotificationState);
+    const formRef = useRef<HTMLFormElement>(null);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if(state.message){
+            if(state.success){
+                toast({ title: "Notificación Enviada", description: state.message });
+                formRef.current?.reset();
+            } else {
+                toast({ variant: 'destructive', title: "Error", description: state.message });
+            }
+        }
+    }, [state, toast]);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Notificar Depósito Manual</CardTitle>
+                <CardDescription>
+                    Si ya hiciste una transferencia o depósito cripto, usa este formulario para informarnos.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <form ref={formRef} action={formAction} className="space-y-4">
+                    <input type="hidden" name="userId" value={user?.uid} />
+                    <input type="hidden" name="userEmail" value={user?.email || ''} />
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="amount">Monto Depositado</Label>
+                            <Input id="amount" name="amount" type="number" step="0.01" placeholder="Ej: 50.00" required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="reference">Nº de Referencia</Label>
+                            <Input id="reference" name="reference" placeholder="ID de la transacción" required />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="notes">Notas (Opcional)</Label>
+                        <Textarea id="notes" name="notes" placeholder="Ej: Depósito desde cuenta de Pichincha." />
+                    </div>
+
+                     {!state.success && state.message && (
+                        <Alert variant="destructive" className='text-xs'>
+                            <AlertDescription>{state.message}</AlertDescription>
+                        </Alert>
+                    )}
+
+                    <SubmitNotificationButton />
+                </form>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 export function WalletSheet() {
   const { user, userProfile, loading: authLoading } = useAuth();
@@ -357,6 +433,7 @@ export function WalletSheet() {
                 </Alert>
             )}
             {verificationStatus === 'verified' && (
+                <>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                     <div className="space-y-4">
                         <DepositArea />
@@ -365,6 +442,10 @@ export function WalletSheet() {
                     </div>
                     <WithdrawalArea />
                 </div>
+                <Separator />
+                <DepositNotificationForm />
+                </>
+
             )}
             {verificationStatus === 'rejected' && (
                 <div className='space-y-4'>

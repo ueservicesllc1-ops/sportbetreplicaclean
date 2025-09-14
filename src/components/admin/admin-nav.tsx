@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Users, Wallet, Image as ImageIcon, ArrowDownUp, ShieldCheck, ImageUp, Banknote } from "lucide-react";
+import { Bell, Home, Users, Wallet, Image as ImageIcon, ArrowDownUp, ShieldCheck, ImageUp, Banknote, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "../ui/badge";
 import { Logo } from "../logo";
@@ -18,22 +18,33 @@ export function AdminNav() {
     const pathname = usePathname();
     const { user, isAdmin, isSuperAdmin } = useAuth();
     const [pendingVerifications, setPendingVerifications] = useState(0);
+    const [pendingDeposits, setPendingDeposits] = useState(0);
 
     useEffect(() => {
         if (!isAdmin) return;
 
-        const q = query(collection(db, 'users'), where('verificationStatus', '==', 'pending'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const verificationsQuery = query(collection(db, 'users'), where('verificationStatus', '==', 'pending'));
+        const depositsQuery = query(collection(db, 'deposit_notifications'), where('status', '==', 'pending'));
+
+        const unsubVerifications = onSnapshot(verificationsQuery, (snapshot) => {
             setPendingVerifications(snapshot.size);
         });
+        
+        const unsubDeposits = onSnapshot(depositsQuery, (snapshot) => {
+            setPendingDeposits(snapshot.size);
+        });
 
-        return () => unsubscribe();
+        return () => {
+            unsubVerifications();
+            unsubDeposits();
+        };
     }, [isAdmin]);
     
     const navItems = [
         { href: "/admin", label: "Dashboard", icon: Home, requiredRole: 'admin' },
         { href: "/admin/users", label: "Usuarios", icon: Users, requiredRole: 'admin' },
         { href: "/admin/verifications", label: "Verificaciones", icon: ShieldCheck, requiredRole: 'admin', badge: pendingVerifications > 0 ? pendingVerifications : null },
+        { href: "/admin/deposits", label: "Depósitos", icon: Inbox, requiredRole: 'superadmin', badge: pendingDeposits > 0 ? pendingDeposits : null },
         { href: "/admin/wallets", label: "Billeteras", icon: Wallet, requiredRole: 'superadmin' },
         { href: "/admin/withdrawals", label: "Retiros", icon: ArrowDownUp, requiredRole: 'superadmin' },
         { href: "/admin/banners", label: "Banners", icon: ImageIcon, requiredRole: 'admin' },
@@ -48,8 +59,12 @@ export function AdminNav() {
         }
         return true;
     }).sort((a, b) => {
+        // Keep banking at the bottom
         if (a.href === '/admin/banking') return 1;
         if (b.href === '/admin/banking') return -1;
+        // Prioritize items with badges
+        if (a.badge && !b.badge) return -1;
+        if (!a.badge && b.badge) return 1;
         return 0;
     });
 

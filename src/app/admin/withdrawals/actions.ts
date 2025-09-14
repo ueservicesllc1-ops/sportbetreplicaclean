@@ -92,3 +92,39 @@ export async function processWithdrawal(requestId: string, action: 'approve' | '
         throw new Error('No se pudo procesar la solicitud de retiro.');
     }
 }
+
+
+export async function submitDepositNotification(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; }> {
+    const userId = formData.get('userId') as string;
+    const userEmail = formData.get('userEmail') as string;
+    const amount = parseFloat(formData.get('amount') as string);
+    const reference = formData.get('reference') as string;
+    const notes = formData.get('notes') as string;
+
+    if (!userId || !userEmail || !amount || !reference) {
+        return { success: false, message: 'Faltan datos. El monto y la referencia son obligatorios.' };
+    }
+     if (amount <= 0) {
+        return { success: false, message: 'El monto debe ser un número positivo.' };
+    }
+
+    try {
+        const notificationsRef = collection(db, 'deposit_notifications');
+        await addDoc(notificationsRef, {
+            userId,
+            userEmail,
+            amount,
+            reference,
+            notes,
+            status: 'pending',
+            createdAt: serverTimestamp()
+        });
+
+        revalidatePath('/admin/deposits');
+        return { success: true, message: 'Tu notificación ha sido enviada. El administrador la revisará pronto.' };
+
+    } catch (error) {
+        console.error('Error submitting deposit notification:', error);
+        return { success: false, message: 'Ocurrió un error al enviar la notificación.' };
+    }
+}

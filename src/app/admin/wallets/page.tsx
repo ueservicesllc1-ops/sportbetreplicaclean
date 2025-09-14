@@ -1,6 +1,8 @@
+
 'use client';
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -119,6 +121,9 @@ function TransactionsHistory() {
 }
 
 export default function AdminWalletsPage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
     const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null);
@@ -127,7 +132,6 @@ export default function AdminWalletsPage() {
     const [submitting, setSubmitting] = useState(false);
     const { toast } = useToast();
     const { userProfile, isSuperAdmin, loading: authLoading } = useAuth();
-    const router = useRouter();
     
     useEffect(() => {
         if (!authLoading && !isSuperAdmin) {
@@ -135,12 +139,23 @@ export default function AdminWalletsPage() {
         }
     }, [isSuperAdmin, authLoading, router]);
 
-    const handleSearch = async () => {
-        if (!searchTerm) return;
+     useEffect(() => {
+        const initialSearch = searchParams.get('search');
+        if (initialSearch) {
+            setSearchTerm(initialSearch);
+            handleSearch(initialSearch);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
+    const handleSearch = async (term?: string) => {
+        const currentSearch = term || searchTerm;
+        if (!currentSearch) return;
+
         setLoading(true);
         setSelectedUser(null);
         try {
-            const results = await searchUsers(searchTerm);
+            const results = await searchUsers(currentSearch);
             setSearchResults(results);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo realizar la búsqueda.' });
@@ -206,7 +221,7 @@ export default function AdminWalletsPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle>Recarga Manual de Saldo</CardTitle>
-                        <CardDescription>Busca un usuario por su email o ID para añadirle fondos manualmente tras verificar un depósito (transferencia, cripto, etc.).</CardDescription>
+                        <CardDescription>Busca un usuario por su email o ID para añadirle fondos manualmente tras verificar una notificación de depósito.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="flex gap-2">
@@ -216,7 +231,7 @@ export default function AdminWalletsPage() {
                                 onChange={e => setSearchTerm(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && handleSearch()}
                             />
-                            <Button onClick={handleSearch} disabled={loading}>
+                            <Button onClick={() => handleSearch()} disabled={loading}>
                                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                             </Button>
                         </div>
