@@ -15,7 +15,7 @@ export default function CasinoLayout({
         <Header />
         <MainNav />
         <SecondaryNav />
-        <main className="mx-auto w-full max-w-screen-2xl flex-grow px-2 py-4 md:px-4">
+        <main className="w-full flex-grow px-4 py-4 md:px-6">
           {children}
         </main>
         <Footer />

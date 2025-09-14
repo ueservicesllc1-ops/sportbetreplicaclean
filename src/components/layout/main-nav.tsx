@@ -12,7 +12,7 @@ export function MainNav() {
   const { isAdmin } = useAuth();
   return (
     <div className="border-b bg-card">
-      <div className="mx-auto w-full max-w-screen-2xl px-2 md:px-4">
+      <div className="w-full px-4 md:px-6">
         <ScrollArea className="whitespace-nowrap">
           <div className="flex items-center justify-center space-x-1 py-2">
             {mainNavSports.map((sport) => (

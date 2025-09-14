@@ -16,7 +16,7 @@ export default function QuienesSomosLayout({
         <Header />
         <MainNav />
         <SecondaryNav />
-        <main className="mx-auto w-full max-w-screen-2xl flex-grow px-2 py-8 md:px-4">
+        <main className="w-full flex-grow px-4 py-8 md:px-6">
           {children}
         </main>
         <Footer />

@@ -14,7 +14,7 @@ const secondaryNavLinks = [
 export function SecondaryNav() {
   return (
     <div className="border-b bg-secondary/50">
-      <div className="mx-auto w-full max-w-screen-2xl px-2 md:px-4">
+      <div className="w-full px-4 md:px-6">
         <ScrollArea className="whitespace-nowrap">
           <div className="flex h-10 items-center justify-center space-x-2">
             {secondaryNavLinks.map((link) => (

@@ -12,7 +12,7 @@ const footerSections = {
 export function Footer() {
   return (
     <footer className="border-t bg-card text-card-foreground">
-      <div className="mx-auto w-full max-w-screen-2xl px-4 py-8">
+      <div className="w-full px-4 py-8 md:px-6">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {Object.entries(footerSections).map(([title, links]) => (
             <div key={title}>
