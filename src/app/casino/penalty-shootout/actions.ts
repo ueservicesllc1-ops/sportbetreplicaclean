@@ -40,7 +40,7 @@ export async function placePenaltyBet(userId: string, betAmount: number): Promis
             transaction.set(doc(transactionsRef), {
                 userId: userId,
                 game: 'PenaltyShootout',
-                type: 'debit',
+                type: 'debit_bet',
                 amount: betAmount,
                 createdAt: serverTimestamp(),
             });
@@ -73,7 +73,7 @@ export async function resolvePenaltyBet(userId: string, winnings: number): Promi
              transaction.set(doc(transactionsRef), {
                 userId: userId,
                 game: 'PenaltyShootout',
-                type: 'credit',
+                type: 'credit_win',
                 amount: winnings,
                 createdAt: serverTimestamp(),
             });
@@ -81,6 +81,46 @@ export async function resolvePenaltyBet(userId: string, winnings: number): Promi
     } catch (error: any) {
         console.error("Error resolving penalty bet:", error);
         throw new Error('No se pudieron acreditar tus ganancias.');
+    }
+}
+
+export async function resolvePenaltyLoss(userId: string, betAmount: number): Promise<void> {
+    if (!userId) {
+        throw new Error('Usuario no autenticado.');
+    }
+    // The initial stake was already deducted. We just deduct it again.
+     if (betAmount <= 0) {
+        return;
+    }
+
+    const userDocRef = doc(db, 'users', userId);
+    const transactionsRef = collection(db, 'game_transactions');
+
+     try {
+        await runTransaction(db, async (transaction) => {
+            const userDoc = await transaction.get(userDocRef);
+            if (!userDoc.exists()) {
+                throw new Error('No se encontró el perfil de usuario para procesar la pérdida.');
+            }
+            // Check if user has enough balance for the penalty
+            if (userDoc.data().balance < betAmount) {
+                // Not enough for double loss, just take what's left
+                transaction.update(userDocRef, { balance: 0 });
+            } else {
+                transaction.update(userDocRef, { balance: increment(-betAmount) });
+            }
+
+            transaction.set(doc(transactionsRef), {
+                userId: userId,
+                game: 'PenaltyShootout',
+                type: 'debit_loss_penalty',
+                amount: betAmount,
+                createdAt: serverTimestamp(),
+            });
+        });
+    } catch (error: any) {
+        console.error("Error resolving penalty loss:", error);
+        throw new Error('No se pudo procesar la penalización por pérdida.');
     }
 }
 

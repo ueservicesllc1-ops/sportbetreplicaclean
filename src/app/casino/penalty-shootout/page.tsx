@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { placePenaltyBet, resolvePenaltyBet, updateGameAssetPositions } from './actions';
+import { placePenaltyBet, resolvePenaltyBet, updateGameAssetPositions, resolvePenaltyLoss } from './actions';
 import { getPenaltyGameAssets } from '@/app/admin/game-assets/actions';
-import { Loader2, ArrowLeft, Target, Save } from 'lucide-react';
+import { Loader2, ArrowLeft, Target, Save, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,15 +21,12 @@ import { Slider } from '@/components/ui/slider';
 type GameState = 'betting' | 'shooting' | 'finished';
 type ShotResult = 'goal' | 'save';
 
-const GOAL_MULTIPLIER = 3;
-const GOAL_CHANCE = 0.60; // 60% chance to score
-
 const goalZones = [
-    { id: 1, name: 'Superior Izquierda', position: { top: '30%', left: '22%' } },
-    { id: 2, name: 'Superior Derecha', position: { top: '30%', left: '76%' } },
-    { id: 3, name: 'Centro', position: { top: '40%', left: '50%' } },
-    { id: 4, name: 'Inferior Izquierda', position: { top: '55%', left: '22%' } },
-    { id: 5, name: 'Inferior Derecha', position: { top: '55%', left: '76%' } },
+    { id: 1, name: 'Sup. Izq.', position: { top: '30%', left: '22%' }, chance: 0.50, multiplier: 4.5 },
+    { id: 2, name: 'Sup. Der.', position: { top: '30%', left: '78%' }, chance: 0.50, multiplier: 4.5 },
+    { id: 3, name: 'Centro', position: { top: '45%', left: '50%' }, chance: 0.30, multiplier: 5.5 },
+    { id: 4, name: 'Inf. Izq.', position: { top: '65%', left: '22%' }, chance: 0.70, multiplier: 2.5 },
+    { id: 5, name: 'Inf. Der.', position: { top: '65%', left: '78%' }, chance: 0.70, multiplier: 2.5 },
 ];
 
 const defaultAssets: Record<string, string | number> = {
@@ -134,7 +131,8 @@ export default function PenaltyShootoutPage() {
         try {
             await placePenaltyBet(user.uid, amount);
 
-            const isGoal = Math.random() < GOAL_CHANCE;
+            const shotZone = goalZones.find(z => z.id === selectedZone)!;
+            const isGoal = Math.random() < shotZone.chance;
             
             const keeperTargetZoneId = isGoal 
                 ? goalZones.find(z => z.id !== selectedZone)!.id 
@@ -169,7 +167,7 @@ export default function PenaltyShootoutPage() {
             setTimeout(async () => {
                 if (isGoal) {
                     setShotResult('goal');
-                    const winnings = amount * GOAL_MULTIPLIER;
+                    const winnings = amount * shotZone.multiplier;
                     await resolvePenaltyBet(user.uid, winnings);
                     toast({
                         title: '¡GOOOOL!',
@@ -178,10 +176,11 @@ export default function PenaltyShootoutPage() {
                     });
                 } else {
                     setShotResult('save');
+                    await resolvePenaltyLoss(user.uid, amount);
                      toast({
                         variant: 'destructive',
                         title: '¡ATAJADO!',
-                        description: `El portero ha parado tu disparo.`,
+                        description: `Perdiste el doble de tu apuesta: -$${(amount * 2).toFixed(2)}`,
                     });
                 }
                 
@@ -212,6 +211,9 @@ export default function PenaltyShootoutPage() {
         }
         return { top: `${ballTop}%`, left: `${ballLeft}%`, transform: `translate(-50%, -50%) scale(${ballScale})` };
     };
+
+    const selectedShotData = selectedZone ? goalZones.find(z => z.id === selectedZone) : null;
+
 
     return (
         <div className="space-y-6">
@@ -275,7 +277,7 @@ export default function PenaltyShootoutPage() {
                                 className="absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer flex items-center justify-center"
                                 style={zone.position}
                              >
-                                 <div className={cn("w-full h-full transition-all bg-yellow-400/20 hover:bg-yellow-400/40",
+                                 <div className={cn("w-full h-full transition-all bg-yellow-400/20 hover:bg-yellow-400/40 rounded-full",
                                     selectedZone === zone.id ? 'bg-transparent' : ''
                                  )}>
                                     {selectedZone === zone.id && (
@@ -285,7 +287,7 @@ export default function PenaltyShootoutPage() {
                              </div>
                         ))}
                          {shotResult && selectedZone && (
-                            <div className={cn("absolute w-16 h-16 -translate-x-1/2 -translate-y-1/2", shotResult === 'goal' ? 'bg-green-500/40' : 'bg-red-500/40')} style={goalZones.find(z => z.id === selectedZone)?.position}></div>
+                            <div className={cn("absolute w-16 h-16 -translate-x-1/2 -translate-y-1/2 rounded-full", shotResult === 'goal' ? 'bg-green-500/40' : 'bg-red-500/40')} style={goalZones.find(z => z.id === selectedZone)?.position}></div>
                          )}
 
 
@@ -362,9 +364,15 @@ export default function PenaltyShootoutPage() {
                     <CardHeader>
                         <CardTitle>Coloca tu Apuesta</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-4">
                         <div className='space-y-2'>
                             <Label>1. Elige un monto</Label>
+                            <div className="grid grid-cols-4 gap-2">
+                                <Button size="sm" variant="outline" onClick={() => setBetAmount('1.00')} disabled={gameState !== 'betting'}>$1</Button>
+                                <Button size="sm" variant="outline" onClick={() => setBetAmount('2.00')} disabled={gameState !== 'betting'}>$2</Button>
+                                <Button size="sm" variant="outline" onClick={() => setBetAmount('5.00')} disabled={gameState !== 'betting'}>$5</Button>
+                                <Button size="sm" variant="outline" onClick={() => setBetAmount('10.00')} disabled={gameState !== 'betting'}>$10</Button>
+                            </div>
                              <div className="flex gap-2">
                                 <Input 
                                     type="number" 
@@ -380,7 +388,7 @@ export default function PenaltyShootoutPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>2. Elige una zona</Label>
+                            <Label>2. Elige una zona para disparar</Label>
                             <div className="grid grid-cols-3 gap-2">
                                 {goalZones.map(zone => (
                                     <Button
@@ -397,11 +405,25 @@ export default function PenaltyShootoutPage() {
                             </div>
                         </div>
                         
-                        <div className="text-center bg-secondary p-3 rounded-md">
-                            <p className="text-sm text-muted-foreground">Probabilidad de Gol</p>
-                            <p className="text-xl font-bold text-primary">{(GOAL_CHANCE * 100).toFixed(0)}%</p>
-                            <p className="text-sm text-muted-foreground mt-2">Premio</p>
-                            <p className="text-xl font-bold text-primary">{GOAL_MULTIPLIER}x</p>
+                        <div className="text-center bg-secondary p-3 rounded-md space-y-2">
+                            <div className='grid grid-cols-2 gap-2'>
+                                <div className='text-left'>
+                                    <p className="text-sm text-muted-foreground">Prob. de Gol</p>
+                                    <p className="text-xl font-bold text-primary">
+                                        {selectedShotData ? `${(selectedShotData.chance * 100).toFixed(0)}%` : '-'}
+                                    </p>
+                                </div>
+                                <div className='text-right'>
+                                    <p className="text-sm text-muted-foreground">Premio</p>
+                                    <p className="text-xl font-bold text-primary">
+                                        {selectedShotData ? `${selectedShotData.multiplier}x` : '-'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="text-xs text-amber-500/80 font-semibold flex items-center justify-center gap-1 border-t border-border pt-2">
+                                <AlertTriangle className='h-3 w-3' />
+                                ¡Atención! Una pérdida cuesta el doble de tu apuesta.
+                            </div>
                         </div>
                         
                         <Button
