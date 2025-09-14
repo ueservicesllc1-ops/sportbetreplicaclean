@@ -14,7 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { requestWithdrawal } from '@/app/admin/withdrawals/actions';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { PayPalDeposit } from './paypal-button';
+import Link from 'next/link';
 
 const WELCOME_BONUS = 100;
 const CRYPTO_WALLET_ADDRESS = '0xEc633c67bb965F7A60F572bdDB76e49b5D6Da348';
@@ -46,9 +46,13 @@ function DepositArea() {
     return (
          <div className="space-y-4">
             <h3 className="font-semibold text-lg">Depositar Fondos</h3>
-            
-            <PayPalDeposit />
 
+            <Button asChild className="w-full justify-start gap-2">
+                <Link href="https://www.paypal.com/ncp/payment/48XSRX2BKGNCE" target="_blank" onClick={showConfirmationToast}>
+                    <CreditCard /> Recarga con tarjeta
+                </Link>
+            </Button>
+            
             <Separator />
             <div className='space-y-4'>
                 <Button variant="outline" className="w-full justify-start gap-2" onClick={handleBankTransfer}>
