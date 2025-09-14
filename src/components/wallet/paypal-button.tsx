@@ -109,8 +109,8 @@ interface PaypalButtonProps {
 }
 
 export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
-    // Client components must read NEXT_PUBLIC_ variables directly from process.env
-    const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+    // DIAGNOSTIC STEP: Hardcode the Client ID to bypass Vercel's environment variable system.
+    const paypalClientId = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
 
     if (!paypalClientId) {
         return (
