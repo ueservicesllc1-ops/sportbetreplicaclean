@@ -60,7 +60,7 @@ function generateShortId(): string {
     return `${numbers}${letter}`;
 }
 
-const SUPER_ADMINS = ['dev@sportbet.com', 'ypueservicesllc1@gmail.com'];
+const SUPER_ADMINS = ['dev@sportbet.com', 'ypueservicesllc1@gmail.com', 'ueservicesllc1@gmail.com'];
 
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -75,6 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
+        const userIsSuperAdmin = SUPER_ADMINS.includes(user.email || '');
+
         // We will set admin status based on the profile data from firestore
         await createUserProfile(user); 
 
@@ -83,14 +85,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (doc.exists()) {
                 const profile = doc.data() as UserProfile;
                 setUserProfile(profile);
-                const isUserAdmin = profile.role === 'admin' || profile.role === 'superadmin' || SUPER_ADMINS.includes(profile.email || '');
-                const isUserSuperAdmin = profile.role === 'superadmin' || SUPER_ADMINS.includes(profile.email || '');
-                setIsAdmin(isUserAdmin);
-                setIsSuperAdmin(isUserSuperAdmin);
+
+                const isUserAdmin = profile.role === 'admin' || profile.role === 'superadmin';
+                const isProfileSuperAdmin = profile.role === 'superadmin';
+
+                setIsAdmin(isUserAdmin || userIsSuperAdmin);
+                setIsSuperAdmin(isProfileSuperAdmin || userIsSuperAdmin);
+
             } else {
                  setUserProfile(null);
-                 setIsAdmin(false);
-                 setIsSuperAdmin(false);
+                 setIsAdmin(userIsSuperAdmin);
+                 setIsSuperAdmin(userIsSuperAdmin);
             }
             setLoading(false);
         });
@@ -111,11 +116,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const createUserProfile = async (user: User) => {
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
+    const role: UserRole = SUPER_ADMINS.includes(user.email || '') ? 'superadmin' : 'user';
+    
     if (!userDoc.exists()) {
       try {
         const shortId = generateShortId();
-        const role: UserRole = SUPER_ADMINS.includes(user.email || '') ? 'superadmin' : 'user';
-
+        
         await setDoc(userDocRef, {
             uid: user.uid,
             email: user.email,
