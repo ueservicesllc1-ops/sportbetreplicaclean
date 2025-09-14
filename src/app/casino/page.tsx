@@ -343,9 +343,16 @@ export default function CasinoPage() {
                   <TabsTrigger value="auto" disabled>Auto</TabsTrigger>
                 </TabsList>
                 <TabsContent value="manual" className="mt-4 space-y-4">
-                  <div>
+                  <div className='space-y-2'>
                     <label className="text-sm font-medium text-muted-foreground">Monto de Apuesta</label>
-                    <div className="mt-1 flex gap-2">
+                    <div className="grid grid-cols-5 gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('1.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$1</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('2.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$2</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('5.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$5</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('10.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$10</Button>
+                        <Button size="sm" variant="outline" onClick={() => setBetAmount('20.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$20</Button>
+                    </div>
+                    <div className="flex gap-2">
                       <Input 
                         type="number" 
                         value={betAmount} 
@@ -378,5 +385,3 @@ export default function CasinoPage() {
     </div>
   );
 }
-
-    
