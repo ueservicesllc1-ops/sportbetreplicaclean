@@ -2,7 +2,8 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { doc, serverTimestamp, runTransaction, increment } from 'firebase/firestore';
+import { doc, serverTimestamp, runTransaction, increment, collection } from 'firebase/firestore';
+import {type NextRequest, NextResponse} from 'next/server';
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
