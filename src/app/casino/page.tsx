@@ -16,6 +16,12 @@ const casinoGames = [
         description: "Apuesta a tu color favorito y gira la rueda para ganar.",
         href: "/casino/ruleta",
         imageUrl: "https://iili.io/KTE7gRa.png"
+    },
+    {
+        name: "Tanda de Penales",
+        description: "Elige tu esquina y patea para ganar. ¡Gol o atajada!",
+        href: "/casino/penalty-shootout",
+        imageUrl: "https://i.postimg.cc/8PLdM9d3/penalty-shootout.jpg"
     }
 ]
 
