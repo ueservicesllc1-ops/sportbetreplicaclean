@@ -8,13 +8,15 @@ import { useAuth } from '@/contexts/auth-context';
 import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 interface PayPalButtonsComponentProps {
     amount: number;
     onPaymentSuccess: () => void;
+    paypalClientId: string;
 }
 
-const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsComponentProps) => {
+const PayPalButtonsComponent = ({ amount, onPaymentSuccess, paypalClientId }: PayPalButtonsComponentProps) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -93,12 +95,15 @@ const PayPalButtonsComponent = ({ amount, onPaymentSuccess }: PayPalButtonsCompo
                     <p className="text-sm text-muted-foreground">Procesando pago...</p>
                 </div>
             )}
-            <PayPalButtons
-                style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
-                createOrder={handleCreateOrder}
-                onApprove={onApprove}
-                onError={onError}
-            />
+            <PayPalScriptProvider options={{ clientId: paypalClientId, currency: 'USD', intent: 'capture' }}>
+                <PayPalButtons
+                    style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
+                    createOrder={handleCreateOrder}
+                    onApprove={onApprove}
+                    onError={onError}
+                    disabled={isProcessing}
+                />
+            </PayPalScriptProvider>
         </div>
     );
 };
@@ -113,16 +118,17 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
 
     if (!paypalClientId) {
         return (
-            <Button disabled className='w-full'>
-                PayPal no está configurado
-            </Button>
+            <Alert variant="destructive">
+                <AlertTitle>Error de Configuración</AlertTitle>
+                <AlertDescription>
+                    La integración de PayPal no está configurada correctamente. La variable de entorno <strong>NEXT_PUBLIC_PAYPAL_CLIENT_ID</strong> no se ha encontrado. Por favor, verifica la configuración en Vercel.
+                </AlertDescription>
+            </Alert>
         );
     }
     
     return (
-        <PayPalScriptProvider options={{ clientId: paypalClientId, currency: 'USD', intent: 'capture' }}>
-            {/* The key prop forces the component to re-mount when the amount changes, ensuring the new amount is used */}
-            <PayPalButtonsComponent key={amount} amount={amount} onPaymentSuccess={onPaymentSuccess} />
-        </PayPalScriptProvider>
+        // The key prop forces the component to re-mount when the amount changes, ensuring the new amount is used
+        <PayPalButtonsComponent key={amount} amount={amount} onPaymentSuccess={onPaymentSuccess} paypalClientId={paypalClientId} />
     );
 }
