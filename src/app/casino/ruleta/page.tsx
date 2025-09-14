@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,13 +136,13 @@ export default function RuletaPage() {
                 {/* Game Area */}
                 <div className="lg:col-span-2 flex items-center justify-center">
                     <div className="relative w-full max-w-[500px] aspect-square">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-b-[30px] border-b-primary z-10 drop-shadow-lg"></div>
                         <div 
                             style={{ transform: `rotate(${rotation}deg)`, transition: 'transform 4s ease-out' }}
                             className="absolute inset-0"
                         >
                              <Wheel segments={segments} />
                         </div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+25px)] w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[25px] border-t-primary z-10 drop-shadow-lg"></div>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-16 w-16 rounded-full bg-secondary border-4 border-primary flex items-center justify-center text-primary font-bold text-lg">
                            {gameState === 'finished' && winningSegment ? winningSegment.label : '?'}
                         </div>
