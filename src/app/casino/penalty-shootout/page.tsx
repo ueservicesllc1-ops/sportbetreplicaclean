@@ -138,10 +138,11 @@ export default function PenaltyShootoutPage() {
             const keeperTargetPosition = goalZones.find(z => z.id === keeperTargetZoneId)!.position;
             
             let rotationAngle = 0;
-            if ([1, 4].includes(keeperTargetZoneId)) { // Left zones
-                rotationAngle = -20;
-            } else if ([2, 5].includes(keeperTargetZoneId)) { // Right zones
-                rotationAngle = 20;
+            switch(keeperTargetZoneId) {
+                case 1: rotationAngle = -20; break; // Top Left
+                case 2: rotationAngle = 20; break;  // Top Right
+                case 4: rotationAngle = -90; break; // Bottom Left
+                case 5: rotationAngle = 90; break;  // Bottom Right
             }
 
             setKeeperStyle(prev => ({
