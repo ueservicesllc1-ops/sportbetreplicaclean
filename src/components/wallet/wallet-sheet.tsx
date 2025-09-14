@@ -63,6 +63,7 @@ function DepositArea() {
                     placeholder="Monto personalizado"
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
+                    className="text-black"
                 />
             </div>
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
