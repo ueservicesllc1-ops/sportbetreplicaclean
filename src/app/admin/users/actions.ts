@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, doc, getDocs, orderBy, query, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, orderBy, query, updateDoc, Timestamp } from 'firebase/firestore';
 import type { UserProfile, UserRole } from '@/contexts/auth-context';
 import { revalidatePath } from 'next/cache';
 
@@ -14,7 +14,24 @@ export async function getUsers(): Promise<UserProfile[]> {
     const snapshot = await getDocs(q);
     const users: UserProfile[] = [];
     snapshot.forEach(doc => {
-      users.push(doc.data() as UserProfile);
+      const data = doc.data();
+      const createdAt = data.createdAt;
+
+      // Convert Timestamp to a plain object
+      let serializableCreatedAt = null;
+      if (createdAt instanceof Timestamp) {
+        serializableCreatedAt = {
+          seconds: createdAt.seconds,
+          nanoseconds: createdAt.nanoseconds,
+        };
+      } else if (createdAt && typeof createdAt === 'object' && 'seconds' in createdAt) {
+        serializableCreatedAt = createdAt;
+      }
+      
+      users.push({
+        ...data,
+        createdAt: serializableCreatedAt,
+      } as UserProfile);
     });
     return users;
   } catch (error) {
