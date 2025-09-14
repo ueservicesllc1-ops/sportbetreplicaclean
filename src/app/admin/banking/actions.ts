@@ -28,7 +28,10 @@ export async function getBankingSettings(): Promise<BankingInfo> {
         const docRef = doc(db, SETTINGS_COLLECTION, BANKING_DOC);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            return docSnap.data() as BankingInfo;
+            const data = docSnap.data();
+            // We need to remove it before passing the object to a Client Component.
+            const { lastUpdated, ...settings } = data;
+            return settings as BankingInfo;
         }
         return {};
     } catch (error) {
