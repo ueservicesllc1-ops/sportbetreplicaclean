@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Landmark, ShieldAlert, Bitcoin, Copy, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Loader2, Landmark, ShieldAlert, Bitcoin, Copy, AlertTriangle, MessageSquare, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
@@ -17,7 +18,8 @@ import { PaypalButton } from './paypal-button';
 import { ScrollArea } from '../ui/scroll-area';
 import Image from 'next/image';
 import { getBankingSettings, type BankingInfo } from '@/app/admin/banking/actions';
-import { ShieldCheck } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 
 const WELCOME_BONUS = 100;
 
@@ -93,7 +95,7 @@ function BankTransferArea() {
             <div className='grid grid-cols-4 gap-2'>
                 {availableBanks.map(bank => (
                      <DialogTrigger asChild key={bank.name}>
-                        <Button variant="outline" className="h-16 w-full flex items-center justify-center p-1">
+                        <Button variant="outline" className={cn("h-16 w-full flex items-center justify-center p-1", bank.name === 'Pichincha' && 'bg-white hover:bg-white/90')}>
                             <Image src={bank.logo!} alt={`Logo ${bank.name}`} width={80} height={30} className="object-contain" />
                         </Button>
                     </DialogTrigger>
