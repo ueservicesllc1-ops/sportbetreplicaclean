@@ -101,38 +101,40 @@ export default function CasinoPage() {
 
   // Game loop management
   useEffect(() => {
-    if (gameState === 'betting') {
-        setMultiplier(1.00);
-        setHasPlacedBet(false);
-        setWinnings(0);
+    if (gameState === 'betting' || gameState === 'waiting') {
+        // Reset local round state when a new betting phase starts
+        if(gameState === 'betting') {
+            setMultiplier(1.00);
+            setHasPlacedBet(false);
+            setWinnings(0);
+        }
 
-      intervalRef.current = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(intervalRef.current!);
-            
-            // Determine crash point for the upcoming round
-            const r = Math.random();
-            if (r < 0.7) { // 70% chance for low multiplier (1.01x to 2.00x)
-              crashPoint.current = 1.01 + Math.random(); // 1.01 to 2.009...
-            } else if (r < 0.95) { // 25% chance for medium multiplier (2.00x to 10.00x)
-              crashPoint.current = 2 + Math.random() * 8;
-            } else { // 5% chance for high multiplier (10.00x to 200.00x)
-              crashPoint.current = 10 + Math.random() * 190;
+        intervalRef.current = setInterval(() => {
+            setCountdown((prev) => {
+            if (prev <= 1) {
+                clearInterval(intervalRef.current!);
+                
+                // Determine crash point for the upcoming round
+                const r = Math.random();
+                if (r < 0.7) { // 70% chance for low multiplier (1.01x to 2.00x)
+                crashPoint.current = 1.01 + Math.random(); // 1.01 to 2.009...
+                } else if (r < 0.95) { // 25% chance for medium multiplier (2.00x to 10.00x)
+                crashPoint.current = 2 + Math.random() * 8;
+                } else { // 5% chance for high multiplier (10.00x to 200.00x)
+                crashPoint.current = 10 + Math.random() * 190;
+                }
+
+                setGameState('playing');
+                return 0;
             }
-
-            setGameState('playing');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+            return prev - 1;
+            });
+        }, 1000);
     } else if (gameState === 'playing') {
       setMultiplier(1.00);
 
       const gameInterval = setInterval(() => {
         setMultiplier((prevMultiplier) => {
-          // Use a function to get the latest hasPlacedBet state
           if (prevMultiplier >= crashPoint.current) {
             setGameState('crashed');
             return prevMultiplier;
