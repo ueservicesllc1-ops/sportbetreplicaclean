@@ -35,7 +35,7 @@ const goalZones = [
 
 const defaultAssets = {
     background: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600' width='800' height='600'%3E%3Crect width='800' height='600' fill='%234CAF50'/%3E%3Crect x='100' y='100' width='600' height='400' fill='none' stroke='white' stroke-width='8'/%3E%3C/svg%3E",
-    ball: '', // Use icon
+    ball: 'https://i.postimg.cc/XvB9255v/soccer-ball.png', // Use high-quality PNG by default
     keeper_standing: 'https://i.postimg.cc/T1bSCYkF/goalkeeper.png',
     keeper_flying: 'https://i.postimg.cc/T1bSCYkF/goalkeeper.png',
 };
@@ -212,17 +212,10 @@ export default function PenaltyShootoutPage() {
                                     </div>
                                 )}
                                 {/* Ball */}
-                                {gameAssets.ball ? (
-                                    <div className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
-                                         style={getBallStyle()} >
-                                        <Image src={gameAssets.ball} alt="Balón de fútbol" width={32} height={32} />
-                                    </div>
-                                ) : (
-                                    <SoccerBallIcon 
-                                        className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
-                                        style={getBallStyle()} 
-                                    />
-                                )}
+                                <div className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
+                                     style={getBallStyle()} >
+                                    <Image src={gameAssets.ball || defaultAssets.ball} alt="Balón de fútbol" width={32} height={32} />
+                                </div>
                             </>
                         )}
                         
