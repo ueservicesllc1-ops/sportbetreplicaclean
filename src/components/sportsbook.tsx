@@ -171,11 +171,10 @@ function EventTable({ events, isLive }: { events: ApiMatchEvent[], isLive: boole
         <Table className='min-w-[600px]'>
             <TableHeader>
                 <TableRow className='hover:bg-transparent'>
-                    <TableHead className='w-1/4'>Evento</TableHead>
-                    <TableHead className='w-[70px]'></TableHead>
-                    <TableHead className='text-center'>1</TableHead>
-                    <TableHead className='text-center'>X</TableHead>
-                    <TableHead className='text-center'>2</TableHead>
+                    <TableHead className='w-2/5'>Evento</TableHead>
+                    <TableHead className='text-center w-[120px]'>1</TableHead>
+                    <TableHead className='text-center w-[120px]'>X</TableHead>
+                    <TableHead className='text-center w-[120px]'>2</TableHead>
                     <TableHead className='w-[60px] text-center'>Más</TableHead>
                 </TableRow>
             </TableHeader>
@@ -243,37 +242,38 @@ function EventRow({ event, isLive }: { event: ApiMatchEvent, isLive: boolean }) 
   return (
     <TableRow className='text-sm'>
         <TableCell>
-            <div className='flex flex-col'>
-                <span className='font-medium'>{event.home_team}</span>
-                <span className='font-medium'>{event.away_team}</span>
+            <div className='flex items-center gap-2'>
+                <div>
+                     <p className='font-medium'>{event.home_team}</p>
+                     <p className='font-medium'>{event.away_team}</p>
+                     <div className='text-xs text-muted-foreground mt-1'>
+                        {isLive ? (
+                           <Badge variant='destructive' className='animate-pulse'>EN VIVO</Badge>
+                        ) : (
+                            <span>{isToday ? 'Hoy' : formattedDate}, {formattedTime}</span>
+                        )}
+                    </div>
+                </div>
             </div>
         </TableCell>
-        <TableCell className='text-xs text-muted-foreground text-center'>
-            {isLive ? (
-                <div className='flex flex-col items-center'>
-                    <Badge variant='destructive' className='animate-pulse'>EN VIVO</Badge>
-                </div>
-            ) : (
-                <>
-                <div>{isToday ? 'Hoy' : formattedDate}</div>
-                <div>{formattedTime}</div>
-                </>
-            )}
-        </TableCell>
+        
         {hasOdds ? (
             <>
             <TableCell className='p-1'>
-                 <Button variant={getButtonVariant('1')} size="sm" className="w-full" onClick={() => handleAddBet('1')} disabled={homeOdd === 0}>
+                 <Button variant={getButtonVariant('1')} size="sm" className="w-full flex justify-between px-3" onClick={() => handleAddBet('1')} disabled={homeOdd === 0}>
+                    <span>1</span>
                     <span className="font-bold">{homeOdd.toFixed(2)}</span>
                 </Button>
             </TableCell>
             <TableCell className='p-1'>
-                 <Button variant={getButtonVariant('X')} size="sm" className="w-full" onClick={() => handleAddBet('X')} disabled={drawOdd === 0}>
+                 <Button variant={getButtonVariant('X')} size="sm" className="w-full flex justify-between px-3" onClick={() => handleAddBet('X')} disabled={drawOdd === 0}>
+                    <span>X</span>
                     <span className="font-bold">{drawOdd.toFixed(2)}</span>
                 </Button>
             </TableCell>
             <TableCell className='p-1'>
-                 <Button variant={getButtonVariant('2')} size="sm" className="w-full" onClick={() => handleAddBet('2')} disabled={awayOdd === 0}>
+                 <Button variant={getButtonVariant('2')} size="sm" className="w-full flex justify-between px-3" onClick={() => handleAddBet('2')} disabled={awayOdd === 0}>
+                    <span>2</span>
                     <span className="font-bold">{awayOdd.toFixed(2)}</span>
                 </Button>
             </TableCell>
