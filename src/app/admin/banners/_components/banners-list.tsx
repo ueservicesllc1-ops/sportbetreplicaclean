@@ -93,7 +93,7 @@ export function BannersList() {
                 className="object-cover rounded-md"
               />
           </div>
-          <div className='flex-grow'>
+          <div className='flex-grow min-w-0'>
             <p className="font-semibold truncate text-sm">{banner.imageUrl}</p>
             <p className="text-xs text-muted-foreground">
                 Creado: {new Date(banner.createdAt.seconds * 1000).toLocaleDateString()}
