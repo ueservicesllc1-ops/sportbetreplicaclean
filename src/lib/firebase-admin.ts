@@ -1,9 +1,11 @@
 
+'use server';
+
 import * as admin from 'firebase-admin';
 import { getApps, cert } from "firebase-admin/app";
 
 // This function ensures that Firebase Admin is initialized only once.
-export function getFirebaseAdmin() {
+export async function getFirebaseAdmin() {
   if (!getApps().length) {
     const firebaseAdminConfig = {
       projectId: process.env.FIREBASE_PROJECT_ID,
@@ -14,7 +16,7 @@ export function getFirebaseAdmin() {
     try {
       admin.initializeApp({
         credential: cert(firebaseAdminConfig),
-        storageBucket: 'studio-3302383355-1ea39.appspot.com',
+        storageBucket: 'studio-3302383355-1ea39.firebasestorage.app',
       });
     } catch (error) {
       console.error('Firebase admin initialization error', error);
