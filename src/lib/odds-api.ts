@@ -10,7 +10,9 @@ if (!API_KEY || API_KEY === 'YOUR_API_KEY') {
 
 export async function getSportsOdds(sportKey: string) {
     if (!API_KEY || API_KEY === 'YOUR_API_KEY') {
-        throw new Error('La clave API para The Odds API no está configurada. Por favor, establece THE_ODDS_API_KEY en tu archivo .env. Puedes obtener una clave gratuita en https://the-odds-api.com/');
+        // throw new Error('La clave API para The Odds API no está configurada. Por favor, establece THE_ODDS_API_KEY en tu archivo .env. Puedes obtener una clave gratuita en https://the-odds-api.com/');
+        console.error('THE_ODDS_API_KEY is not set. Returning empty array.');
+        return [];
     }
   
   const url = `${API_URL}/${sportKey}/odds?regions=us&markets=h2h&oddsFormat=decimal&apiKey=${API_KEY}`;
