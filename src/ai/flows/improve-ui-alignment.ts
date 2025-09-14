@@ -24,16 +24,14 @@ const ImproveUIAlignmentInputSchema = z.object({
       'A screenshot of the original website, as a data URI that must include a MIME type and use Base64 encoding. Expected format: data:<mimetype>;base64,<encoded_data>.'
     ),
 });
-export type ImproveUIAlignmentInput = z.infer<typeof ImproveUIAlignmentInputSchema>;
 
 const ImproveUIAlignmentOutputSchema = z.object({
   suggestions: z
     .string()
     .describe('A list of suggestions to improve the replica UI alignment.'),
 });
-export type ImproveUIAlignmentOutput = z.infer<typeof ImproveUIAlignmentOutputSchema>;
 
-export async function improveUIAlignment(input: ImproveUIAlignmentInput): Promise<ImproveUIAlignmentOutput> {
+export async function improveUIAlignment(input: z.infer<typeof ImproveUIAlignmentInputSchema>): Promise<z.infer<typeof ImproveUIAlignmentOutputSchema>> {
   return improveUIAlignmentFlow(input);
 }
 

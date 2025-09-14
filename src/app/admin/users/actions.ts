@@ -18,14 +18,14 @@ export async function getUsers(): Promise<UserProfile[]> {
       const createdAt = data.createdAt;
 
       // Convert Timestamp to a plain object
-      let serializableCreatedAt = null;
+      let serializableCreatedAt: { seconds: number; nanoseconds: number; } | null = null;
       if (createdAt instanceof Timestamp) {
         serializableCreatedAt = {
           seconds: createdAt.seconds,
           nanoseconds: createdAt.nanoseconds,
         };
-      } else if (createdAt && typeof createdAt === 'object' && 'seconds' in createdAt) {
-        serializableCreatedAt = createdAt;
+      } else if (createdAt && typeof createdAt === 'object' && 'seconds' in createdAt && 'nanoseconds' in createdAt) {
+        serializableCreatedAt = createdAt as { seconds: number; nanoseconds: number; };
       }
       
       users.push({
