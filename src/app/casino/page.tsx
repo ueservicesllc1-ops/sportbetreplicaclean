@@ -12,6 +12,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeCasinoBet, resolveCasinoBet } from './actions';
 import { Loader2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 type GameState = 'betting' | 'waiting' | 'playing' | 'crashed' | 'cashout';
 
@@ -91,6 +93,8 @@ export default function CasinoPage() {
   const [winnings, setWinnings] = useState<number>(0);
   const [hasPlacedBet, setHasPlacedBet] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [autoCashOutAmount, setAutoCashOutAmount] = useState<string>('1.50');
+  const [isAutoCashOutEnabled, setIsAutoCashOutEnabled] = useState<boolean>(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -98,6 +102,31 @@ export default function CasinoPage() {
   const history = useRef([2.34, 1.56, 1.02, 8.91, 3.45, 1.19, 4.01, 1.88, 2.76, 10.21, 1.00, 3.12]);
   const crashPoint = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleCashOut = async () => {
+      if(gameState !== 'playing' || !hasPlacedBet || !user) return;
+      
+      const currentWinnings = parseFloat(betAmount) * multiplier;
+      setWinnings(currentWinnings);
+      setIsSubmitting(true);
+
+      try {
+          await resolveCasinoBet(user.uid, currentWinnings);
+          toast({
+              title: '¡Ganaste!',
+              description: `Has retirado $${currentWinnings.toFixed(2)}.`,
+              className: 'bg-green-600 border-green-600 text-white'
+          });
+      } catch (error: any) {
+          toast({ variant: 'destructive', title: 'Error al retirar', description: error.message });
+          // Even if crediting fails, we cash out locally to show the UI state.
+          // A more robust system would handle this reconciliation.
+      } finally {
+          setIsSubmitting(false);
+          setGameState('cashout');
+      }
+  }
+
 
   // Game loop management
   useEffect(() => {
@@ -162,14 +191,22 @@ export default function CasinoPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
 
+
+  // Auto-cashout logic
   useEffect(() => {
-    // This effect ensures the game loop uses the latest state for hasPlacedBet inside intervals
-    if (gameState === 'playing' && hasPlacedBet) {
-      if (multiplier >= crashPoint.current) {
-        setGameState('crashed');
-      }
+    if (
+        gameState === 'playing' &&
+        hasPlacedBet &&
+        isAutoCashOutEnabled &&
+        !isSubmitting
+    ) {
+        const targetMultiplier = parseFloat(autoCashOutAmount);
+        if (!isNaN(targetMultiplier) && multiplier >= targetMultiplier) {
+            handleCashOut();
+        }
     }
-  }, [hasPlacedBet, gameState, multiplier]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [multiplier, gameState, hasPlacedBet, isAutoCashOutEnabled, autoCashOutAmount, isSubmitting]);
 
 
   const handlePlaceBet = async () => {
@@ -196,29 +233,6 @@ export default function CasinoPage() {
     }
   };
 
-  const handleCashOut = async () => {
-      if(gameState !== 'playing' || !hasPlacedBet || !user) return;
-      
-      const currentWinnings = parseFloat(betAmount) * multiplier;
-      setWinnings(currentWinnings);
-      setIsSubmitting(true);
-
-      try {
-          await resolveCasinoBet(user.uid, currentWinnings);
-          toast({
-              title: '¡Ganaste!',
-              description: `Has retirado $${currentWinnings.toFixed(2)}.`,
-              className: 'bg-green-600 border-green-600 text-white'
-          });
-      } catch (error: any) {
-          toast({ variant: 'destructive', title: 'Error al retirar', description: error.message });
-          // Even if crediting fails, we cash out locally to show the UI state.
-          // A more robust system would handle this reconciliation.
-      } finally {
-          setIsSubmitting(false);
-          setGameState('cashout');
-      }
-  }
 
   const getMultiplierColor = () => {
       if(gameState === 'crashed') return 'text-destructive';
@@ -344,7 +358,7 @@ export default function CasinoPage() {
                 </TabsList>
                 <TabsContent value="manual" className="mt-4 space-y-4">
                   <div className='space-y-2'>
-                    <label className="text-sm font-medium text-muted-foreground">Monto de Apuesta</label>
+                    <Label className="text-sm font-medium">Monto de Apuesta</Label>
                     <div className="grid grid-cols-5 gap-2">
                         <Button size="sm" variant="outline" onClick={() => setBetAmount('1.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$1</Button>
                         <Button size="sm" variant="outline" onClick={() => setBetAmount('2.00')} disabled={gameState !== 'betting' || hasPlacedBet}>$2</Button>
@@ -364,6 +378,28 @@ export default function CasinoPage() {
                       <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState !== 'betting' || hasPlacedBet}>½</Button>
                       <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting' || hasPlacedBet}>2x</Button>
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <Label className="text-sm font-medium">Auto Retiro</Label>
+                     <div className="flex items-center gap-2">
+                        <Input
+                            type="number"
+                            value={autoCashOutAmount}
+                            onChange={(e) => setAutoCashOutAmount(e.target.value)}
+                            placeholder="1.50"
+                            className="h-9"
+                            disabled={gameState !== 'betting' || hasPlacedBet}
+                        />
+                        <div className="flex items-center space-x-2 rounded-md border p-2 pr-3">
+                            <Switch 
+                                id="auto-cashout-switch" 
+                                checked={isAutoCashOutEnabled}
+                                onCheckedChange={setIsAutoCashOutEnabled}
+                                disabled={gameState !== 'betting' || hasPlacedBet}
+                            />
+                            <Label htmlFor="auto-cashout-switch" className='text-xs'>Activar</Label>
+                        </div>
+                     </div>
                   </div>
                   {renderButton()}
                 </TabsContent>
@@ -385,3 +421,5 @@ export default function CasinoPage() {
     </div>
   );
 }
+
+    
