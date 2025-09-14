@@ -5,6 +5,7 @@ import { getFirebaseAdmin } from '@/lib/firebase-admin';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
+import { v4 as uuidv4 } from 'uuid';
 
 
 export async function updateUserVerification(prevState: any, formData: FormData) {
@@ -35,21 +36,29 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await idPhoto.arrayBuffer());
 
+        // Create a new token
+        const token = uuidv4();
+        
+        // Upload the file with the token in the metadata
         await file.save(fileBuffer, {
-            metadata: { contentType: idPhoto.type },
+            metadata: { 
+                contentType: idPhoto.type,
+                metadata: {
+                  firebaseStorageDownloadTokens: token
+                }
+            },
+            public: true, // Make the file public
         });
         
-        const [signedUrl] = await file.getSignedUrl({
-            action: 'read',
-            expires: '01-01-2100', // Effectively permanent
-        });
+        // Construct the public URL with the token
+        const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
         
         const userDocRef = doc(db, 'users', uid);
 
         await updateDoc(userDocRef, {
             realName: realName,
             idNumber: idNumber,
-            idPhotoUrl: signedUrl,
+            idPhotoUrl: publicUrl,
             verificationStatus: 'pending'
         });
         
