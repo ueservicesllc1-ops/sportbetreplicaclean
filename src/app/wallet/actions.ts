@@ -28,14 +28,9 @@ export async function updateUserVerification(prevState: any, formData: FormData)
         return { success: false, message: 'La foto del ID es requerida.' };
     }
 
-    const bucketName = 'studio-3302383355-1ea39.appspot.com';
-    if (!bucketName) {
-         return { success: false, message: 'La configuración del bucket de almacenamiento no está definida.' };
-    }
-    
     try {
         const admin = getFirebaseAdmin();
-        const bucket = admin.storage().bucket(bucketName);
+        const bucket = admin.storage().bucket(); // Get default bucket from config
         const filePath = `user-documents/${uid}/${Date.now()}-${idPhoto.name}`;
         const file = bucket.file(filePath);
         const fileBuffer = Buffer.from(await idPhoto.arrayBuffer());
@@ -44,7 +39,7 @@ export async function updateUserVerification(prevState: any, formData: FormData)
             metadata: { contentType: idPhoto.type },
         });
         
-        // Generate a signed URL to access the file. This is the correct way.
+        // Generate a signed URL to access the file.
         const [signedUrl] = await file.getSignedUrl({
             action: 'read',
             expires: '01-01-2100' // Set a very long expiration date
