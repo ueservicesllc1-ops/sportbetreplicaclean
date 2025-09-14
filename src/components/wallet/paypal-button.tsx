@@ -109,8 +109,7 @@ interface PaypalButtonProps {
 }
 
 export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
-    // DIAGNOSTIC STEP: Hardcode the Client ID to bypass Vercel's environment variable system.
-    const paypalClientId = "ARtILiF9tK7Nv3aKUEM905YkROKprr9BkQSC1dkamAsqi-MwJM5XD2DLfLHFfZnXv0Fx1YYlic-H3DsX";
+    const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
     if (!paypalClientId) {
         return (
