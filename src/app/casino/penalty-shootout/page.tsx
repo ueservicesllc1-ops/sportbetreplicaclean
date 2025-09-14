@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { SoccerBallIcon } from '@/components/icons/soccer-ball-icon';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Slider } from '@/components/ui/slider';
 
 
 type GameState = 'betting' | 'shooting' | 'finished';
@@ -45,6 +46,12 @@ export default function PenaltyShootoutPage() {
     const [gameState, setGameState] = useState<GameState>('betting');
     const [shotResult, setShotResult] = useState<ShotResult | null>(null);
     const [ballPosition, setBallPosition] = useState({ x: '50%', y: '85%' });
+    
+    // --- Keeper Debug Controls ---
+    const [keeperTop, setKeeperTop] = useState(30);
+    const [keeperLeft, setKeeperLeft] = useState(50);
+    const [keeperScale, setKeeperScale] = useState(1.2);
+
     const [keeperStyle, setKeeperStyle] = useState({
         top: '30%',
         left: '50%',
@@ -64,6 +71,17 @@ export default function PenaltyShootoutPage() {
         };
         fetchAssets();
     }, []);
+
+    // Update keeper initial style when debug controls change
+    useEffect(() => {
+        if (gameState === 'betting') {
+            setKeeperStyle({
+                top: `${keeperTop}%`,
+                left: `${keeperLeft}%`,
+                transform: `translateX(-50%) scale(${keeperScale})`,
+            });
+        }
+    }, [keeperTop, keeperLeft, keeperScale, gameState]);
 
     const handleShoot = async () => {
         if (!user) {
@@ -102,11 +120,12 @@ export default function PenaltyShootoutPage() {
             
             const keeperTargetPosition = goalZones.find(z => z.id === keeperTargetZone)!.position;
             
-            setKeeperStyle({
+            setKeeperStyle(prev => ({
+                ...prev,
                 top: keeperTargetPosition.top,
                 left: keeperTargetPosition.left,
                 transform: 'translateX(-50%) translateY(-50%) scale(1.4)'
-            });
+            }));
 
 
             setTimeout(async () => {
@@ -133,10 +152,11 @@ export default function PenaltyShootoutPage() {
                 setTimeout(() => {
                     setGameState('betting');
                     setBallPosition({ x: '50%', y: '85%' });
+                    // Reset to debug values
                     setKeeperStyle({
-                        top: '30%',
-                        left: '50%',
-                        transform: 'translateX(-50%) scale(1.2)',
+                        top: `${keeperTop}%`,
+                        left: `${keeperLeft}%`,
+                        transform: `translateX(-50%) scale(${keeperScale})`,
                     });
                     setSelectedZone(null);
                 }, 3000);
@@ -228,8 +248,8 @@ export default function PenaltyShootoutPage() {
                                 className="absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer flex items-center justify-center"
                                 style={zone.position}
                              >
-                                 <div className={cn("w-full h-full transition-all",
-                                    selectedZone === zone.id ? 'bg-transparent' : 'bg-yellow-400/20 hover:bg-yellow-400/40'
+                                 <div className={cn("w-full h-full transition-all bg-yellow-400/20 hover:bg-yellow-400/40",
+                                    selectedZone === zone.id ? 'bg-transparent' : ''
                                  )}>
                                     {selectedZone === zone.id && (
                                         <Target className="w-12 h-12 text-primary animate-in fade-in zoom-in" />
@@ -251,7 +271,41 @@ export default function PenaltyShootoutPage() {
                             </div>
                         )}
                     </Card>
-                    <p className="text-sm text-muted-foreground">Selecciona una zona en la portería para patear.</p>
+                    
+                    {/* Dev Controls */}
+                    <Card className="w-full max-w-2xl p-4 space-y-4">
+                        <CardTitle className="text-base">Controles del Portero (Dev)</CardTitle>
+                        <div className="space-y-2">
+                            <Label>Posición Vertical (Top): {keeperTop}%</Label>
+                            <Slider
+                                value={[keeperTop]}
+                                onValueChange={(value) => setKeeperTop(value[0])}
+                                max={100}
+                                step={1}
+                                disabled={gameState !== 'betting'}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Posición Horizontal (Left): {keeperLeft}%</Label>
+                            <Slider
+                                value={[keeperLeft]}
+                                onValueChange={(value) => setKeeperLeft(value[0])}
+                                max={100}
+                                step={1}
+                                disabled={gameState !== 'betting'}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Escala (Scale): {keeperScale.toFixed(1)}x</Label>
+                             <Slider
+                                value={[keeperScale]}
+                                onValueChange={(value) => setKeeperScale(value[0])}
+                                max={3}
+                                step={0.1}
+                                disabled={gameState !== 'betting'}
+                            />
+                        </div>
+                    </Card>
                 </div>
 
                 {/* Control Panel */}
@@ -323,6 +377,8 @@ export default function PenaltyShootoutPage() {
     
 
 
+
+    
 
     
 
