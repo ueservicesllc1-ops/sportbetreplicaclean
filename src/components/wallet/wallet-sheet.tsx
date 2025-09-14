@@ -24,20 +24,6 @@ declare global {
     }
 }
 
-function PayPalHostedButton() {
-    useEffect(() => {
-        // Check if the paypal object and HostedButtons method are available
-        if (window.paypal && window.paypal.HostedButtons) {
-            window.paypal.HostedButtons({
-                hostedButtonId: "628SVMMQS7M52",
-            }).render("#paypal-container-628SVMMQS7M52");
-        }
-    }, []);
-
-    return <div id="paypal-container-628SVMMQS7M52"></div>;
-}
-
-
 function DepositArea() {
     const [depositAmount, setDepositAmount] = useState<number | string>('');
     const { toast } = useToast();
@@ -48,6 +34,11 @@ function DepositArea() {
             title: '¡Copiado!',
             description: 'La dirección de la billetera ha sido copiada a tu portapapeles.',
         });
+    }
+
+    const openPayPal = () => {
+      const url = "https://www.paypal.com/ncp/payment/48XSRX2BKGNCE";
+      window.open(url, '_blank');
     }
 
     return (
@@ -70,7 +61,9 @@ function DepositArea() {
             </div>
              <p className="text-xs text-muted-foreground">Seleccione un método de pago:</p>
             <div className='space-y-4'>
-                 <PayPalHostedButton />
+                 <Button onClick={openPayPal} className="w-full bg-[#0070BA] hover:bg-[#005ea6] text-white">
+                    Pagar con PayPal
+                </Button>
                  <Separator />
                 <Button variant="outline" className="w-full justify-start gap-2">
                     <Landmark /> Transferencia Bancaria
