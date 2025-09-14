@@ -171,25 +171,13 @@ export default function AdminVerificationsPage() {
                                              <DialogHeader>
                                                 <DialogTitle>Documento de {req.realName}</DialogTitle>
                                                 <DialogDescription>
-                                                    Documento de identidad subido por el usuario.
+                                                    URL del documento de identidad subido por el usuario.
                                                 </DialogDescription>
                                              </DialogHeader>
-                                             {imageError && (
-                                                <Alert variant="destructive">
-                                                    <AlertTitle>Error al cargar la imagen</AlertTitle>
-                                                    <AlertDescriptionComponent>
-                                                        No se pudo cargar la imagen. Verifica que la URL sea correcta y que el archivo exista en Firebase Storage.
-                                                    </AlertDescriptionComponent>
-                                                </Alert>
-                                             )}
-                                             {req.idPhotoUrl && !imageError && (
-                                                <div className="mt-4 rounded-md overflow-hidden relative aspect-video">
-                                                   <img
-                                                        src={req.idPhotoUrl}
-                                                        alt={`Documento de ${req.realName}`}
-                                                        className="object-contain w-full h-full"
-                                                        onError={() => setImageError(true)}
-                                                    />
+                                            
+                                             {req.idPhotoUrl && (
+                                                <div className="mt-4 rounded-md bg-secondary p-4">
+                                                   <pre className="text-xs text-wrap break-all font-mono">{req.idPhotoUrl}</pre>
                                                 </div>
                                              )}
                                         </DialogContent>
