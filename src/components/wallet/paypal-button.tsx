@@ -16,6 +16,7 @@ interface PayPalButtonsComponentProps {
     paypalClientId: string;
 }
 
+// Force redeploy
 const PayPalButtonsComponent = ({ amount, onPaymentSuccess, paypalClientId }: PayPalButtonsComponentProps) => {
     const { user } = useAuth();
     const { toast } = useToast();
@@ -119,9 +120,10 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
     if (!paypalClientId) {
         return (
             <Alert variant="destructive">
-                <AlertTitle>Error de Configuración</AlertTitle>
+                <AlertTitle>Error de Configuración de PayPal</AlertTitle>
                 <AlertDescription>
-                    La integración de PayPal no está configurada correctamente. La variable de entorno <strong>NEXT_PUBLIC_PAYPAL_CLIENT_ID</strong> no se ha encontrado. Por favor, verifica la configuración en Vercel.
+                    La variable <strong>NEXT_PUBLIC_PAYPAL_CLIENT_ID</strong> no está disponible.
+                    Por favor, verifica que la variable de entorno esté configurada correctamente en Vercel y que el proyecto se haya redesplegado.
                 </AlertDescription>
             </Alert>
         );
