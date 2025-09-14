@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Loader2, Palette } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Wheel, type WheelSegment } from '@/components/casino/wheel';
 import { placeWheelBet, resolveWheelBet } from './actions';
+import { Progress } from '@/components/ui/progress';
 
 
 const segments: WheelSegment[] = [
@@ -38,7 +39,7 @@ const betOptions = [
 ]
 
 
-type GameState = 'betting' | 'spinning' | 'finished';
+type GameState = 'betting' | 'charging' | 'spinning' | 'finished';
 
 export default function RuletaPage() {
     const [betAmount, setBetAmount] = useState('1.00');
@@ -48,6 +49,9 @@ export default function RuletaPage() {
     const [winningSegment, setWinningSegment] = useState<WheelSegment | null>(null);
     const [winningIndex, setWinningIndex] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [spinPower, setSpinPower] = useState(0);
+
+    const powerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const { user } = useAuth();
     const { toast } = useToast();
@@ -57,25 +61,50 @@ export default function RuletaPage() {
 
         const segmentAngle = 360 / segments.length;
         const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
-        const baseRotation = 360 * 5; // 5 full spins
+        const baseRotations = 3 + Math.floor(spinPower / 20); // 3 to 8 full spins
+        const baseRotation = 360 * baseRotations;
         const finalRotation = baseRotation - (winningIndex * segmentAngle) - (segmentAngle / 2) + randomOffset;
         
         setRotation(finalRotation);
 
-    }, [winningIndex])
+    }, [winningIndex, spinPower])
+
+
+    const startCharging = () => {
+        if (gameState !== 'betting') return;
+        setGameState('charging');
+        powerIntervalRef.current = setInterval(() => {
+            setSpinPower(prev => Math.min(100, prev + 2));
+        }, 20);
+    }
+
+    const releaseCharge = () => {
+        if (powerIntervalRef.current) clearInterval(powerIntervalRef.current);
+        if (gameState !== 'charging') return;
+        if (spinPower > 10) { // Require a minimum charge to spin
+             handleSpin();
+        } else {
+            setGameState('betting');
+        }
+        setSpinPower(0);
+    }
+
 
     const handleSpin = async () => {
         if (!user) {
             toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para apostar.' });
+            setGameState('betting');
             return;
         }
         if (!selectedColor) {
             toast({ variant: 'destructive', title: 'Error', description: 'Debes seleccionar un color para apostar.' });
+            setGameState('betting');
             return;
         }
         const amount = parseFloat(betAmount);
         if (isNaN(amount) || amount <= 0) {
             toast({ variant: 'destructive', title: 'Error', description: 'Introduce un monto de apuesta válido.' });
+            setGameState('betting');
             return;
         }
 
@@ -134,6 +163,21 @@ export default function RuletaPage() {
     };
 
 
+    const getButtonText = () => {
+        switch (gameState) {
+            case 'charging':
+                return '¡Suelta para Girar!';
+            case 'spinning':
+                return <Loader2 className="mr-2 h-4 w-4 animate-spin" />;
+            case 'finished':
+                return 'Girar de Nuevo';
+            case 'betting':
+            default:
+                return 'Mantén para Girar';
+        }
+    }
+
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -147,7 +191,7 @@ export default function RuletaPage() {
                     <div className="relative w-full max-w-[500px] aspect-square">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[30px] border-t-primary z-10 drop-shadow-lg"></div>
                         <div 
-                            style={{ transform: `rotate(${rotation}deg)`, transition: gameState === 'spinning' ? 'transform 4s ease-out' : 'none' }}
+                            style={{ transform: `rotate(${rotation}deg)`, transition: gameState === 'spinning' ? 'transform 4s cubic-bezier(0.2, 0.8, 0.7, 1)' : 'none' }}
                             className="absolute inset-0"
                         >
                              <Wheel segments={segments} />
@@ -173,10 +217,10 @@ export default function RuletaPage() {
                                     onChange={(e) => setBetAmount(e.target.value)}
                                     placeholder="1.00"
                                     className='text-base font-bold'
-                                    disabled={gameState === 'spinning'}
+                                    disabled={gameState !== 'betting'}
                                 />
-                                <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState === 'spinning'}>½</Button>
-                                <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState === 'spinning'}>2x</Button>
+                                <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState !== 'betting'}>½</Button>
+                                <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState !== 'betting'}>2x</Button>
                             </div>
                         </div>
 
@@ -187,29 +231,38 @@ export default function RuletaPage() {
                                     <button 
                                         key={opt.name}
                                         onClick={() => setSelectedColor(opt.color)}
-                                        disabled={gameState === 'spinning'}
+                                        disabled={gameState !== 'betting'}
                                         className={cn(
                                             "p-3 rounded-md border-2 transition-all text-white font-semibold flex flex-col items-center justify-center gap-1",
                                             selectedColor === opt.color ? 'border-primary scale-105' : 'border-transparent',
+                                             gameState !== 'betting' ? 'opacity-50 cursor-not-allowed' : ''
                                         )}
                                         style={{ backgroundColor: opt.color }}
                                     >
                                         <span>{opt.name}</span>
-                                        <span className="text-xs opacity-80">(Paga ~2x)</span>
+                                        <span className="text-xs opacity-80">(Paga ~{opt.multiplier}x)</span>
                                     </button>
                                 ))}
                             </div>
                         </div>
                         
-                         <Button
-                            size="lg"
-                            className="w-full h-12 text-lg"
-                            onClick={handleSpin}
-                            disabled={isSubmitting || gameState === 'spinning'}
-                         >
-                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                            Girar
-                         </Button>
+                        <div className='space-y-3'>
+                            <Label>3. Potencia tu Giro</Label>
+                            <Progress value={spinPower} className="w-full" />
+                            <Button
+                                size="lg"
+                                className="w-full h-12 text-lg"
+                                onMouseDown={startCharging}
+                                onMouseUp={releaseCharge}
+                                onMouseLeave={releaseCharge}
+                                onTouchStart={(e) => { e.preventDefault(); startCharging(); }}
+                                onTouchEnd={(e) => { e.preventDefault(); releaseCharge(); }}
+                                disabled={isSubmitting || gameState === 'spinning' || !selectedColor}
+                            >
+                                {getButtonText()}
+                            </Button>
+                        </div>
+
 
                          {gameState === 'finished' && (
                              <div className="text-center animate-in fade-in">
