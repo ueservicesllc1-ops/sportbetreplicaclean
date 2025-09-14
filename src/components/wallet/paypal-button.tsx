@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { cn } from '@/lib/utils';
 
 const PAYPAL_CLIENT_ID = "AfU-04zHwad560P4nU6LVMd7qnrY41c0TOdA9LUbN_6-lmztaHfxJz1p7-ByIt6-uoqSGr6OcdaO3b3m";
 const PAYPAL_SCRIPT_ID = "paypal-sdk-script";
@@ -163,4 +164,3 @@ export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
         </div>
     );
 }
-
