@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from "react";
@@ -152,15 +153,12 @@ export default function AdminWalletsPage() {
             });
             toast({ title: 'Éxito', description: result.message });
             
-            const updatedSearchResults = searchResults.map(user => 
-                user.uid === selectedUser.uid 
-                    ? { ...user, balance: user.balance + parseFloat(amount) }
-                    : user
-            );
-            setSearchResults(updatedSearchResults);
-            
+            // Clear search and results
+            setSearchTerm('');
+            setSearchResults([]);
             setSelectedUser(null);
             setAmount('');
+
         } catch (error: any) {
             toast({ variant: 'destructive', title: 'Error', description: error.message });
         } finally {
