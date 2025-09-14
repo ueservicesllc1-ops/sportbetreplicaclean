@@ -46,11 +46,11 @@ export function KycForm() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+      
+      // Revoke the object URL when the component unmounts
+      return () => URL.revokeObjectURL(objectUrl);
     } else {
       setPreview(null);
     }
