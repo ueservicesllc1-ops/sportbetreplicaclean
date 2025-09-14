@@ -60,20 +60,20 @@ export const Wheel = ({ segments }: WheelProps) => {
         </filter>
       </defs>
        <circle cx="0" cy="0" r="102" fill="none" stroke="hsl(var(--primary))" strokeWidth="4" filter="url(#shadow)"/>
-      {segments.map((segment, index) => (
+      {paths.map((p, index) => (
         <g key={index}>
-          <path d={paths[index].pathD} fill={segment.color} stroke="rgba(0,0,0,0.2)" strokeWidth="0.5" />
+          <path d={p.pathD} fill={segments[index].color} stroke="rgba(0,0,0,0.2)" strokeWidth="0.5" />
            <text
-            x={paths[index].textPos.x}
-            y={paths[index].textPos.y}
-            transform={`rotate(${paths[index].textAngle}, ${paths[index].textPos.x}, ${paths[index].textPos.y})`}
+            x={p.textPos.x}
+            y={p.textPos.y}
+            transform={`rotate(${p.textAngle}, ${p.textPos.x}, ${p.textPos.y})`}
             fill="white"
             fontSize="10"
             fontWeight="bold"
             textAnchor="middle"
             dominantBaseline="middle"
           >
-            {segment.label}
+            {segments[index].label}
           </text>
         </g>
       ))}

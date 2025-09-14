@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -21,7 +22,7 @@ const segments: WheelSegment[] = [
   { color: '#dc2626', label: '3x', value: 3 },
   { color: '#000000', label: '0x', value: 0 },
   { color: '#16a34a', label: '2x', value: 2 },
-  { color: '#000000', label- '0x', value: 0 },
+  { color: '#000000', label: '0x', value: 0 },
   { color: '#dc2626', label: '5x', value: 5 },
   { color: '#000000', label: '0x', value: 0 },
   { color: '#16a34a', label: '2x', value: 2 },
@@ -100,7 +101,7 @@ export default function RuletaPage() {
                          toast({
                             variant: 'destructive',
                             title: 'Perdiste',
-                            description: `La rueda cayó en ${segment.color}, no en ${selectedColor}.`,
+                            description: `La rueda cayó en un segmento de color diferente.`,
                         });
                     }
                 } catch (e: any) {
