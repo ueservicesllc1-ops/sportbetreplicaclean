@@ -7,110 +7,123 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { createOrder, captureOrder } from '@/lib/paypal';
 import { Loader2 } from 'lucide-react';
+import { Button } from '../ui/button';
 
-interface PayPalWrapperProps {
-    amount: string;
+interface PayPalButtonWrapperProps {
+    amount: number;
+    onPaymentSuccess: () => void;
 }
 
-// Wrapper component to isolate the PayPal script provider and buttons
-// This helps to avoid re-rendering issues with the PayPal SDK
-function PayPalButtonsComponent({ amount, createOrderHandler, onApproveHandler, onErrorHandler }: { 
-    amount: string,
-    createOrderHandler: (data: CreateOrderData) => Promise<string>,
-    onApproveHandler: (data: OnApproveData) => Promise<void>,
-    onErrorHandler: (err: any) => void,
-}) {
-    // Using a 'key' prop on PayPalButtons forces it to re-render when the amount changes,
-    // which is necessary for the PayPal SDK to pick up the new value.
+const PayPalButtonWrapper = ({ amount, onPaymentSuccess }: PayPalButtonWrapperProps) => {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handleCreateOrder = async (data: CreateOrderData) => {
+        if (amount <= 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Monto Inválido',
+                description: 'El monto a depositar debe ser mayor a cero.',
+            });
+            throw new Error('Invalid amount');
+        }
+        try {
+            const order = await createOrder(amount);
+            if(order.id) {
+                return order.id;
+            } else {
+                const errorDetail = order.details?.[0] || { issue: 'UNKNOWN_ERROR', description: 'No se pudo crear la orden.' };
+                console.error("PayPal create order error:", order);
+                toast({
+                    variant: 'destructive',
+                    title: `Error de PayPal: ${errorDetail.issue}`,
+                    description: errorDetail.description,
+                });
+                throw new Error(errorDetail.description);
+            }
+        } catch (error: any) {
+            console.error('Frontend createOrder error:', error);
+            // Toast is shown inside the createOrder call
+            throw error;
+        }
+    };
+
+    const onApprove = async (data: OnApproveData) => {
+        setIsProcessing(true);
+        if (!user) {
+            toast({ variant: 'destructive', title: 'Error de Autenticación', description: 'No se encontró el usuario.' });
+            setIsProcessing(false);
+            return;
+        }
+
+        try {
+            const result = await captureOrder(data.orderID, user.uid);
+            if (result.success) {
+                toast({
+                    title: '¡Depósito Exitoso!',
+                    description: `Se han añadido $${amount.toFixed(2)} a tu saldo.`,
+                    className: 'bg-green-600 border-green-600 text-white'
+                });
+                onPaymentSuccess();
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error en la Captura', description: error.message });
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const onError = (err: any) => {
+        console.error("PayPal Buttons Error:", err);
+        toast({
+            variant: 'destructive',
+            title: 'Error de PayPal',
+            description: 'Ocurrió un error con los botones de pago. Por favor, intenta de nuevo.',
+        });
+    };
+
     return (
-        <PayPalButtons
-            key={amount}
-            style={{ layout: "horizontal", label: "pay", tagline: false }}
-            createOrder={async (data) => createOrderHandler(data)}
-            onApprove={async (data) => onApproveHandler(data)}
-            onError={onErrorHandler}
-        />
+        <div className="relative">
+            {isProcessing && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm space-y-2">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <p className="text-sm text-muted-foreground">Procesando pago...</p>
+                </div>
+            )}
+            <PayPalButtons
+                key={amount} // Force re-render when amount changes
+                style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
+                createOrder={handleCreateOrder}
+                onApprove={onApprove}
+                onError={onError}
+            />
+        </div>
+    );
+};
+
+interface PaypalButtonProps {
+  amount: number;
+  onPaymentSuccess: () => void;
+}
+
+export function PaypalButton({ amount, onPaymentSuccess }: PaypalButtonProps) {
+    const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+
+    if (!paypalClientId) {
+        return (
+            <Button disabled className='w-full'>
+                PayPal no está configurado
+            </Button>
+        );
+    }
+    
+    return (
+        <PayPalScriptProvider options={{ clientId: paypalClientId, currency: 'USD', intent: 'capture' }}>
+            <PayPalButtonWrapper amount={amount} onPaymentSuccess={onPaymentSuccess} />
+        </PayPalScriptProvider>
     );
 }
 
-export function PayPalButtonsWrapper({ amount }: PayPalWrapperProps) {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
-
-  if (!PAYPAL_CLIENT_ID) {
-    return <p className="text-sm text-destructive">La API de PayPal no está configurada.</p>;
-  }
-
-  const createOrderHandler = async (data: CreateOrderData) => {
-    if (parseFloat(amount) <= 0) {
-      toast({ variant: 'destructive', title: 'Error', description: 'El monto debe ser mayor a cero.' });
-      throw new Error("Invalid amount");
-    }
-    setError(null);
-    setIsProcessing(true);
-    try {
-      const order = await createOrder(amount);
-      return order.id;
-    } catch (err: any) {
-      setError('No se pudo iniciar el pago. Intenta de nuevo.');
-      console.error(err);
-      setIsProcessing(false);
-      throw err;
-    }
-  };
-
-  const onApproveHandler = async (data: OnApproveData) => {
-    if (!user) {
-        setError('Debes estar autenticado para completar el pago.');
-        setIsProcessing(false);
-        return;
-    }
-    try {
-      const captureData = await captureOrder(data.orderID, user.uid);
-      if (captureData.status === 'COMPLETED') {
-        toast({
-          title: '¡Pago completado!',
-          description: `Se han añadido $${amount} a tu saldo.`,
-          className: 'bg-green-600 border-green-600 text-white'
-        });
-      } else {
-        throw new Error('La transacción no pudo ser completada.');
-      }
-    } catch (err: any) {
-      setError('Ocurrió un error al procesar tu pago.');
-      console.error(err);
-    } finally {
-        setIsProcessing(false);
-    }
-  };
-  
-  const onErrorHandler = (err: any) => {
-    setError('Ocurrió un error con PayPal. Por favor, refresca la página e intenta de nuevo.');
-    console.error('PayPal Error:', err);
-    setIsProcessing(false);
-  }
-
-  return (
-    <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: 'USD', intent: 'capture' }}>
-        <div className="relative">
-             {isProcessing && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                </div>
-            )}
-             {error && <p className="text-sm text-destructive mb-2">{error}</p>}
-
-             <PayPalButtonsComponent 
-                amount={amount}
-                createOrderHandler={createOrderHandler}
-                onApproveHandler={onApproveHandler}
-                onErrorHandler={onErrorHandler}
-             />
-        </div>
-    </PayPalScriptProvider>
-  );
-}
