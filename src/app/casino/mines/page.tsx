@@ -75,7 +75,6 @@ export default function MinesPage() {
     // Audio Refs
     const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
     const explosionSoundRef = useRef<HTMLAudioElement | null>(null);
-    const gemSoundRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         // This effect runs only once on the client side
@@ -86,9 +85,6 @@ export default function MinesPage() {
 
             explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
             explosionSoundRef.current.volume = 0.5;
-
-            gemSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/07/audio_c87c067a90.mp3');
-            gemSoundRef.current.volume = 0.8;
         }
 
         // Cleanup audio on component unmount
@@ -178,7 +174,6 @@ export default function MinesPage() {
                 description: `Encontraste una mina. Penalización: -$${penaltyAmount.toFixed(2)}.`,
             });
         } else { // It's a gem
-            if (!isMuted) gemSoundRef.current?.play();
             setGemsFound(prev => prev + 1);
         }
     };
@@ -388,5 +383,7 @@ export default function MinesPage() {
         </div>
     );
 }
+
+    
 
     
