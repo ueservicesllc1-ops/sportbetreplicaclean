@@ -131,9 +131,17 @@ export default function CasinoPage() {
   const engineSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Initialize audio on client side only
+    // Initialize audio on client side only, after component mounts
     engineSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_51c619f462.mp3');
     engineSoundRef.current.loop = true;
+
+    // Cleanup on unmount
+    return () => {
+      if (engineSoundRef.current) {
+        engineSoundRef.current.pause();
+        engineSoundRef.current = null;
+      }
+    };
   }, []);
 
 
@@ -236,10 +244,18 @@ export default function CasinoPage() {
         }, 1000);
     } else if (gameState === 'playing') {
       setMultiplier(1.00);
+      
+      const playSound = async () => {
+        if (engineSoundRef.current && !isMuted) {
+          try {
+            await engineSoundRef.current.play();
+          } catch (e) {
+            console.error("Audio play failed:", e);
+          }
+        }
+      };
+      playSound();
 
-      if (engineSoundRef.current && !isMuted) {
-          engineSoundRef.current.play().catch(e => console.error("Audio play failed:", e));
-      }
 
       const gameInterval = setInterval(() => {
         setMultiplier((prevMultiplier) => {
