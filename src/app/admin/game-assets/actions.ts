@@ -134,7 +134,14 @@ export async function updateGameAsset(prevState: any, formData: FormData): Promi
 
   const docId = documentMap[gameType];
   const filePathRoot = `game-assets/${gameType}`;
-  const revalidatePaths = ['/admin/game-assets', `/casino/${gameType}`];
+  
+  const revalidatePaths = ['/admin/game-assets'];
+  if (gameType === 'penalty_shootout') {
+    revalidatePaths.push('/casino/penalty-shootout');
+  } else if (gameType === 'mines') {
+    revalidatePaths.push('/casino/mines');
+  }
+
 
   try {
     const admin = await getFirebaseAdmin();
