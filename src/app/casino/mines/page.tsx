@@ -27,7 +27,7 @@ function calculateMultiplier(gemsFound: number, mineCount: number): number {
   for (let i = 0; i < gemsFound; i++) {
     multiplier *= (GRID_SIZE - i) / (safeTiles - i);
   }
-  return Math.max(1, multiplier * 0.95); // Apply a 5% house edge
+  return Math.max(1, multiplier * 0.80); // Apply a 20% house edge
 }
 
 export default function MinesPage() {
@@ -262,5 +262,3 @@ export default function MinesPage() {
         </div>
     );
 }
-
-    
