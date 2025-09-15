@@ -32,7 +32,7 @@ function calculateMultiplier(gemsFound: number, mineCount: number): number {
 
 export default function MinesPage() {
     const [betAmount, setBetAmount] = useState('1.00');
-    const [mineCount, setMineCount] = useState(5);
+    const [mineCount, setMineCount] = useState(10);
     const [gameState, setGameState] = useState<GameState>('betting');
     const [grid, setGrid] = useState<number[]>([]);
     const [revealedTiles, setRevealedTiles] = useState<boolean[]>(Array(GRID_SIZE).fill(false));
@@ -90,7 +90,9 @@ export default function MinesPage() {
         if (grid[index] === 1) { // It's a mine
             setGameState('busted');
             const penaltyAmount = parseFloat(betAmount) * currentMultiplier;
-            await resolveMinesLoss(user.uid, penaltyAmount);
+            if (user) {
+                await resolveMinesLoss(user.uid, penaltyAmount);
+            }
             toast({
                 variant: 'destructive',
                 title: '¡BOOM!',
@@ -102,7 +104,7 @@ export default function MinesPage() {
     };
 
     const handleCashOut = async () => {
-        if (gameState !== 'playing' || gemsFound === 0) return;
+        if (gameState !== 'playing' || gemsFound === 0 || !user) return;
         
         const amount = parseFloat(betAmount);
         const winnings = amount * currentMultiplier;
@@ -180,21 +182,6 @@ export default function MinesPage() {
                                 <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) / 2).toFixed(2))} disabled={gameState === 'playing'}>½</Button>
                                 <Button variant="outline" onClick={() => setBetAmount((p) => (parseFloat(p) * 2).toFixed(2))} disabled={gameState === 'playing'}>2x</Button>
                             </div>
-                        </div>
-
-                         <div className='space-y-3'>
-                            <div className='flex justify-between items-center'>
-                                <Label>Número de Minas</Label>
-                                <span className='font-bold text-primary'>{mineCount}</span>
-                            </div>
-                            <Slider
-                                value={[mineCount]}
-                                onValueChange={(value) => setMineCount(value[0])}
-                                min={1}
-                                max={24}
-                                step={1}
-                                disabled={gameState === 'playing'}
-                            />
                         </div>
 
                         {gameState === 'betting' && (
@@ -292,3 +279,5 @@ export default function MinesPage() {
         </div>
     );
 }
+
+    
