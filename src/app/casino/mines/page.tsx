@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeMinesBet, cashOutMines, resolveMinesLoss } from './actions';
 import { getMinesGameAssets } from '@/app/admin/game-assets/actions';
-import { Loader2, ArrowLeft, Gem, Bomb, WandSparkles, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowLeft, Gem, Bomb, WandSparkles, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
@@ -30,18 +30,23 @@ const defaultAssets: Record<string, string> = {
 // --- Helper Functions ---
 function calculateMultiplier(gemsFound: number, mineCount: number): number {
   if (gemsFound === 0) return 1.0;
-
-  const totalGems = GRID_SIZE - mineCount;
-  const maxMultiplier = 10.0; 
-  const baseMultiplier = 1.05;
-
-  if (gemsFound >= totalGems) {
-    return maxMultiplier;
-  }
+  if (gemsFound >= (GRID_SIZE - mineCount)) return 10.0;
   
-  // Linear scaling
-  const progress = (gemsFound - 1) / (totalGems > 1 ? totalGems - 1 : 1);
-  const multiplier = baseMultiplier + (maxMultiplier - baseMultiplier) * progress;
+  // Start multiplier slightly above 1 for the first gem
+  const startingMultiplier = 1.05;
+  const maxMultiplier = 10.0;
+  
+  // Calculate the remaining climb needed to reach the max multiplier
+  const multiplierRange = maxMultiplier - startingMultiplier;
+  
+  // Calculate how many more gems can be found
+  const totalGems = GRID_SIZE - mineCount;
+  
+  // Calculate the contribution of each gem found after the first one
+  const step = multiplierRange / (totalGems -1);
+  
+  // Linear increase from the starting point
+  const multiplier = startingMultiplier + (step * (gemsFound - 1));
   
   return multiplier;
 }
@@ -58,6 +63,7 @@ export default function MinesPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [gameAssets, setGameAssets] = useState<Record<string, string>>(defaultAssets);
     const [assetsLoading, setAssetsLoading] = useState(true);
+    const [isMuted, setIsMuted] = useState(false);
 
     const { user } = useAuth();
     const { toast } = useToast();
@@ -76,14 +82,23 @@ export default function MinesPage() {
         explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
         explosionSoundRef.current.volume = 0.5;
 
-        gemSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_2b2363a232.mp3');
-        gemSoundRef.current.volume = 0.6;
+        gemSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/11/22/audio_1688b6715f.mp3');
+        gemSoundRef.current.volume = 0.8;
 
         // Cleanup audio on component unmount
         return () => {
             backgroundMusicRef.current?.pause();
         };
     }, []);
+    
+    useEffect(() => {
+        if (isMuted) {
+            backgroundMusicRef.current?.pause();
+        } else if (gameState === 'playing') {
+            backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction"));
+        }
+    }, [isMuted, gameState]);
+
 
     useEffect(() => {
         const fetchAssets = async () => {
@@ -99,11 +114,13 @@ export default function MinesPage() {
         if (gameState === 'playing') {
             setCurrentMultiplier(calculateMultiplier(gemsFound, mineCount));
             setNextMultiplier(calculateMultiplier(gemsFound + 1, mineCount));
-            backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction"));
+            if (!isMuted) {
+                 backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction"));
+            }
         } else {
              backgroundMusicRef.current?.pause();
         }
-    }, [gemsFound, mineCount, gameState]);
+    }, [gemsFound, mineCount, gameState, isMuted]);
 
     const handleStartGame = async () => {
         if (!user) {
@@ -142,7 +159,7 @@ export default function MinesPage() {
         setRevealedTiles(newRevealedTiles);
 
         if (grid[index] === 1) { // It's a mine
-            explosionSoundRef.current?.play();
+            if (!isMuted) explosionSoundRef.current?.play();
             setGameState('busted');
             const penaltyAmount = parseFloat(betAmount) * currentMultiplier;
             if (user) {
@@ -154,7 +171,7 @@ export default function MinesPage() {
                 description: `Encontraste una mina. Penalización: -$${penaltyAmount.toFixed(2)}.`,
             });
         } else { // It's a gem
-            gemSoundRef.current?.play();
+            if (!isMuted) gemSoundRef.current?.play();
             setGemsFound(prev => prev + 1);
         }
     };
@@ -220,8 +237,12 @@ export default function MinesPage() {
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 {/* Control Panel */}
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Configura tu Juego</CardTitle>
+                         <Button variant="outline" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                            <span className="sr-only">{isMuted ? 'Activar Sonido' : 'Silenciar'}</span>
+                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className='space-y-2'>
@@ -360,3 +381,5 @@ export default function MinesPage() {
         </div>
     );
 }
+
+    
