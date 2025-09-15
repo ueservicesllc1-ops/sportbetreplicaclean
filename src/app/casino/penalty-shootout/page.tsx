@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placePenaltyBet, resolvePenaltyBet, updateGameAssetPositions, resolvePenaltyLoss } from './actions';
 import { getPenaltyGameAssets } from '@/app/admin/game-assets/actions';
-import { Loader2, ArrowLeft, Target, Save, AlertTriangle, Info } from 'lucide-react';
+import { Loader2, ArrowLeft, Target, Save, AlertTriangle, Info, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -434,9 +434,23 @@ export default function PenaltyShootoutPage() {
                                         {saveState.message && !saveState.success && (
                                             <Alert variant="destructive" className="mt-4">
                                                 <AlertTitle>Error al Guardar</AlertTitle>
+                                                <div className="flex items-center justify-between">
                                                 <AlertDescriptionComponent>
                                                     {saveState.message}
                                                 </AlertDescriptionComponent>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 flex-shrink-0"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(saveState.message);
+                                                        toast({ title: "Copiado", description: "El mensaje de error ha sido copiado." });
+                                                    }}
+                                                >
+                                                    <Copy className="h-4 w-4" />
+                                                    <span className="sr-only">Copiar error</span>
+                                                </Button>
+                                                </div>
                                             </Alert>
                                         )}
                                     </form>
