@@ -31,24 +31,17 @@ const defaultAssets: Record<string, string> = {
 function calculateMultiplier(gemsFound: number, mineCount: number): number {
   if (gemsFound === 0) return 1.0;
 
-  // The max multiplier when all gems are found.
+  const totalGems = GRID_SIZE - mineCount;
   const maxMultiplier = 10.0; 
-  // A small starting multiplier for the first gem.
   const baseMultiplier = 1.05;
 
-  const totalGems = GRID_SIZE - mineCount;
-  
-  // If player finds all gems, return the max multiplier.
   if (gemsFound >= totalGems) {
     return maxMultiplier;
   }
   
-  // Calculate how far along the player is in finding all gems (from 0.0 to 1.0)
-  // We use (gemsFound - 1) and (totalGems - 1) to start the scaling from the first gem found.
-  const progress = (gemsFound - 1) / (totalGems - 1);
-  
-  // Linearly scale the multiplier based on progress.
-  const multiplier = baseMultiplier + ((maxMultiplier - baseMultiplier) * progress);
+  // Linear scaling
+  const progress = (gemsFound - 1) / (totalGems > 1 ? totalGems - 1 : 1);
+  const multiplier = baseMultiplier + (maxMultiplier - baseMultiplier) * progress;
   
   return multiplier;
 }
@@ -72,6 +65,7 @@ export default function MinesPage() {
     // Audio Refs
     const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
     const explosionSoundRef = useRef<HTMLAudioElement | null>(null);
+    const gemSoundRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         // Initialize audio elements
@@ -81,6 +75,9 @@ export default function MinesPage() {
 
         explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
         explosionSoundRef.current.volume = 0.5;
+
+        gemSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_2b2363a232.mp3');
+        gemSoundRef.current.volume = 0.6;
 
         // Cleanup audio on component unmount
         return () => {
@@ -157,6 +154,7 @@ export default function MinesPage() {
                 description: `Encontraste una mina. Penalización: -$${penaltyAmount.toFixed(2)}.`,
             });
         } else { // It's a gem
+            gemSoundRef.current?.play();
             setGemsFound(prev => prev + 1);
         }
     };
