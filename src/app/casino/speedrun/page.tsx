@@ -12,7 +12,7 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeCasinoBet, resolveCasinoBet } from '../actions';
-import { Loader2, User, ArrowLeft } from 'lucide-react';
+import { Loader2, User, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -119,6 +119,8 @@ export default function CasinoPage() {
   const [autoCashOutAmount, setAutoCashOutAmount] = useState<string>('1.50');
   const [isAutoCashOutEnabled, setIsAutoCashOutEnabled] = useState<boolean>(false);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [isMuted, setIsMuted] = useState(false);
+
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -126,6 +128,14 @@ export default function CasinoPage() {
   const history = useRef([2.34, 1.56, 1.02, 8.91, 3.45, 1.19, 4.01, 1.88, 2.76, 10.21, 1.00, 3.12]);
   const crashPoint = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const engineSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Initialize audio on client side only
+    engineSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_51c619f462.mp3');
+    engineSoundRef.current.loop = true;
+  }, []);
+
 
   const handleCashOut = async () => {
       if(gameState !== 'playing' || !hasPlacedBet || !user) return;
@@ -227,6 +237,10 @@ export default function CasinoPage() {
     } else if (gameState === 'playing') {
       setMultiplier(1.00);
 
+      if (engineSoundRef.current && !isMuted) {
+          engineSoundRef.current.play().catch(e => console.error("Audio play failed:", e));
+      }
+
       const gameInterval = setInterval(() => {
         setMultiplier((prevMultiplier) => {
           // Use a functional update to get the latest crashPoint from the ref
@@ -241,6 +255,10 @@ export default function CasinoPage() {
       intervalRef.current = gameInterval;
     } else if (gameState === 'crashed' || gameState === 'cashout') {
         if(intervalRef.current) clearInterval(intervalRef.current);
+        if (engineSoundRef.current) {
+            engineSoundRef.current.pause();
+            engineSoundRef.current.currentTime = 0;
+        }
         
         const finalMultiplier = gameState === 'crashed' ? crashPoint.current : multiplier;
         history.current = [parseFloat(finalMultiplier.toFixed(2)), ...history.current.slice(0, 11)];
@@ -260,6 +278,9 @@ export default function CasinoPage() {
     
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (engineSoundRef.current) {
+            engineSoundRef.current.pause();
+      }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
@@ -399,6 +420,10 @@ export default function CasinoPage() {
             <div className="flex items-center gap-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 10.5 4 4"></path><path d="m14 10.5-4 4"></path></svg>
                 <h1 className="text-3xl font-bold tracking-tight">Speedrun</h1>
+                 <Button variant="outline" size="icon" onClick={() => setIsMuted(!isMuted)}>
+                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    <span className="sr-only">Silenciar</span>
+                </Button>
             </div>
             <Button asChild size="lg">
                 <Link href="/casino">
