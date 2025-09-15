@@ -41,6 +41,7 @@ export async function placeMinesBet(userId: string, betAmount: number, mineCount
     const userDocRef = doc(db, 'users', userId);
 
     try {
+        // We no longer deduct the bet amount here. We check the balance.
         await runTransaction(db, async (transaction) => {
             const userDoc = await transaction.get(userDocRef);
             if (!userDoc.exists()) {
@@ -49,26 +50,24 @@ export async function placeMinesBet(userId: string, betAmount: number, mineCount
 
             const currentBalance = userDoc.data().balance || 0;
             if (currentBalance < betAmount) {
+                // We could also check if balance is enough for a potential loss, but for now just the bet.
                 throw new Error('Saldo insuficiente para realizar esta apuesta.');
             }
-            
-            // Deduct the bet amount
-            transaction.update(userDocRef, { balance: increment(-betAmount) });
-
-            // Log the transaction
-            const transactionsRef = collection(db, 'game_transactions');
-            transaction.set(doc(transactionsRef), {
-                userId: userId,
-                game: 'Mines',
-                type: 'debit_bet',
-                amount: betAmount,
-                details: { mineCount },
-                createdAt: serverTimestamp(),
-            });
         });
         
-        // After successfully deducting the bet, generate and return the grid
         const grid = generateMinesGrid(25, mineCount);
+
+        // Log the start of the game without debiting yet
+        const transactionsRef = collection(db, 'game_transactions');
+        await addDoc(transactionsRef, {
+            userId: userId,
+            game: 'Mines',
+            type: 'debit_bet_placed',
+            amount: betAmount,
+            details: { mineCount },
+            createdAt: serverTimestamp(),
+        });
+
         return { success: true, grid };
 
     } catch (error: any) {
@@ -78,28 +77,64 @@ export async function placeMinesBet(userId: string, betAmount: number, mineCount
 }
 
 
-export async function cashOutMines(userId: string, winnings: number): Promise<{ success: boolean, error?: string }> {
+export async function resolveMinesLoss(userId: string, penaltyAmount: number): Promise<{ success: boolean, error?: string }> {
+    if (!userId) {
+        return { success: false, error: 'Usuario no autenticado.' };
+    }
+    if (penaltyAmount <= 0) {
+        return { success: true }; // No penalty to apply
+    }
+    
+    const userDocRef = doc(db, 'users', userId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const userDoc = await transaction.get(userDocRef);
+            if (!userDoc.exists()) {
+                throw new Error('No se encontró el perfil de usuario para procesar la pérdida.');
+            }
+            
+            transaction.update(userDocRef, { balance: increment(-penaltyAmount) });
+
+            const transactionsRef = collection(db, 'game_transactions');
+            transaction.set(doc(transactionsRef), {
+                userId: userId,
+                game: 'Mines',
+                type: 'debit_loss_penalty',
+                amount: penaltyAmount,
+                createdAt: serverTimestamp(),
+            });
+        });
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error applying mines loss penalty:", error);
+        return { success: false, error: 'No se pudo aplicar la penalización por pérdida.' };
+    }
+}
+
+
+export async function cashOutMines(userId: string, betAmount: number, winnings: number): Promise<{ success: boolean, error?: string }> {
     if (!userId) {
          return { success: false, error: 'Usuario no autenticado.' };
     }
-    if (winnings <= 0) {
-        return { success: false, error: 'Las ganancias deben ser mayores a cero.' };
+    if (winnings <= betAmount) {
+        return { success: false, error: 'Las ganancias deben ser mayores a la apuesta inicial.' };
     }
 
+    const netWinnings = winnings - betAmount;
     const userDocRef = doc(db, 'users', userId);
 
     try {
          await runTransaction(db, async (transaction) => {
-            // No need to get the user doc first if we just increment
-            transaction.update(userDocRef, { balance: increment(winnings) });
+            transaction.update(userDocRef, { balance: increment(netWinnings) });
 
-            // Log the transaction
             const transactionsRef = collection(db, 'game_transactions');
             transaction.set(doc(transactionsRef), {
                 userId: userId,
                 game: 'Mines',
                 type: 'credit_win',
-                amount: winnings,
+                amount: netWinnings,
+                details: { betAmount, totalPayout: winnings },
                 createdAt: serverTimestamp(),
             });
         });

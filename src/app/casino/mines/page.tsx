@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { placeMinesBet, cashOutMines } from './actions';
-import { Loader2, ArrowLeft, Gem, Bomb, WandSparkles } from 'lucide-react';
+import { placeMinesBet, cashOutMines, resolveMinesLoss } from './actions';
+import { Loader2, ArrowLeft, Gem, Bomb, WandSparkles, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
@@ -72,13 +72,13 @@ export default function MinesPage() {
             setRevealedTiles(Array(GRID_SIZE).fill(false));
             setGemsFound(0);
             setCurrentMultiplier(1);
-            toast({ title: '¡Buena suerte!', description: `Apuesta de $${amount.toFixed(2)} realizada. Encuentra las gemas.` });
+            toast({ title: '¡Buena suerte!', description: `Apuesta de $${amount.toFixed(2)} iniciada. Encuentra las gemas.` });
         } else {
             toast({ variant: 'destructive', title: 'Error al apostar', description: result.error });
         }
     };
 
-    const handleTileClick = (index: number) => {
+    const handleTileClick = async (index: number) => {
         if (gameState !== 'playing' || revealedTiles[index]) {
             return;
         }
@@ -89,10 +89,12 @@ export default function MinesPage() {
 
         if (grid[index] === 1) { // It's a mine
             setGameState('busted');
+            const penaltyAmount = parseFloat(betAmount) * currentMultiplier;
+            await resolveMinesLoss(user.uid, penaltyAmount);
             toast({
                 variant: 'destructive',
                 title: '¡BOOM!',
-                description: `Encontraste una mina. Has perdido $${betAmount}.`,
+                description: `Encontraste una mina. Penalización: -$${penaltyAmount.toFixed(2)}.`,
             });
         } else { // It's a gem
             setGemsFound(prev => prev + 1);
@@ -102,9 +104,20 @@ export default function MinesPage() {
     const handleCashOut = async () => {
         if (gameState !== 'playing' || gemsFound === 0) return;
         
-        const winnings = parseFloat(betAmount) * currentMultiplier;
+        const amount = parseFloat(betAmount);
+        const winnings = amount * currentMultiplier;
+
+        if (winnings <= amount) {
+            toast({
+                variant: "destructive",
+                title: "No se puede retirar",
+                description: "La ganancia debe ser mayor a la apuesta inicial."
+            });
+            return;
+        }
+
         setIsSubmitting(true);
-        const result = await cashOutMines(user.uid, winnings);
+        const result = await cashOutMines(user.uid, amount, winnings);
         setIsSubmitting(false);
 
         if (result.success) {
@@ -192,7 +205,7 @@ export default function MinesPage() {
                         )}
 
                         {gameState === 'playing' && (
-                             <Button size="lg" className="w-full h-12 text-lg bg-yellow-500 hover:bg-yellow-600 text-black" onClick={handleCashOut} disabled={isSubmitting || gemsFound === 0}>
+                             <Button size="lg" className="w-full h-12 text-lg bg-yellow-500 hover:bg-yellow-600 text-black" onClick={handleCashOut} disabled={isSubmitting || gemsFound === 0 || parseFloat(betAmount) * currentMultiplier <= parseFloat(betAmount) }>
                                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Retirar ${(parseFloat(betAmount) * currentMultiplier).toFixed(2)}
                             </Button>
@@ -204,10 +217,27 @@ export default function MinesPage() {
                             </Button>
                         )}
 
-                        <Alert variant="default" className="text-center">
-                            <AlertTitle className="text-base">Gemas Encontradas</AlertTitle>
-                            <AlertDescription className="text-2xl font-bold text-primary">{gemsFound}</AlertDescription>
-                        </Alert>
+                        <div className="text-center bg-secondary p-3 rounded-md space-y-2">
+                            <div className='grid grid-cols-2 gap-2'>
+                                <div className='text-left'>
+                                    <p className="text-sm text-muted-foreground">Posible Ganancia</p>
+                                    <p className="text-xl font-bold text-green-400">
+                                        ${(parseFloat(betAmount) * currentMultiplier).toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className='text-right'>
+                                    <p className="text-sm text-muted-foreground">Posible Pérdida</p>
+                                    <p className="text-xl font-bold text-red-500">
+                                        -${(parseFloat(betAmount) * currentMultiplier).toFixed(2)}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="text-xs text-amber-500/80 font-semibold flex items-center justify-center gap-1 border-t border-border pt-2">
+                                <AlertTriangle className='h-3 w-3' />
+                                ¡Atención! Una pérdida cuesta el PREMIO POTENCIAL.
+                            </div>
+                        </div>
+
                          <div className='grid grid-cols-2 gap-2 text-center'>
                             <Alert variant="default">
                                 <AlertTitle>Multiplicador Actual</AlertTitle>
