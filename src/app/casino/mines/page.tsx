@@ -21,13 +21,26 @@ type TileState = 'hidden' | 'gem' | 'mine';
 
 // --- Helper Functions ---
 function calculateMultiplier(gemsFound: number, mineCount: number): number {
-  if (gemsFound === 0) return 1;
-  const safeTiles = GRID_SIZE - mineCount;
-  let multiplier = 1;
-  for (let i = 0; i < gemsFound; i++) {
-    multiplier *= (GRID_SIZE - i) / (safeTiles - i);
+  if (gemsFound === 0) return 1.0;
+  
+  const totalGems = GRID_SIZE - mineCount; // 15
+  const maxMultiplier = 10.0; // The maximum payout is 10x
+  const baseMultiplier = 1.05; // The multiplier for the first gem
+
+  if (gemsFound === totalGems) {
+    return maxMultiplier;
   }
-  return Math.max(1, multiplier * 0.80); // Apply a 20% house edge
+
+  // Calculate the remaining multiplier range to be distributed
+  const remainingMultiplierRange = maxMultiplier - baseMultiplier;
+
+  // Calculate the progress through the remaining gems (after the first one)
+  const progress = (gemsFound - 1) / (totalGems - 1);
+
+  // Linearly interpolate the multiplier
+  const multiplier = baseMultiplier + (remainingMultiplierRange * progress);
+  
+  return multiplier;
 }
 
 export default function MinesPage() {
@@ -279,5 +292,3 @@ export default function MinesPage() {
         </div>
     );
 }
-
-    
