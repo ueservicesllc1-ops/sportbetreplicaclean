@@ -68,17 +68,8 @@ export default function MinesPage() {
     const [gameAssets, setGameAssets] = useState<Record<string, string>>(defaultAssets);
     const [assetsLoading, setAssetsLoading] = useState(true);
 
-    const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
-
     const { user } = useAuth();
     const { toast } = useToast();
-
-    // Stop music when the component unmounts
-    useEffect(() => {
-        return () => {
-            backgroundMusicRef.current?.pause();
-        };
-    }, []);
 
     useEffect(() => {
         const fetchAssets = async () => {
@@ -113,19 +104,6 @@ export default function MinesPage() {
         setIsSubmitting(false);
 
         if (result.success) {
-            // Start suspense music
-            if (!backgroundMusicRef.current) {
-                backgroundMusicRef.current = new Audio('https://cdn.pixabay.com/download/audio/2022/11/21/audio_a2b24b2292.mp3');
-                backgroundMusicRef.current.loop = true;
-                backgroundMusicRef.current.volume = 0.3;
-            }
-            try {
-                await backgroundMusicRef.current.play();
-            } catch (error) {
-                console.error("Audio play failed:", error);
-                // Ignore error, browser may block autoplay until user interaction.
-            }
-            
             setGrid(result.grid);
             setGameState('playing');
             setRevealedTiles(Array(GRID_SIZE).fill(false));
@@ -147,7 +125,6 @@ export default function MinesPage() {
         setRevealedTiles(newRevealedTiles);
 
         if (grid[index] === 1) { // It's a mine
-            backgroundMusicRef.current?.pause();
             setGameState('busted');
             const penaltyAmount = parseFloat(betAmount) * currentMultiplier;
             if (user) {
@@ -166,7 +143,6 @@ export default function MinesPage() {
     const handleCashOut = async () => {
         if (gameState !== 'playing' || gemsFound === 0 || !user) return;
         
-        backgroundMusicRef.current?.pause();
         const amount = parseFloat(betAmount);
         const winnings = amount * currentMultiplier;
 
@@ -196,7 +172,6 @@ export default function MinesPage() {
     };
     
     const handlePlayAgain = () => {
-        backgroundMusicRef.current?.pause();
         setGameState('betting');
         setGemsFound(0);
         setCurrentMultiplier(1);
@@ -366,5 +341,3 @@ export default function MinesPage() {
         </div>
     );
 }
-
-    
