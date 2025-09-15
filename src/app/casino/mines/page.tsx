@@ -78,16 +78,18 @@ export default function MinesPage() {
     const gemSoundRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        // Initialize audio elements
-        backgroundMusicRef.current = new Audio('https://cdn.pixabay.com/audio/2022/10/26/audio_a7f14193ab.mp3');
-        backgroundMusicRef.current.loop = true;
-        backgroundMusicRef.current.volume = 0.3;
+        // This effect runs only once on the client side
+        if (typeof window !== 'undefined') {
+            backgroundMusicRef.current = new Audio('https://cdn.pixabay.com/audio/2022/10/26/audio_a7f14193ab.mp3');
+            backgroundMusicRef.current.loop = true;
+            backgroundMusicRef.current.volume = 0.3;
 
-        explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
-        explosionSoundRef.current.volume = 0.5;
+            explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
+            explosionSoundRef.current.volume = 0.5;
 
-        gemSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/07/audio_c87c067a90.mp3');
-        gemSoundRef.current.volume = 0.8;
+            gemSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/07/audio_c87c067a90.mp3');
+            gemSoundRef.current.volume = 0.8;
+        }
 
         // Cleanup audio on component unmount
         return () => {
@@ -99,8 +101,10 @@ export default function MinesPage() {
         if (isMuted) {
             backgroundMusicRef.current?.pause();
         } else if (gameState === 'playing') {
-            // Browsers may prevent autoplay until user interaction
-            backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction. Will try again on game start."));
+            backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction."));
+        } else if (gameState === 'betting' || gameState === 'busted') {
+             backgroundMusicRef.current?.pause();
+             if(backgroundMusicRef.current) backgroundMusicRef.current.currentTime = 0;
         }
     }, [isMuted, gameState]);
 
@@ -119,8 +123,6 @@ export default function MinesPage() {
         if (gameState === 'playing') {
             setCurrentMultiplier(calculateMultiplier(gemsFound, mineCount));
             setNextMultiplier(calculateMultiplier(gemsFound + 1, mineCount));
-        } else {
-             backgroundMusicRef.current?.pause();
         }
     }, [gemsFound, mineCount, gameState]);
 
