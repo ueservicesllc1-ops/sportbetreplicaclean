@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardTitle, CardHeader, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ const defaultAssets: Record<string, string> = {
 // --- Helper Functions ---
 function calculateMultiplier(gemsFound: number, mineCount: number): number {
   if (gemsFound === 0) return 1.0;
-  
+
   // The max multiplier when all gems are found.
   const maxMultiplier = 10.0; 
   // A small starting multiplier for the first gem.
@@ -44,6 +44,7 @@ function calculateMultiplier(gemsFound: number, mineCount: number): number {
   }
   
   // Calculate how far along the player is in finding all gems (from 0.0 to 1.0)
+  // We use (gemsFound - 1) and (totalGems - 1) to start the scaling from the first gem found.
   const progress = (gemsFound - 1) / (totalGems - 1);
   
   // Linearly scale the multiplier based on progress.
@@ -67,6 +68,25 @@ export default function MinesPage() {
 
     const { user } = useAuth();
     const { toast } = useToast();
+    
+    // Audio Refs
+    const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
+    const explosionSoundRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        // Initialize audio elements
+        backgroundMusicRef.current = new Audio('https://cdn.pixabay.com/audio/2022/10/26/audio_a7f14193ab.mp3');
+        backgroundMusicRef.current.loop = true;
+        backgroundMusicRef.current.volume = 0.3;
+
+        explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
+        explosionSoundRef.current.volume = 0.5;
+
+        // Cleanup audio on component unmount
+        return () => {
+            backgroundMusicRef.current?.pause();
+        };
+    }, []);
 
     useEffect(() => {
         const fetchAssets = async () => {
@@ -82,6 +102,9 @@ export default function MinesPage() {
         if (gameState === 'playing') {
             setCurrentMultiplier(calculateMultiplier(gemsFound, mineCount));
             setNextMultiplier(calculateMultiplier(gemsFound + 1, mineCount));
+            backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction"));
+        } else {
+             backgroundMusicRef.current?.pause();
         }
     }, [gemsFound, mineCount, gameState]);
 
@@ -122,6 +145,7 @@ export default function MinesPage() {
         setRevealedTiles(newRevealedTiles);
 
         if (grid[index] === 1) { // It's a mine
+            explosionSoundRef.current?.play();
             setGameState('busted');
             const penaltyAmount = parseFloat(betAmount) * currentMultiplier;
             if (user) {
