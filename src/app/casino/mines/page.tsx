@@ -43,14 +43,11 @@ function calculateMultiplier(gemsFound: number, mineCount: number): number {
     return maxMultiplier;
   }
   
-  // Calculate the remaining multiplier range to distribute.
-  const remainingMultiplierRange = maxMultiplier - baseMultiplier;
-  
   // Calculate how far along the player is in finding all gems (from 0.0 to 1.0)
   const progress = (gemsFound - 1) / (totalGems - 1);
   
   // Linearly scale the multiplier based on progress.
-  const multiplier = baseMultiplier + (remainingMultiplierRange * progress);
+  const multiplier = baseMultiplier + ((maxMultiplier - baseMultiplier) * progress);
   
   return multiplier;
 }
@@ -307,7 +304,7 @@ export default function MinesPage() {
                                         onClick={() => handleTileClick(index)}
                                         disabled={gameState !== 'playing' || revealedTiles[index]}
                                         className={cn(
-                                            "aspect-square rounded-md flex items-center justify-center transition-all duration-300",
+                                            "aspect-square rounded-md flex items-center justify-center transition-all duration-300 relative overflow-hidden",
                                             gameState === 'playing' && !revealedTiles[index] && "bg-background hover:bg-primary/20 cursor-pointer",
                                             gameState !== 'playing' && !revealedTiles[index] && "bg-background/50",
                                             (gameState === 'busted' || revealedTiles[index]) && "bg-secondary",
@@ -316,18 +313,18 @@ export default function MinesPage() {
                                         )}
                                     >
                                         {tileState === 'gem' && (
-                                            gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" width={48} height={48} sizes="48px" className="object-contain" /> : <Gem className="h-2/3 w-2/3 text-primary" />
+                                            gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" fill sizes="48px" className="object-cover" /> : <Gem className="h-2/3 w-2/3 text-primary" />
                                         )}
                                         {tileState === 'mine' && (
-                                            gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" width={48} height={48} sizes="48px" className="object-contain" /> : <Bomb className="h-2/3 w-2/3 text-white" />
+                                            gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" fill sizes="48px" className="object-cover" /> : <Bomb className="h-2/3 w-2/3 text-white" />
                                         )}
                                         
                                         {/* When game is over, show unrevealed tiles */}
                                         {gameState === 'busted' && !revealedTiles[index] && (
                                             <>
                                                 {grid[index] === 1 
-                                                    ? (gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" width={48} height={48} sizes="48px" className="object-contain opacity-30" /> : <Bomb className="h-2/3 w-2/3 text-white/50" />)
-                                                    : (gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" width={48} height={48} sizes="48px" className="object-contain opacity-30" /> : <Gem className="h-2/3 w-2/3 text-primary/30" />)
+                                                    ? (gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" fill sizes="48px" className="object-cover opacity-30" /> : <Bomb className="h-2/3 w-2/3 text-white/50" />)
+                                                    : (gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" fill sizes="48px" className="object-cover opacity-30" /> : <Gem className="h-2/3 w-2/3 text-primary/30" />)
                                                 }
                                             </>
                                         )}
