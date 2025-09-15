@@ -71,6 +71,14 @@ export default function MinesPage() {
     const { user } = useAuth();
     const { toast } = useToast();
 
+    const explosionSoundRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        // Initialize audio on the client side
+        explosionSoundRef.current = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3?filename=explosion-6805.mp3');
+    }, []);
+
+
     useEffect(() => {
         const fetchAssets = async () => {
             setAssetsLoading(true);
@@ -125,6 +133,9 @@ export default function MinesPage() {
         setRevealedTiles(newRevealedTiles);
 
         if (grid[index] === 1) { // It's a mine
+            if (explosionSoundRef.current) {
+                explosionSoundRef.current.play().catch(console.error);
+            }
             setGameState('busted');
             const penaltyAmount = parseFloat(betAmount) * currentMultiplier;
             if (user) {
