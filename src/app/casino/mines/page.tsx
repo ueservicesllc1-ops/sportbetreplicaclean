@@ -32,7 +32,7 @@ function calculateMultiplier(gemsFound: number, mineCount: number): number {
 
 export default function MinesPage() {
     const [betAmount, setBetAmount] = useState('1.00');
-    const [mineCount, setMineCount] = useState(3);
+    const [mineCount, setMineCount] = useState(5);
     const [gameState, setGameState] = useState<GameState>('betting');
     const [grid, setGrid] = useState<number[]>([]);
     const [revealedTiles, setRevealedTiles] = useState<boolean[]>(Array(GRID_SIZE).fill(false));
@@ -262,3 +262,5 @@ export default function MinesPage() {
         </div>
     );
 }
+
+    
