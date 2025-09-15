@@ -119,7 +119,12 @@ export default function MinesPage() {
                 backgroundMusicRef.current.loop = true;
                 backgroundMusicRef.current.volume = 0.3;
             }
-            backgroundMusicRef.current.play().catch(error => console.error("Audio play failed:", error));
+            try {
+                await backgroundMusicRef.current.play();
+            } catch (error) {
+                console.error("Audio play failed:", error);
+                // Ignore error, browser may block autoplay until user interaction.
+            }
             
             setGrid(result.grid);
             setGameState('playing');
@@ -361,3 +366,5 @@ export default function MinesPage() {
         </div>
     );
 }
+
+    
