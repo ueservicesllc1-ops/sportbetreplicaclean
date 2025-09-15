@@ -82,7 +82,7 @@ export function AssetUploadForm({ assetKey, gameType, title, description, curren
             <Label htmlFor={`image-${assetKey}`}>Imagen Actual</Label>
             <div className="relative flex justify-center items-center w-full h-40 border-2 border-dashed rounded-lg bg-muted/50">
               {preview ? (
-                <Image src={preview} alt={`${title} preview`} fill className="object-contain rounded-lg p-2" />
+                <Image src={preview} alt={`${title} preview`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-contain rounded-lg p-2" />
               ) : (
                 <div className="text-sm text-muted-foreground">No hay imagen.</div>
               )}

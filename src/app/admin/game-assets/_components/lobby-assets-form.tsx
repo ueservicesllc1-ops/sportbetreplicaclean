@@ -107,7 +107,7 @@ function LobbyAssetInput({ assetKey, title, currentImageUrl }: LobbyAssetInputPr
             <Label htmlFor={`file-${assetKey}`} className='font-semibold'>{title}</Label>
             <div className="relative flex justify-center items-center w-full aspect-[4/3] border-2 border-dashed rounded-lg bg-muted/50">
               {preview ? (
-                <Image src={preview} alt={`${title} preview`} fill className="object-cover rounded-lg" />
+                <Image src={preview} alt={`${title} preview`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg" />
               ) : (
                 <div className="text-sm text-muted-foreground p-2 text-center">No hay imagen de portada.</div>
               )}

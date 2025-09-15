@@ -31,16 +31,25 @@ const defaultAssets: Record<string, string> = {
 function calculateMultiplier(gemsFound: number, mineCount: number): number {
   if (gemsFound === 0) return 1.0;
   
-  const totalGems = GRID_SIZE - mineCount;
-  const maxMultiplier = 10.0;
+  // The max multiplier when all gems are found.
+  const maxMultiplier = 10.0; 
+  // A small starting multiplier for the first gem.
   const baseMultiplier = 1.05;
 
+  const totalGems = GRID_SIZE - mineCount;
+  
+  // If player finds all gems, return the max multiplier.
   if (gemsFound >= totalGems) {
     return maxMultiplier;
   }
-
+  
+  // Calculate the remaining multiplier range to distribute.
   const remainingMultiplierRange = maxMultiplier - baseMultiplier;
+  
+  // Calculate how far along the player is in finding all gems (from 0.0 to 1.0)
   const progress = (gemsFound - 1) / (totalGems - 1);
+  
+  // Linearly scale the multiplier based on progress.
   const multiplier = baseMultiplier + (remainingMultiplierRange * progress);
   
   return multiplier;
@@ -212,7 +221,7 @@ export default function MinesPage() {
                             </div>
                         </div>
 
-                        <div className='space-y-3'>
+                        <div className='space-y-3 hidden'>
                             <Label htmlFor='mine-count'>Número de Minas: <span className='font-bold text-primary'>{mineCount}</span></Label>
                             <Slider 
                                 id='mine-count'
@@ -307,18 +316,18 @@ export default function MinesPage() {
                                         )}
                                     >
                                         {tileState === 'gem' && (
-                                            gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" width={48} height={48} className="object-contain" /> : <Gem className="h-2/3 w-2/3 text-primary" />
+                                            gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" width={48} height={48} sizes="48px" className="object-contain" /> : <Gem className="h-2/3 w-2/3 text-primary" />
                                         )}
                                         {tileState === 'mine' && (
-                                            gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" width={48} height={48} className="object-contain" /> : <Bomb className="h-2/3 w-2/3 text-white" />
+                                            gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" width={48} height={48} sizes="48px" className="object-contain" /> : <Bomb className="h-2/3 w-2/3 text-white" />
                                         )}
                                         
                                         {/* When game is over, show unrevealed tiles */}
                                         {gameState === 'busted' && !revealedTiles[index] && (
                                             <>
                                                 {grid[index] === 1 
-                                                    ? (gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" width={48} height={48} className="object-contain opacity-30" /> : <Bomb className="h-2/3 w-2/3 text-white/50" />)
-                                                    : (gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" width={48} height={48} className="object-contain opacity-30" /> : <Gem className="h-2/3 w-2/3 text-primary/30" />)
+                                                    ? (gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" width={48} height={48} sizes="48px" className="object-contain opacity-30" /> : <Bomb className="h-2/3 w-2/3 text-white/50" />)
+                                                    : (gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" width={48} height={48} sizes="48px" className="object-contain opacity-30" /> : <Gem className="h-2/3 w-2/3 text-primary/30" />)
                                                 }
                                             </>
                                         )}

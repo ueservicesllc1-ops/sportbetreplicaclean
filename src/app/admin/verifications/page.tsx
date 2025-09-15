@@ -176,8 +176,8 @@ export default function AdminVerificationsPage() {
                                              </DialogHeader>
                                             
                                              {req.idPhotoUrl && (
-                                                <div className="mt-4 rounded-md bg-secondary p-4">
-                                                  <img src={req.idPhotoUrl} alt={`Documento de ${req.realName}`} className="max-w-full h-auto rounded-md" />
+                                                <div className="mt-4 rounded-md bg-secondary p-4 relative aspect-video">
+                                                  <Image src={req.idPhotoUrl} alt={`Documento de ${req.realName}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-contain rounded-md" />
                                                 </div>
                                              )}
                                         </DialogContent>

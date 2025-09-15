@@ -317,6 +317,7 @@ export default function PenaltyShootoutPage() {
                                         src={gameAssets.background as string}
                                         alt="Campo de futbol"
                                         fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                         className="object-cover"
                                         priority
                                     />
@@ -338,7 +339,7 @@ export default function PenaltyShootoutPage() {
                                     {/* Ball */}
                                     <div className="absolute h-8 w-8 text-white transition-all duration-300 ease-out"
                                         style={getBallStyle()} >
-                                        <Image src={gameAssets.ball as string} alt="Balón de fútbol" fill className="object-contain" />
+                                        <Image src={gameAssets.ball as string} alt="Balón de fútbol" fill sizes="32px" className="object-contain" />
                                     </div>
                                 </>
                             )}
@@ -580,4 +581,3 @@ export default function PenaltyShootoutPage() {
         </Dialog>
     );
 }
-

@@ -416,6 +416,7 @@ export default function CasinoPage() {
                     src="https://iili.io/KT1Ttt4.jpg"
                     alt="F1 Cockpit"
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className={cn(
                         'object-cover transition-transform duration-500 ease-in-out',
                         gameState !== 'betting' && gameState !== 'waiting' ? 'scale-150' : 'scale-100'
