@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardTitle, CardHeader, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,35 +10,37 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeMinesBet, cashOutMines, resolveMinesLoss } from './actions';
+import { getMinesGameAssets } from '@/app/admin/game-assets/actions';
 import { Loader2, ArrowLeft, Gem, Bomb, WandSparkles, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const GRID_SIZE = 25;
 type GameState = 'betting' | 'playing' | 'busted';
 type TileState = 'hidden' | 'gem' | 'mine';
 
+const defaultAssets: Record<string, string> = {
+    gem: '',
+    mine: '',
+};
+
 // --- Helper Functions ---
 function calculateMultiplier(gemsFound: number, mineCount: number): number {
   if (gemsFound === 0) return 1.0;
   
-  const totalGems = GRID_SIZE - mineCount; // 15
-  const maxMultiplier = 10.0; // The maximum payout is 10x
-  const baseMultiplier = 1.05; // The multiplier for the first gem
+  const totalGems = GRID_SIZE - mineCount;
+  const maxMultiplier = 10.0;
+  const baseMultiplier = 1.05;
 
-  if (gemsFound === totalGems) {
+  if (gemsFound >= totalGems) {
     return maxMultiplier;
   }
 
-  // Calculate the remaining multiplier range to be distributed
   const remainingMultiplierRange = maxMultiplier - baseMultiplier;
-
-  // Calculate the progress through the remaining gems (after the first one)
   const progress = (gemsFound - 1) / (totalGems - 1);
-
-  // Linearly interpolate the multiplier
   const multiplier = baseMultiplier + (remainingMultiplierRange * progress);
   
   return multiplier;
@@ -53,9 +56,21 @@ export default function MinesPage() {
     const [currentMultiplier, setCurrentMultiplier] = useState(1);
     const [nextMultiplier, setNextMultiplier] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [gameAssets, setGameAssets] = useState<Record<string, string>>(defaultAssets);
+    const [assetsLoading, setAssetsLoading] = useState(true);
 
     const { user } = useAuth();
     const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchAssets = async () => {
+            setAssetsLoading(true);
+            const assets = await getMinesGameAssets();
+            setGameAssets({ ...defaultAssets, ...assets });
+            setAssetsLoading(false);
+        };
+        fetchAssets();
+    }, []);
 
     useEffect(() => {
         if (gameState === 'playing') {
@@ -197,6 +212,19 @@ export default function MinesPage() {
                             </div>
                         </div>
 
+                        <div className='space-y-3'>
+                            <Label htmlFor='mine-count'>Número de Minas: <span className='font-bold text-primary'>{mineCount}</span></Label>
+                            <Slider 
+                                id='mine-count'
+                                value={[mineCount]} 
+                                onValueChange={(value) => setMineCount(value[0])}
+                                min={1}
+                                max={24}
+                                step={1}
+                                disabled={gameState === 'playing'}
+                            />
+                        </div>
+
                         {gameState === 'betting' && (
                             <Button size="lg" className="w-full h-12 text-lg" onClick={handleStartGame} disabled={isSubmitting}>
                                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -254,39 +282,51 @@ export default function MinesPage() {
 
                 {/* Game Area */}
                 <div className="lg:col-span-2 flex items-center justify-center p-4 bg-secondary/30 rounded-lg">
-                    <div className="grid grid-cols-5 gap-2 w-full max-w-md aspect-square">
-                        {Array.from({ length: GRID_SIZE }).map((_, index) => {
-                            const tileState = getTileState(index);
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => handleTileClick(index)}
-                                    disabled={gameState !== 'playing' || revealedTiles[index]}
-                                    className={cn(
-                                        "aspect-square rounded-md flex items-center justify-center transition-all duration-300",
-                                        gameState === 'playing' && !revealedTiles[index] && "bg-background hover:bg-primary/20 cursor-pointer",
-                                        gameState !== 'playing' && !revealedTiles[index] && "bg-background/50",
-                                        (gameState === 'busted' || revealedTiles[index]) && "bg-secondary",
-                                        tileState === 'gem' && 'animate-in fade-in zoom-in',
-                                        tileState === 'mine' && 'bg-red-500/30 animate-in fade-in zoom-in',
-                                    )}
-                                >
-                                    {tileState === 'gem' && <Gem className="h-2/3 w-2/3 text-primary" />}
-                                    {tileState === 'mine' && <Bomb className="h-2/3 w-2/3 text-white" />}
-                                    
-                                    {/* When game is over, show unrevealed tiles */}
-                                    {gameState === 'busted' && !revealedTiles[index] && (
-                                        <>
-                                            {grid[index] === 1 
-                                                ? <Bomb className="h-2/3 w-2/3 text-white/50" />
-                                                : <Gem className="h-2/3 w-2/3 text-primary/30" />
-                                            }
-                                        </>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
+                    {assetsLoading ? (
+                        <div className="grid grid-cols-5 gap-2 w-full max-w-md aspect-square">
+                            {Array.from({ length: GRID_SIZE }).map((_, index) => (
+                                <Skeleton key={index} className="aspect-square rounded-md" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-5 gap-2 w-full max-w-md aspect-square">
+                            {Array.from({ length: GRID_SIZE }).map((_, index) => {
+                                const tileState = getTileState(index);
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={() => handleTileClick(index)}
+                                        disabled={gameState !== 'playing' || revealedTiles[index]}
+                                        className={cn(
+                                            "aspect-square rounded-md flex items-center justify-center transition-all duration-300",
+                                            gameState === 'playing' && !revealedTiles[index] && "bg-background hover:bg-primary/20 cursor-pointer",
+                                            gameState !== 'playing' && !revealedTiles[index] && "bg-background/50",
+                                            (gameState === 'busted' || revealedTiles[index]) && "bg-secondary",
+                                            tileState === 'gem' && 'animate-in fade-in zoom-in',
+                                            tileState === 'mine' && 'bg-red-500/30 animate-in fade-in zoom-in',
+                                        )}
+                                    >
+                                        {tileState === 'gem' && (
+                                            gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" width={48} height={48} className="object-contain" /> : <Gem className="h-2/3 w-2/3 text-primary" />
+                                        )}
+                                        {tileState === 'mine' && (
+                                            gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" width={48} height={48} className="object-contain" /> : <Bomb className="h-2/3 w-2/3 text-white" />
+                                        )}
+                                        
+                                        {/* When game is over, show unrevealed tiles */}
+                                        {gameState === 'busted' && !revealedTiles[index] && (
+                                            <>
+                                                {grid[index] === 1 
+                                                    ? (gameAssets.mine ? <Image src={gameAssets.mine} alt="Mine" width={48} height={48} className="object-contain opacity-30" /> : <Bomb className="h-2/3 w-2/3 text-white/50" />)
+                                                    : (gameAssets.gem ? <Image src={gameAssets.gem} alt="Gem" width={48} height={48} className="object-contain opacity-30" /> : <Gem className="h-2/3 w-2/3 text-primary/30" />)
+                                                }
+                                            </>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

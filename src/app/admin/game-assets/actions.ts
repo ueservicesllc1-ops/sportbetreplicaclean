@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache';
 const ASSET_COLLECTION = 'game_assets';
 const PENALTY_SHOOTOUT_DOC = 'penalty_shootout';
 const CASINO_LOBBY_DOC = 'casino_lobby';
+const MINES_DOC = 'mines';
 
 
 export async function getPenaltyGameAssets(): Promise<Record<string, string | number>> {
@@ -24,6 +25,22 @@ export async function getPenaltyGameAssets(): Promise<Record<string, string | nu
         return {};
     } catch (error) {
         console.error("Error getting game assets:", error);
+        return {};
+    }
+}
+
+export async function getMinesGameAssets(): Promise<Record<string, string>> {
+    try {
+        const docRef = doc(db, ASSET_COLLECTION, MINES_DOC);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const { lastUpdated, ...assets } = data;
+            return assets as Record<string, string>;
+        }
+        return {};
+    } catch (error) {
+        console.error("Error getting mines game assets:", error);
         return {};
     }
 }
@@ -101,18 +118,28 @@ export async function updateLobbyAssets(prevState: any, formData: FormData): Pro
 export async function updateGameAsset(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; }> {
   const assetKey = formData.get('assetKey') as string | null;
   const assetImage = formData.get('assetImage') as File | null;
+  const gameType = formData.get('gameType') as 'penalty_shootout' | 'mines';
   
-  if (!assetKey) {
-    return { success: false, message: 'Falta la clave del recurso (assetKey).' };
+  if (!assetKey || !gameType) {
+    return { success: false, message: 'Falta la clave del recurso (assetKey) o el tipo de juego (gameType).' };
   }
   if (!assetImage || assetImage.size === 0) {
     return { success: false, message: 'No se ha seleccionado ningún archivo de imagen.' };
   }
 
+  const documentMap = {
+    penalty_shootout: PENALTY_SHOOTOUT_DOC,
+    mines: MINES_DOC,
+  };
+
+  const docId = documentMap[gameType];
+  const filePathRoot = `game-assets/${gameType}`;
+  const revalidatePaths = ['/admin/game-assets', `/casino/${gameType}`];
+
   try {
     const admin = await getFirebaseAdmin();
     const bucket = admin.storage().bucket();
-    const filePath = `game-assets/penalty-shootout/${assetKey}-${Date.now()}.${assetImage.name.split('.').pop()}`;
+    const filePath = `${filePathRoot}/${assetKey}-${Date.now()}.${assetImage.name.split('.').pop()}`;
     const file = bucket.file(filePath);
     const fileBuffer = Buffer.from(await assetImage.arrayBuffer());
 
@@ -127,15 +154,14 @@ export async function updateGameAsset(prevState: any, formData: FormData): Promi
     // Get the public URL
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
     
-    const docRef = doc(db, ASSET_COLLECTION, PENALTY_SHOOTOUT_DOC);
+    const docRef = doc(db, ASSET_COLLECTION, docId);
 
     await setDoc(docRef, {
         [assetKey]: publicUrl,
         lastUpdated: serverTimestamp()
     }, { merge: true });
 
-    revalidatePath('/admin/game-assets');
-    revalidatePath('/casino/penalty-shootout');
+    revalidatePaths.forEach(p => revalidatePath(p));
     
     return { success: true, message: 'La imagen del recurso se ha actualizado correctamente.' };
 

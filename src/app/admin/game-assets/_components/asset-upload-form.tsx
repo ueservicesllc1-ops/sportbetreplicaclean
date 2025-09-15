@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useActionState, useEffect, useState, useRef } from 'react';
@@ -32,12 +33,13 @@ function SubmitButton() {
 
 interface AssetUploadFormProps {
   assetKey: string;
+  gameType: 'penalty_shootout' | 'mines';
   title: string;
   description: string;
   currentImageUrl: string | null;
 }
 
-export function AssetUploadForm({ assetKey, title, description, currentImageUrl }: AssetUploadFormProps) {
+export function AssetUploadForm({ assetKey, gameType, title, description, currentImageUrl }: AssetUploadFormProps) {
   const [state, formAction] = useActionState(updateGameAsset, initialState);
   const [preview, setPreview] = useState<string | null>(currentImageUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,6 +76,7 @@ export function AssetUploadForm({ assetKey, title, description, currentImageUrl 
       </CardHeader>
       <form action={formAction}>
         <input type="hidden" name="assetKey" value={assetKey} />
+        <input type="hidden" name="gameType" value={gameType} />
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor={`image-${assetKey}`}>Imagen Actual</Label>

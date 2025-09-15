@@ -1,20 +1,26 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { AssetUploadForm } from "./_components/asset-upload-form";
-import { getPenaltyGameAssets, getLobbyAssets } from "./actions";
+import { getPenaltyGameAssets, getLobbyAssets, getMinesGameAssets } from "./actions";
 import { LobbyAssetsForm } from "./_components/lobby-assets-form";
 
 
-const assetsToManage = [
+const penaltyAssets = [
     { key: 'background', title: 'Imagen de Fondo/Portería', description: 'La imagen principal de la portería y el campo.' },
     { key: 'ball', title: 'Imagen del Balón', description: 'La pelota que se patea.' },
     { key: 'keeper_standing', title: 'Portero (parado inicial)', description: 'El portero en su posición inicial antes del disparo.' },
     { key: 'keeper_flying', title: 'Portero (volando y atajando)', description: 'Imagen del portero cuando ataja el balón.' },
     { key: 'keeper_miss', title: 'Portero (volando sin atajar)', description: 'Imagen del portero cuando se lanza pero no ataja (gol).' },
-]
+];
+
+const minesAssets = [
+    { key: 'gem', title: 'Imagen de la Gema', description: 'La imagen que aparece al encontrar una casilla segura.' },
+    { key: 'mine', title: 'Imagen de la Mina', description: 'La imagen de la bomba que termina el juego.' },
+];
 
 export default async function AdminGameAssetsPage() {
-    const currentAssets = await getPenaltyGameAssets();
+    const currentPenaltyAssets = await getPenaltyGameAssets();
+    const currentMinesAssets = await getMinesGameAssets();
     const lobbyAssets = await getLobbyAssets();
 
     return (
@@ -31,13 +37,35 @@ export default async function AdminGameAssetsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {assetsToManage.map(asset => (
+                    {penaltyAssets.map(asset => (
                         <AssetUploadForm 
                             key={asset.key}
                             assetKey={asset.key}
+                            gameType="penalty_shootout"
                             title={asset.title}
                             description={asset.description}
-                            currentImageUrl={currentAssets[asset.key] as string || null}
+                            currentImageUrl={currentPenaltyAssets[asset.key] as string || null}
+                        />
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Juego: Campo Minado</CardTitle>
+                    <CardDescription>
+                       Gestiona las imágenes para el juego de minas.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {minesAssets.map(asset => (
+                        <AssetUploadForm 
+                            key={asset.key}
+                            assetKey={asset.key}
+                            gameType="mines"
+                            title={asset.title}
+                            description={asset.description}
+                            currentImageUrl={currentMinesAssets[asset.key] as string || null}
                         />
                     ))}
                 </CardContent>
