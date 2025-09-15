@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Upload, ImageUp } from 'lucide-react';
+import { Loader2, ImageUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateGameAsset } from '../actions';
 
@@ -39,34 +39,21 @@ interface AssetUploadFormProps {
   currentImageUrl: string | null;
 }
 
-export function AssetUploadForm({ assetKey, gameType, title, description, currentImageUrl }: AssetUploadFormProps) {
+export function AssetUploadForm({ assetKey, gameType, title, description, currentImageUrl: initialImageUrl }: AssetUploadFormProps) {
   const [state, formAction] = useActionState(updateGameAsset, initialState);
-  const [preview, setPreview] = useState<string | null>(currentImageUrl);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [imageUrl, setImageUrl] = useState(initialImageUrl || '');
   const { toast } = useToast();
 
   useEffect(() => {
     if (state.message) {
       if (state.success) {
         toast({ title: '¡Éxito!', description: state.message });
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ''; // Reset file input
-        }
       } else {
         toast({ variant: 'destructive', title: 'Error', description: state.message });
       }
     }
   }, [state, toast]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const objectUrl = URL.createObjectURL(file);
-      setPreview(objectUrl);
-    } else {
-      setPreview(currentImageUrl); // Revert to original if no file is selected
-    }
-  };
 
   return (
     <Card>
@@ -74,38 +61,31 @@ export function AssetUploadForm({ assetKey, gameType, title, description, curren
         <CardTitle className="text-lg">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <form action={formAction}>
+      <form action={formAction} ref={formRef}>
         <input type="hidden" name="assetKey" value={assetKey} />
         <input type="hidden" name="gameType" value={gameType} />
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor={`image-${assetKey}`}>Imagen Actual</Label>
             <div className="relative flex justify-center items-center w-full h-40 border-2 border-dashed rounded-lg bg-muted/50">
-              {preview ? (
-                <Image src={preview} alt={`${title} preview`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-contain rounded-lg p-2" />
+              {imageUrl ? (
+                <Image src={imageUrl} alt={`${title} preview`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-contain rounded-lg p-2" />
               ) : (
                 <div className="text-sm text-muted-foreground">No hay imagen.</div>
               )}
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`file-${assetKey}`}>Subir Nueva Imagen (PNG recomendado)</Label>
-             <div className="relative flex justify-center items-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
-                <Input
-                    id={`file-${assetKey}`}
-                    name="assetImage"
-                    type="file"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    accept="image/png, image/jpeg, image/webp, image/gif"
-                    onChange={handleFileChange}
-                    ref={fileInputRef}
-                    required
-                />
-                <div className="flex flex-col items-center gap-1 text-center text-muted-foreground">
-                    <Upload className="h-6 w-6" />
-                    <p className="text-sm">Arrastra o haz clic para subir</p>
-                </div>
-            </div>
+            <Label htmlFor={`url-${assetKey}`}>URL de la Nueva Imagen</Label>
+             <Input
+                id={`url-${assetKey}`}
+                name="assetImageUrl"
+                type="url"
+                placeholder="https://ejemplo.com/imagen.png"
+                defaultValue={initialImageUrl || ''}
+                onChange={(e) => setImageUrl(e.target.value)}
+                required
+            />
           </div>
         </CardContent>
         <CardFooter>

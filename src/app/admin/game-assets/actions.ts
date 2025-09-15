@@ -63,38 +63,21 @@ export async function getLobbyAssets(): Promise<Record<string, string>> {
 
 
 export async function updateLobbyAssets(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; }> {
-    const assetsToUpdate = [
-        { key: 'penalty_shootout', file: formData.get('penalty_shootout') as File | null },
-        { key: 'ruleta', file: formData.get('ruleta') as File | null },
-        { key: 'speedrun', file: formData.get('speedrun') as File | null },
-        { key: 'mines', file: formData.get('mines') as File | null },
-    ];
+    const urls: Record<string, string> = {};
+    const assetsToUpdate = ['penalty_shootout', 'ruleta', 'speedrun', 'mines'];
 
-    const filesToUpload = assetsToUpdate.filter(asset => asset.file && asset.file.size > 0);
+    assetsToUpdate.forEach(key => {
+        const url = formData.get(key) as string | null;
+        if (url && url.startsWith('http')) {
+            urls[key] = url;
+        }
+    });
 
-    if (filesToUpload.length === 0) {
-        return { success: false, message: 'No se seleccionaron nuevos archivos de imagen para actualizar.' };
+    if (Object.keys(urls).length === 0) {
+        return { success: false, message: 'No se proporcionaron URLs de imagen válidas para actualizar.' };
     }
 
     try {
-        const admin = await getFirebaseAdmin();
-        const bucket = admin.storage().bucket();
-        const urls: Record<string, string> = {};
-
-        for (const { key, file } of filesToUpload) {
-             if (!file) continue;
-            const filePath = `game-assets/lobby/${key}-${Date.now()}.${file.name.split('.').pop()}`;
-            const fileRef = bucket.file(filePath);
-            const fileBuffer = Buffer.from(await file.arrayBuffer());
-
-            await fileRef.save(fileBuffer, {
-                metadata: { contentType: file.type },
-                public: true,
-            });
-            
-            urls[key] = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
-        }
-        
         const docRef = doc(db, ASSET_COLLECTION, CASINO_LOBBY_DOC);
 
         await setDoc(docRef, {
@@ -117,14 +100,14 @@ export async function updateLobbyAssets(prevState: any, formData: FormData): Pro
 
 export async function updateGameAsset(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; }> {
   const assetKey = formData.get('assetKey') as string | null;
-  const assetImage = formData.get('assetImage') as File | null;
+  const assetImageUrl = formData.get('assetImageUrl') as string | null;
   const gameType = formData.get('gameType') as 'penalty_shootout' | 'mines';
   
   if (!assetKey || !gameType) {
     return { success: false, message: 'Falta la clave del recurso (assetKey) o el tipo de juego (gameType).' };
   }
-  if (!assetImage || assetImage.size === 0) {
-    return { success: false, message: 'No se ha seleccionado ningún archivo de imagen.' };
+  if (!assetImageUrl || !assetImageUrl.startsWith('http')) {
+    return { success: false, message: 'La URL de la imagen no es válida.' };
   }
 
   const documentMap = {
@@ -133,7 +116,6 @@ export async function updateGameAsset(prevState: any, formData: FormData): Promi
   };
 
   const docId = documentMap[gameType];
-  const filePathRoot = `game-assets/${gameType}`;
   
   const revalidatePaths = ['/admin/game-assets'];
   if (gameType === 'penalty_shootout') {
@@ -144,27 +126,10 @@ export async function updateGameAsset(prevState: any, formData: FormData): Promi
 
 
   try {
-    const admin = await getFirebaseAdmin();
-    const bucket = admin.storage().bucket();
-    const filePath = `${filePathRoot}/${assetKey}-${Date.now()}.${assetImage.name.split('.').pop()}`;
-    const file = bucket.file(filePath);
-    const fileBuffer = Buffer.from(await assetImage.arrayBuffer());
-
-    // Upload the file and make it public
-    await file.save(fileBuffer, {
-      metadata: { 
-        contentType: assetImage.type,
-      },
-      public: true,
-    });
-    
-    // Get the public URL
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
-    
     const docRef = doc(db, ASSET_COLLECTION, docId);
 
     await setDoc(docRef, {
-        [assetKey]: publicUrl,
+        [assetKey]: assetImageUrl,
         lastUpdated: serverTimestamp()
     }, { merge: true });
 
@@ -178,4 +143,3 @@ export async function updateGameAsset(prevState: any, formData: FormData): Promi
     return { success: false, message: `No se pudo actualizar la imagen: ${errorMessage}` };
   }
 }
-    

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Upload, ImageUp } from 'lucide-react';
+import { Loader2, ImageUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateLobbyAssets } from '../actions';
 
@@ -90,21 +90,10 @@ interface LobbyAssetInputProps {
 
 function LobbyAssetInput({ assetKey, title, currentImageUrl }: LobbyAssetInputProps) {
     const [preview, setPreview] = useState<string | null>(currentImageUrl);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-        const objectUrl = URL.createObjectURL(file);
-        setPreview(objectUrl);
-        } else {
-        setPreview(currentImageUrl); // Revert to original if no file is selected
-        }
-    };
 
     return (
          <div className="space-y-2">
-            <Label htmlFor={`file-${assetKey}`} className='font-semibold'>{title}</Label>
+            <Label htmlFor={`url-${assetKey}`} className='font-semibold'>{title}</Label>
             <div className="relative flex justify-center items-center w-full aspect-[4/3] border-2 border-dashed rounded-lg bg-muted/50">
               {preview ? (
                 <Image src={preview} alt={`${title} preview`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover rounded-lg" />
@@ -114,20 +103,13 @@ function LobbyAssetInput({ assetKey, title, currentImageUrl }: LobbyAssetInputPr
             </div>
              <div className="relative">
                 <Input
-                    id={`file-${assetKey}`}
+                    id={`url-${assetKey}`}
                     name={assetKey}
-                    type="file"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    accept="image/png, image/jpeg, image/webp, image/gif"
-                    onChange={handleFileChange}
-                    ref={fileInputRef}
+                    type="url"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    defaultValue={currentImageUrl || ''}
+                    onChange={(e) => setPreview(e.target.value)}
                 />
-                <Button asChild variant="outline" className='w-full pointer-events-none'>
-                    <div className="flex items-center gap-1 text-center text-muted-foreground">
-                        <Upload className="h-4 w-4" />
-                        <span className="text-sm">Cambiar Imagen</span>
-                    </div>
-                </Button>
             </div>
           </div>
     )
