@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeCasinoBet, resolveCasinoBet } from '../actions';
+import { getSpeedrunGameAssets } from '@/app/admin/game-assets/actions';
 import { Loader2, User, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -120,6 +121,7 @@ export default function CasinoPage() {
   const [isAutoCashOutEnabled, setIsAutoCashOutEnabled] = useState<boolean>(false);
   const [players, setPlayers] = useState<Player[]>([]);
   const [isMuted, setIsMuted] = useState(false);
+  const [assets, setAssets] = useState<Record<string, string>>({});
 
 
   const { user } = useAuth();
@@ -131,18 +133,34 @@ export default function CasinoPage() {
   const engineSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Initialize audio on client side only, after component mounts
-    engineSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_51c619f462.mp3');
-    engineSoundRef.current.loop = true;
+    async function fetchAssets() {
+        const gameAssets = await getSpeedrunGameAssets();
+        setAssets(gameAssets);
+    }
+    fetchAssets();
+  }, []);
+
+  // Effect for audio handling
+   useEffect(() => {
+    // Create or destroy audio element based on asset URL
+    if (assets.engineSound && !engineSoundRef.current) {
+        engineSoundRef.current = new Audio(assets.engineSound);
+        engineSoundRef.current.loop = true;
+    }
+
+    if (gameState === 'playing' && engineSoundRef.current) {
+      engineSoundRef.current.muted = isMuted;
+      engineSoundRef.current.play().catch(e => console.error("Audio play failed:", e));
+    } else if (engineSoundRef.current) {
+      engineSoundRef.current.pause();
+      engineSoundRef.current.currentTime = 0;
+    }
 
     // Cleanup on unmount
     return () => {
-      if (engineSoundRef.current) {
-        engineSoundRef.current.pause();
-        engineSoundRef.current = null;
-      }
+      engineSoundRef.current?.pause();
     };
-  }, []);
+  }, [gameState, isMuted, assets.engineSound]);
 
 
   const handleCashOut = async () => {
@@ -161,8 +179,6 @@ export default function CasinoPage() {
           });
       } catch (error: any) {
           toast({ variant: 'destructive', title: 'Error al retirar', description: error.message });
-          // Even if crediting fails, we cash out locally to show the UI state.
-          // A more robust system would handle this reconciliation.
       } finally {
           setIsSubmitting(false);
           setGameState('cashout');
@@ -173,14 +189,12 @@ export default function CasinoPage() {
   // Game loop management
   useEffect(() => {
     if (gameState === 'betting' || gameState === 'waiting') {
-        // Reset local round state when a new betting phase starts
         if(gameState === 'betting') {
             setMultiplier(1.00);
             setHasPlacedBet(false);
             setWinnings(0);
 
-            // --- Generate fake players for the new round ---
-            const numPlayers = Math.floor(Math.random() * 8) + 7; // 7 to 14 players
+            const numPlayers = Math.floor(Math.random() * 8) + 7;
             const newPlayers: Player[] = [];
             const usedNames = new Set();
             for (let i = 0; i < numPlayers; i++) {
@@ -190,13 +204,12 @@ export default function CasinoPage() {
                 }
                 usedNames.add(name);
 
-                // Define cashout target: some low, some high, some never (null)
                 const r = Math.random();
                 let cashOutTarget: number | null;
-                 if (r < 0.4) cashOutTarget = 1.01 + Math.random() * 0.5; // 40% cash out between 1.01x and 1.51x
-                 else if (r < 0.7) cashOutTarget = 1.5 + Math.random() * 2.5; // 30% cash out between 1.5x and 4x
-                 else if (r < 0.9) cashOutTarget = 4 + Math.random() * 6; // 20% cash out between 4x and 10x
-                 else cashOutTarget = null; // 10% will crash
+                 if (r < 0.4) cashOutTarget = 1.01 + Math.random() * 0.5;
+                 else if (r < 0.7) cashOutTarget = 1.5 + Math.random() * 2.5;
+                 else if (r < 0.9) cashOutTarget = 4 + Math.random() * 6;
+                 else cashOutTarget = null;
 
                 newPlayers.push({
                     id: `fake_${i}`,
@@ -226,13 +239,12 @@ export default function CasinoPage() {
             if (prev <= 1) {
                 clearInterval(intervalRef.current!);
                 
-                // Determine crash point for the upcoming round
                 const r = Math.random();
-                if (r < 0.7) { // 70% chance for low multiplier (1.01x to 2.00x)
-                crashPoint.current = 1.01 + Math.random(); // 1.01 to 2.009...
-                } else if (r < 0.95) { // 25% chance for medium multiplier (2.00x to 10.00x)
+                if (r < 0.7) { 
+                crashPoint.current = 1.01 + Math.random();
+                } else if (r < 0.95) { 
                 crashPoint.current = 2 + Math.random() * 8;
-                } else { // 5% chance for high multiplier (10.00x to 200.00x)
+                } else { 
                 crashPoint.current = 10 + Math.random() * 190;
                 }
 
@@ -245,21 +257,8 @@ export default function CasinoPage() {
     } else if (gameState === 'playing') {
       setMultiplier(1.00);
       
-      const playSound = async () => {
-        if (engineSoundRef.current && !isMuted) {
-          try {
-            await engineSoundRef.current.play();
-          } catch (e) {
-            console.error("Audio play failed:", e);
-          }
-        }
-      };
-      playSound();
-
-
       const gameInterval = setInterval(() => {
         setMultiplier((prevMultiplier) => {
-          // Use a functional update to get the latest crashPoint from the ref
           if (prevMultiplier >= crashPoint.current) {
             setGameState('crashed');
             return prevMultiplier;
@@ -271,15 +270,10 @@ export default function CasinoPage() {
       intervalRef.current = gameInterval;
     } else if (gameState === 'crashed' || gameState === 'cashout') {
         if(intervalRef.current) clearInterval(intervalRef.current);
-        if (engineSoundRef.current) {
-            engineSoundRef.current.pause();
-            engineSoundRef.current.currentTime = 0;
-        }
         
         const finalMultiplier = gameState === 'crashed' ? crashPoint.current : multiplier;
         history.current = [parseFloat(finalMultiplier.toFixed(2)), ...history.current.slice(0, 11)];
 
-        // Update player statuses for crashed
         if (gameState === 'crashed') {
             setPlayers(prevPlayers => prevPlayers.map(p => 
                 p.status === 'playing' ? {...p, status: 'crashed'} : p
@@ -294,9 +288,6 @@ export default function CasinoPage() {
     
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      if (engineSoundRef.current) {
-            engineSoundRef.current.pause();
-      }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
@@ -436,10 +427,12 @@ export default function CasinoPage() {
             <div className="flex items-center gap-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 10.5 4 4"></path><path d="m14 10.5-4 4"></path></svg>
                 <h1 className="text-3xl font-bold tracking-tight">Speedrun</h1>
-                 <Button variant="outline" size="icon" onClick={() => setIsMuted(!isMuted)}>
-                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                    <span className="sr-only">Silenciar</span>
-                </Button>
+                 {assets.engineSound && (
+                    <Button variant="outline" size="icon" onClick={() => setIsMuted(!isMuted)}>
+                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                        <span className="sr-only">Silenciar</span>
+                    </Button>
+                )}
             </div>
             <Button asChild size="lg">
                 <Link href="/casino">
