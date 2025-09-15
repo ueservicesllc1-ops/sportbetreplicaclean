@@ -68,7 +68,7 @@ export function PromotionsCarousel() {
       ]}
     >
       <CarouselContent>
-        {banners.map((promo) => (
+        {banners.map((promo, index) => (
           <CarouselItem key={promo.id}>
             <div className="p-0">
               <div className="relative flex aspect-[5/2] items-center justify-center p-0">
@@ -78,7 +78,7 @@ export function PromotionsCarousel() {
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover"
-                    priority={true}
+                    priority={index === 0}
                   />
               </div>
             </div>
@@ -92,3 +92,5 @@ export function PromotionsCarousel() {
     </Carousel>
   );
 }
+
+    
