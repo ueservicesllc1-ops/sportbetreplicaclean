@@ -30,20 +30,24 @@ const defaultAssets: Record<string, string> = {
 // --- Helper Functions ---
 function calculateMultiplier(gemsFound: number, mineCount: number): number {
   if (gemsFound === 0) return 1.0;
-  if (gemsFound >= (GRID_SIZE - mineCount)) return 10.0;
   
-  // Start multiplier slightly above 1 for the first gem
-  const startingMultiplier = 1.05;
-  const maxMultiplier = 10.0;
-  
-  // Calculate the remaining climb needed to reach the max multiplier
-  const multiplierRange = maxMultiplier - startingMultiplier;
-  
-  // Calculate how many more gems can be found
+  // Total gems available on the board
   const totalGems = GRID_SIZE - mineCount;
   
-  // Calculate the contribution of each gem found after the first one
-  const step = multiplierRange / (totalGems -1);
+  // If all gems are found, multiplier should be 10x
+  if (gemsFound >= totalGems) return 10.0;
+  
+  // The first gem gives a small boost
+  const startingMultiplier = 1.05;
+  if (gemsFound === 1) return startingMultiplier;
+
+  // The total range of multiplier increase we need to achieve
+  const maxMultiplier = 10.0;
+  const multiplierRange = maxMultiplier - startingMultiplier;
+  
+  // Calculate the contribution of each subsequent gem found (after the first one)
+  // We have (totalGems - 1) steps to climb from startingMultiplier to maxMultiplier
+  const step = multiplierRange / (totalGems - 1);
   
   // Linear increase from the starting point
   const multiplier = startingMultiplier + (step * (gemsFound - 1));
@@ -82,7 +86,7 @@ export default function MinesPage() {
         explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
         explosionSoundRef.current.volume = 0.5;
 
-        gemSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/11/22/audio_1688b6715f.mp3');
+        gemSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/07/audio_c87c067a90.mp3');
         gemSoundRef.current.volume = 0.8;
 
         // Cleanup audio on component unmount
@@ -95,7 +99,8 @@ export default function MinesPage() {
         if (isMuted) {
             backgroundMusicRef.current?.pause();
         } else if (gameState === 'playing') {
-            backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction"));
+            // Browsers may prevent autoplay until user interaction
+            backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction. Will try again on game start."));
         }
     }, [isMuted, gameState]);
 
@@ -114,9 +119,6 @@ export default function MinesPage() {
         if (gameState === 'playing') {
             setCurrentMultiplier(calculateMultiplier(gemsFound, mineCount));
             setNextMultiplier(calculateMultiplier(gemsFound + 1, mineCount));
-            if (!isMuted) {
-                 backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction"));
-            }
         } else {
              backgroundMusicRef.current?.pause();
         }
@@ -143,6 +145,9 @@ export default function MinesPage() {
             setRevealedTiles(Array(GRID_SIZE).fill(false));
             setGemsFound(0);
             setCurrentMultiplier(1);
+            if (!isMuted) {
+                backgroundMusicRef.current?.play();
+            }
             toast({ title: '¡Buena suerte!', description: `Apuesta de $${amount.toFixed(2)} iniciada. Encuentra las gemas.` });
         } else {
             toast({ variant: 'destructive', title: 'Error al apostar', description: result.error });
@@ -381,5 +386,3 @@ export default function MinesPage() {
         </div>
     );
 }
-
-    
