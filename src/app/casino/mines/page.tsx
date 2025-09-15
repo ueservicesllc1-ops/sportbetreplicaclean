@@ -67,39 +67,9 @@ export default function MinesPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [gameAssets, setGameAssets] = useState<Record<string, string>>(defaultAssets);
     const [assetsLoading, setAssetsLoading] = useState(true);
-    const [isMuted, setIsMuted] = useState(false);
 
     const { user } = useAuth();
     const { toast } = useToast();
-    
-    // Audio Refs
-    const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
-    const explosionSoundRef = useRef<HTMLAudioElement | null>(null);
-
-    useEffect(() => {
-        // Cleanup audio on component unmount
-        return () => {
-            backgroundMusicRef.current?.pause();
-            backgroundMusicRef.current = null;
-            explosionSoundRef.current = null;
-        };
-    }, []);
-    
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        if (isMuted) {
-            backgroundMusicRef.current?.pause();
-        } else if (gameState === 'playing' && backgroundMusicRef.current) {
-            backgroundMusicRef.current.play().catch(e => console.log("Audio play failed until user interaction."));
-        } else if (gameState === 'betting' || gameState === 'busted') {
-             if(backgroundMusicRef.current) {
-                backgroundMusicRef.current.pause();
-                backgroundMusicRef.current.currentTime = 0;
-             }
-        }
-    }, [isMuted, gameState]);
-
 
     useEffect(() => {
         const fetchAssets = async () => {
@@ -139,14 +109,6 @@ export default function MinesPage() {
             setRevealedTiles(Array(GRID_SIZE).fill(false));
             setGemsFound(0);
             setCurrentMultiplier(1);
-            if (!isMuted) {
-                if (!backgroundMusicRef.current) {
-                    backgroundMusicRef.current = new Audio('https://cdn.pixabay.com/audio/2022/10/26/audio_a7f14193ab.mp3');
-                    backgroundMusicRef.current.loop = true;
-                    backgroundMusicRef.current.volume = 0.3;
-                }
-                backgroundMusicRef.current.play().catch(e => console.error("Error playing music on game start:", e));
-            }
             toast({ title: '¡Buena suerte!', description: `Apuesta de $${amount.toFixed(2)} iniciada. Encuentra las gemas.` });
         } else {
             toast({ variant: 'destructive', title: 'Error al apostar', description: result.error });
@@ -163,13 +125,6 @@ export default function MinesPage() {
         setRevealedTiles(newRevealedTiles);
 
         if (grid[index] === 1) { // It's a mine
-            if (!isMuted) {
-                if (!explosionSoundRef.current) {
-                    explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
-                    explosionSoundRef.current.volume = 0.5;
-                }
-                explosionSoundRef.current.play();
-            }
             setGameState('busted');
             const penaltyAmount = parseFloat(betAmount) * currentMultiplier;
             if (user) {
@@ -248,10 +203,6 @@ export default function MinesPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Configura tu Juego</CardTitle>
-                         <Button variant="outline" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                            <span className="sr-only">{isMuted ? 'Activar Sonido' : 'Silenciar'}</span>
-                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className='space-y-2'>
