@@ -122,7 +122,7 @@ export default function MinesPage() {
         } else {
              backgroundMusicRef.current?.pause();
         }
-    }, [gemsFound, mineCount, gameState, isMuted]);
+    }, [gemsFound, mineCount, gameState]);
 
     const handleStartGame = async () => {
         if (!user) {
@@ -145,8 +145,8 @@ export default function MinesPage() {
             setRevealedTiles(Array(GRID_SIZE).fill(false));
             setGemsFound(0);
             setCurrentMultiplier(1);
-            if (!isMuted) {
-                backgroundMusicRef.current?.play();
+            if (!isMuted && backgroundMusicRef.current) {
+                backgroundMusicRef.current.play().catch(e => console.error("Error playing music on game start:", e));
             }
             toast({ title: '¡Buena suerte!', description: `Apuesta de $${amount.toFixed(2)} iniciada. Encuentra las gemas.` });
         } else {
@@ -266,7 +266,7 @@ export default function MinesPage() {
                             </div>
                         </div>
 
-                        <div className='space-y-3 hidden'>
+                        <div className='space-y-3'>
                             <Label htmlFor='mine-count'>Número de Minas: <span className='font-bold text-primary'>{mineCount}</span></Label>
                             <Slider 
                                 id='mine-count'
@@ -386,3 +386,5 @@ export default function MinesPage() {
         </div>
     );
 }
+
+    
