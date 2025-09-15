@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeMinesBet, cashOutMines, resolveMinesLoss } from './actions';
 import { getMinesGameAssets } from '@/app/admin/game-assets/actions';
-import { Loader2, ArrowLeft, Gem, Bomb, WandSparkles, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
+import { Loader2, ArrowLeft, Gem, Bomb, WandSparkles, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
@@ -101,7 +101,6 @@ export default function MinesPage() {
 
         setIsSubmitting(true);
         const result = await placeMinesBet(user.uid, amount, mineCount);
-        setIsSubmitting(false);
 
         if (result.success) {
             setGrid(result.grid);
@@ -113,6 +112,7 @@ export default function MinesPage() {
         } else {
             toast({ variant: 'destructive', title: 'Error al apostar', description: result.error });
         }
+        setIsSubmitting(false);
     };
 
     const handleTileClick = async (index: number) => {

@@ -41,7 +41,6 @@ export async function placeMinesBet(userId: string, betAmount: number, mineCount
     const userDocRef = doc(db, 'users', userId);
 
     try {
-        // We no longer deduct the bet amount here. We check the balance.
         await runTransaction(db, async (transaction) => {
             const userDoc = await transaction.get(userDocRef);
             if (!userDoc.exists()) {
@@ -50,21 +49,23 @@ export async function placeMinesBet(userId: string, betAmount: number, mineCount
 
             const currentBalance = userDoc.data().balance || 0;
             if (currentBalance < betAmount) {
-                // We could also check if balance is enough for a potential loss, but for now just the bet.
                 throw new Error('Saldo insuficiente para realizar esta apuesta.');
             }
+
+            // We no longer deduct here, just check the balance.
+            // The penalty or winnings will be handled in separate actions.
         });
         
         const grid = generateMinesGrid(25, mineCount);
 
-        // Log the start of the game without debiting yet
         const transactionsRef = collection(db, 'game_transactions');
         await addDoc(transactionsRef, {
             userId: userId,
             game: 'Mines',
-            type: 'debit_bet_placed',
+            type: 'bet_placed', // Changed from debit_bet_placed
             amount: betAmount,
             details: { mineCount },
+            status: 'pending',
             createdAt: serverTimestamp(),
         });
 
@@ -100,7 +101,7 @@ export async function resolveMinesLoss(userId: string, penaltyAmount: number): P
             transaction.set(doc(transactionsRef), {
                 userId: userId,
                 game: 'Mines',
-                type: 'debit_loss_penalty',
+                type: 'debit_loss',
                 amount: penaltyAmount,
                 createdAt: serverTimestamp(),
             });
@@ -144,3 +145,4 @@ export async function cashOutMines(userId: string, betAmount: number, winnings: 
         return { success: false, error: 'No se pudieron acreditar tus ganancias.' };
     }
 }
+
