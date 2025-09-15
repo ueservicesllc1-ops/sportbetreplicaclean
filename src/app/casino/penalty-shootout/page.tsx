@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertTitle, AlertDescription as AlertDescriptionComponent } from '@/components/ui/alert';
 
 
 type GameState = 'betting' | 'powering' | 'shooting' | 'finished';
@@ -86,6 +87,7 @@ export default function PenaltyShootoutPage() {
             if (saveState.success) {
                 toast({ title: "Guardado", description: saveState.message });
             } else {
+                // The error is now displayed in the Alert component, but a toast can still be useful.
                 toast({ variant: 'destructive', title: "Error", description: saveState.message });
             }
         }
@@ -428,6 +430,15 @@ export default function PenaltyShootoutPage() {
                                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                             Guardar Posiciones
                                         </Button>
+
+                                        {saveState.message && !saveState.success && (
+                                            <Alert variant="destructive" className="mt-4">
+                                                <AlertTitle>Error al Guardar</AlertTitle>
+                                                <AlertDescriptionComponent>
+                                                    {saveState.message}
+                                                </AlertDescriptionComponent>
+                                            </Alert>
+                                        )}
                                     </form>
                                 </CardContent>
                             </Card>
@@ -581,3 +592,5 @@ export default function PenaltyShootoutPage() {
         </Dialog>
     );
 }
+
+    
