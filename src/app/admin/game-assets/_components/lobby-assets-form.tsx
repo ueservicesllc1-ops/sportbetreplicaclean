@@ -35,6 +35,7 @@ const games = [
     { key: 'penalty_shootout', title: 'Tanda de Penales' },
     { key: 'ruleta', title: 'Ruleta de la Suerte' },
     { key: 'speedrun', title: 'Speedrun' },
+    { key: 'mines', title: 'Campo Minado' },
 ]
 
 interface LobbyAssetsFormProps {
@@ -62,7 +63,7 @@ export function LobbyAssetsForm({ currentImages }: LobbyAssetsFormProps) {
         <CardDescription>Gestiona las imágenes de portada para los juegos que se muestran en la página del casino.</CardDescription>
       </CardHeader>
        <form action={formAction}>
-        <CardContent className="grid gap-6 md:grid-cols-3">
+        <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {games.map(game => (
                 <LobbyAssetInput 
                     key={game.key}

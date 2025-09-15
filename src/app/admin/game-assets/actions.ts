@@ -50,6 +50,7 @@ export async function updateLobbyAssets(prevState: any, formData: FormData): Pro
         { key: 'penalty_shootout', file: formData.get('penalty_shootout') as File | null },
         { key: 'ruleta', file: formData.get('ruleta') as File | null },
         { key: 'speedrun', file: formData.get('speedrun') as File | null },
+        { key: 'mines', file: formData.get('mines') as File | null },
     ];
 
     const filesToUpload = assetsToUpdate.filter(asset => asset.file && asset.file.size > 0);

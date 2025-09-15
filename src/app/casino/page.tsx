@@ -27,6 +27,12 @@ export default async function CasinoLobbyPage() {
             description: "Elige tu esquina y patea para ganar. ¡Gol o atajada!",
             href: "/casino/penalty-shootout",
             imageUrl: lobbyAssets['penalty_shootout'] || "https://i.postimg.cc/8PLdM9d3/penalty-shootout.jpg"
+        },
+        {
+            name: "Campo Minado",
+            description: "Descubre gemas y evita las minas para multiplicar tu apuesta.",
+            href: "/casino/mines",
+            imageUrl: lobbyAssets['mines'] || "https://i.postimg.cc/pX4gXyJ8/mines-game-cover.jpg"
         }
     ]
 
