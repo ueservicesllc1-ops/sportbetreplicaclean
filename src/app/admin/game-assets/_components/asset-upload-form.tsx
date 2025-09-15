@@ -34,7 +34,7 @@ function SubmitButton() {
 
 interface AssetUploadFormProps {
   assetKey: string;
-  gameType: 'penalty_shootout' | 'mines' | 'speedrun';
+  gameType: 'penalty_shootout' | 'mines';
   title: string;
   description: string;
   currentImageUrl: string | null;

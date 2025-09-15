@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { getFirebaseAdmin } from '@/lib/firebase-admin';
@@ -45,23 +46,6 @@ export async function getMinesGameAssets(): Promise<Record<string, string>> {
         return {};
     }
 }
-
-export async function getSpeedrunGameAssets(): Promise<Record<string, string>> {
-    try {
-        const docRef = doc(db, ASSET_COLLECTION, SPEEDRUN_DOC);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const { lastUpdated, ...assets } = data;
-            return assets as Record<string, string>;
-        }
-        return {};
-    } catch (error) {
-        console.error("Error getting speedrun game assets:", error);
-        return {};
-    }
-}
-
 
 export async function getLobbyAssets(): Promise<Record<string, string>> {
     try {
@@ -119,7 +103,7 @@ export async function updateLobbyAssets(prevState: any, formData: FormData): Pro
 export async function updateGameAsset(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; }> {
   const assetKey = formData.get('assetKey') as string | null;
   const assetImageUrl = formData.get('assetImageUrl') as string | null;
-  const gameType = formData.get('gameType') as 'penalty_shootout' | 'mines' | 'speedrun';
+  const gameType = formData.get('gameType') as 'penalty_shootout' | 'mines';
   
   if (!assetKey || !gameType) {
     return { success: false, message: 'Falta la clave del recurso (assetKey) o el tipo de juego (gameType).' };
@@ -131,7 +115,6 @@ export async function updateGameAsset(prevState: any, formData: FormData): Promi
   const documentMap = {
     penalty_shootout: PENALTY_SHOOTOUT_DOC,
     mines: MINES_DOC,
-    speedrun: SPEEDRUN_DOC,
   };
 
   const docId = documentMap[gameType];
@@ -141,8 +124,6 @@ export async function updateGameAsset(prevState: any, formData: FormData): Promi
     revalidatePaths.push('/casino/penalty-shootout');
   } else if (gameType === 'mines') {
     revalidatePaths.push('/casino/mines');
-  } else if (gameType === 'speedrun') {
-    revalidatePaths.push('/casino/speedrun');
   }
 
 

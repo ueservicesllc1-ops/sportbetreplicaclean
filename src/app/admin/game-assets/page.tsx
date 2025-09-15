@@ -2,7 +2,7 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { AssetUploadForm } from "./_components/asset-upload-form";
-import { getPenaltyGameAssets, getLobbyAssets, getMinesGameAssets, getSpeedrunGameAssets } from "./actions";
+import { getPenaltyGameAssets, getLobbyAssets, getMinesGameAssets } from "./actions";
 import { LobbyAssetsForm } from "./_components/lobby-assets-form";
 
 
@@ -19,14 +19,10 @@ const minesAssets = [
     { key: 'mine', title: 'Imagen de la Mina', description: 'La imagen de la bomba que termina el juego.' },
 ];
 
-const speedrunAssets = [
-    { key: 'engineSound', title: 'Sonido del Motor', description: 'URL del audio para el motor del F1 (MP3).' },
-];
 
 export default async function AdminGameAssetsPage() {
     const currentPenaltyAssets = await getPenaltyGameAssets();
     const currentMinesAssets = await getMinesGameAssets();
-    const currentSpeedrunAssets = await getSpeedrunGameAssets();
     const lobbyAssets = await getLobbyAssets();
 
     return (
@@ -35,27 +31,6 @@ export default async function AdminGameAssetsPage() {
 
             <LobbyAssetsForm currentImages={lobbyAssets} />
             
-            <Card>
-                <CardHeader>
-                    <CardTitle>Juego: Speedrun</CardTitle>
-                    <CardDescription>
-                       Gestiona los recursos de audio y video para el juego Speedrun.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {speedrunAssets.map(asset => (
-                        <AssetUploadForm 
-                            key={asset.key}
-                            assetKey={asset.key}
-                            gameType="speedrun"
-                            title={asset.title}
-                            description={asset.description}
-                            currentImageUrl={currentSpeedrunAssets[asset.key] as string || null}
-                        />
-                    ))}
-                </CardContent>
-            </Card>
-
             <Card>
                 <CardHeader>
                     <CardTitle>Juego: Tanda de Penales</CardTitle>

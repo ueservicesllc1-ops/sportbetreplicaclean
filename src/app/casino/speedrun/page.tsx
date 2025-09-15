@@ -12,8 +12,7 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { placeCasinoBet, resolveCasinoBet } from '../actions';
-import { getSpeedrunGameAssets } from '@/app/admin/game-assets/actions';
-import { Loader2, User, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
+import { Loader2, User, ArrowLeft } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -120,9 +119,6 @@ export default function CasinoPage() {
   const [autoCashOutAmount, setAutoCashOutAmount] = useState<string>('1.50');
   const [isAutoCashOutEnabled, setIsAutoCashOutEnabled] = useState<boolean>(false);
   const [players, setPlayers] = useState<Player[]>([]);
-  const [isMuted, setIsMuted] = useState(false);
-  const [assets, setAssets] = useState<Record<string, string>>({});
-
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -130,38 +126,6 @@ export default function CasinoPage() {
   const history = useRef([2.34, 1.56, 1.02, 8.91, 3.45, 1.19, 4.01, 1.88, 2.76, 10.21, 1.00, 3.12]);
   const crashPoint = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const engineSoundRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    async function fetchAssets() {
-        const gameAssets = await getSpeedrunGameAssets();
-        setAssets(gameAssets);
-    }
-    fetchAssets();
-  }, []);
-
-  // Effect for audio handling
-   useEffect(() => {
-    // Create or destroy audio element based on asset URL
-    if (assets.engineSound && !engineSoundRef.current) {
-        engineSoundRef.current = new Audio(assets.engineSound);
-        engineSoundRef.current.loop = true;
-    }
-
-    if (gameState === 'playing' && engineSoundRef.current) {
-      engineSoundRef.current.muted = isMuted;
-      engineSoundRef.current.play().catch(e => console.error("Audio play failed:", e));
-    } else if (engineSoundRef.current) {
-      engineSoundRef.current.pause();
-      engineSoundRef.current.currentTime = 0;
-    }
-
-    // Cleanup on unmount
-    return () => {
-      engineSoundRef.current?.pause();
-    };
-  }, [gameState, isMuted, assets.engineSound]);
-
 
   const handleCashOut = async () => {
       if(gameState !== 'playing' || !hasPlacedBet || !user) return;
@@ -427,12 +391,6 @@ export default function CasinoPage() {
             <div className="flex items-center gap-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 10.5 4 4"></path><path d="m14 10.5-4 4"></path></svg>
                 <h1 className="text-3xl font-bold tracking-tight">Speedrun</h1>
-                 {assets.engineSound && (
-                    <Button variant="outline" size="icon" onClick={() => setIsMuted(!isMuted)}>
-                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                        <span className="sr-only">Silenciar</span>
-                    </Button>
-                )}
             </div>
             <Button asChild size="lg">
                 <Link href="/casino">
