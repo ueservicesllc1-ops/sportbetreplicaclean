@@ -77,30 +77,26 @@ export default function MinesPage() {
     const explosionSoundRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        // This effect runs only once on the client side
-        if (typeof window !== 'undefined') {
-            backgroundMusicRef.current = new Audio('https://cdn.pixabay.com/audio/2022/10/26/audio_a7f14193ab.mp3');
-            backgroundMusicRef.current.loop = true;
-            backgroundMusicRef.current.volume = 0.3;
-
-            explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
-            explosionSoundRef.current.volume = 0.5;
-        }
-
         // Cleanup audio on component unmount
         return () => {
             backgroundMusicRef.current?.pause();
+            backgroundMusicRef.current = null;
+            explosionSoundRef.current = null;
         };
     }, []);
     
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+
         if (isMuted) {
             backgroundMusicRef.current?.pause();
-        } else if (gameState === 'playing') {
-            backgroundMusicRef.current?.play().catch(e => console.log("Audio play failed until user interaction."));
+        } else if (gameState === 'playing' && backgroundMusicRef.current) {
+            backgroundMusicRef.current.play().catch(e => console.log("Audio play failed until user interaction."));
         } else if (gameState === 'betting' || gameState === 'busted') {
-             backgroundMusicRef.current?.pause();
-             if(backgroundMusicRef.current) backgroundMusicRef.current.currentTime = 0;
+             if(backgroundMusicRef.current) {
+                backgroundMusicRef.current.pause();
+                backgroundMusicRef.current.currentTime = 0;
+             }
         }
     }, [isMuted, gameState]);
 
@@ -143,7 +139,12 @@ export default function MinesPage() {
             setRevealedTiles(Array(GRID_SIZE).fill(false));
             setGemsFound(0);
             setCurrentMultiplier(1);
-            if (!isMuted && backgroundMusicRef.current) {
+            if (!isMuted) {
+                if (!backgroundMusicRef.current) {
+                    backgroundMusicRef.current = new Audio('https://cdn.pixabay.com/audio/2022/10/26/audio_a7f14193ab.mp3');
+                    backgroundMusicRef.current.loop = true;
+                    backgroundMusicRef.current.volume = 0.3;
+                }
                 backgroundMusicRef.current.play().catch(e => console.error("Error playing music on game start:", e));
             }
             toast({ title: '¡Buena suerte!', description: `Apuesta de $${amount.toFixed(2)} iniciada. Encuentra las gemas.` });
@@ -162,7 +163,13 @@ export default function MinesPage() {
         setRevealedTiles(newRevealedTiles);
 
         if (grid[index] === 1) { // It's a mine
-            if (!isMuted) explosionSoundRef.current?.play();
+            if (!isMuted) {
+                if (!explosionSoundRef.current) {
+                    explosionSoundRef.current = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3');
+                    explosionSoundRef.current.volume = 0.5;
+                }
+                explosionSoundRef.current.play();
+            }
             setGameState('busted');
             const penaltyAmount = parseFloat(betAmount) * currentMultiplier;
             if (user) {
@@ -383,7 +390,3 @@ export default function MinesPage() {
         </div>
     );
 }
-
-    
-
-    
