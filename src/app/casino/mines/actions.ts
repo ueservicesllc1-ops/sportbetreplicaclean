@@ -4,13 +4,13 @@
 import { db } from '@/lib/firebase';
 import { doc, runTransaction, increment, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
-interface MinesBetResult {
-    success: true;
-    grid: number[]; // Array representing the grid, 1 for mine, 0 for gem
+type MinesBetResult = {
+    success: true,
+    grid: number[], // Array representing the grid, 1 for mine, 0 for gem
 } | {
-    success: false;
-    error: string;
-}
+    success: false,
+    error: string,
+};
 
 // Function to generate the grid with mines
 function generateMinesGrid(gridSize: number, mineCount: number): number[] {
