@@ -1,0 +1,28 @@
+{
+  "placeholderImages": [
+    {
+      "id": "promo4",
+      "description": "Apuestas de la Nueva Temporada",
+      "imageUrl": "https://picsum.photos/seed/promo4/1200/400",
+      "imageHint": "soccer celebration"
+    },
+    {
+      "id": "promo1",
+      "description": "Bono para el Gran Partido",
+      "imageUrl": "https://picsum.photos/seed/promo1/1200/400",
+      "imageHint": "soccer stadium"
+    },
+    {
+      "id": "promo2",
+      "description": "Oferta de Bienvenida al Casino",
+      "imageUrl": "https://picsum.photos/seed/promo2/1200/400",
+      "imageHint": "casino roulette"
+    },
+    {
+      "id": "promo3",
+      "description": "Apuestas Especiales de la NBA",
+      "imageUrl": "https://picsum.photos/seed/promo3/1200/400",
+      "imageHint": "basketball action"
+    }
+  ]
+}
