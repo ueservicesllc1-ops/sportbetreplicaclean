@@ -1,13 +1,9 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> a9b702d234a5f4b18860fae10faabde27b62da89
 {
   "name": "nextn",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 9002 --hostname 0.0.0.0",
+    "dev": "next dev --port 9002 --hostname 0.0.0.0",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
@@ -66,11 +62,8 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/uuid": "^10.0.0",
-<<<<<<< HEAD
     "eslint": "^9.35.0",
     "eslint-config-next": "^15.5.3",
-=======
->>>>>>> a9b702d234a5f4b18860fae10faabde27b62da89
     "genkit-cli": "^1.14.1",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
