@@ -1,19 +1,19 @@
-# Usa Node.js como base
-FROM node:20
+# Usamos Node 20
+FROM node:20-bullseye
 
-# Crea el directorio de trabajo
+# Carpeta de trabajo en el contenedor
 WORKDIR /app
 
-# Copia package.json y package-lock.json para instalar dependencias primero
+# Copiar package.json y package-lock.json primero (para cache de dependencias)
 COPY package*.json ./
 
-# Instala las dependencias
+# Instalar dependencias
 RUN npm install
 
-# Copia todo el resto del proyecto
+# Copiar todo el proyecto
 COPY . .
 
-# Expone el puerto de la app
+# Exponer puerto de la app
 EXPOSE 9002
 
 # Comando para iniciar la app
